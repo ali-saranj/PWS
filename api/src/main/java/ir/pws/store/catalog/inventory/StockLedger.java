@@ -28,17 +28,24 @@ public class StockLedger {
      * ({@code PESSIMISTIC_WRITE}) and its state re-read, so concurrent adjustments serialise and never lose updates.
      * {@code v} must be a persisted entity managed by the current transaction; pending changes are flushed first and
      * the instance is refreshed with the locked, current stock. A result below zero throws
-     * {@code delta / STOCK_NEGATIVE} (the DB CHECK is the last line of defence).
+     * {@code delta / STOCK_NEGATIVE}; an int overflow throws {@code delta / INVALID} (the DB CHECK is the last line
+     * of defence). Callers must NOT modify the variant before calling this: pending changes are flushed first, and
+     * the stock column is only ever written by this method.
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void apply(Variant v, int delta, StockMovementReason reason, Long refId, String note) {
         em.flush();
         em.refresh(v, LockModeType.PESSIMISTIC_WRITE);
-        long result = (long) v.getStockOnHand() + delta;
+        int result;
+        try {
+            result = Math.addExact(v.getStockOnHand(), delta);
+        } catch (ArithmeticException e) {
+            throw ApiException.field("delta", "INVALID");
+        }
         if (result < 0) {
             throw ApiException.field("delta", "STOCK_NEGATIVE");
         }
-        v.setStockOnHand((int) result);
+        v.setStockOnHand(result);
         movements.save(new StockMovement(v.getId(), delta, reason, refId, currentStaffId(), note));
         em.flush();
     }

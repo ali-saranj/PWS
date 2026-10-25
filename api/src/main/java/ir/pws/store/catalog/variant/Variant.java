@@ -10,9 +10,11 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.OptimisticLock;
 
 @Entity
+@DynamicUpdate // admin updates must never write stock_on_hand (owned by StockLedger)
 @Table(name = "variant")
 public class Variant {
 

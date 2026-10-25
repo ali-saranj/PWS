@@ -20,6 +20,11 @@ import ir.pws.store.support.IntegrationTest;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +42,7 @@ class VariantApiTest extends IntegrationTest {
     @Autowired StockLedger ledger;
     @Autowired VariantRepository variantRepository;
     @Autowired TransactionTemplate tx;
+    @Autowired VariantService variantService;
 
     StaffUser pm;
     long productId;
@@ -345,6 +351,112 @@ class VariantApiTest extends IntegrationTest {
         assertThat(rows.get(0).get("note")).isEqualTo("restock");
         // stock changes do not bump the optimistic version
         assertThat(jdbc.queryForObject("select version from variant where id = ?", Long.class, id)).isZero();
+    }
+
+    @Test
+    void ledgerOverflow_isInvalidDeltaField() throws Exception {
+        long id = createVariant("A-1", 1_000_000).get("id").asLong();
+        tx.executeWithoutResult(s -> ledger.apply(variantRepository.findById(id).orElseThrow(), 8,
+                StockMovementReason.MANUAL_ADJUSTMENT, null, null));
+        assertThatThrownBy(() -> tx.executeWithoutResult(s -> ledger.apply(variantRepository.findById(id).orElseThrow(),
+                Integer.MAX_VALUE, StockMovementReason.MANUAL_ADJUSTMENT, null, null)))
+                .isInstanceOfSatisfying(ApiException.class, e -> {
+                    assertThat(e.errors().get(0).field()).isEqualTo("delta");
+                    assertThat(e.errors().get(0).code()).isEqualTo("INVALID");
+                });
+        assertThat(jdbc.queryForObject("select stock_on_hand from variant where id = ?", Integer.class, id)).isEqualTo(8);
+    }
+
+    @Test
+    void tiers_nullElement_is400() throws Exception {
+        long id = createVariant("A-1", 2_000_000).get("id").asLong();
+        mvc.perform(put("/api/admin/variants/" + id + "/tiers").with(adminAuth.staff(pm))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"tiers\":[null]}"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+        mvc.perform(put("/api/admin/variants/" + id + "/tiers").with(adminAuth.staff(pm))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"tiers\":[{\"minQty\":null,\"unitPrice\":5}]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    /** Admin PUT racing a ledger apply(-1): the ledger transaction holds the row lock while the PUT starts. */
+    @Test
+    void adminUpdate_concurrentWithLedgerApply_doesNotLoseStock() throws Exception {
+        Map<String, Object> b = variantBody("A-1", 1_000_000);
+        b.put("initialStock", 10);
+        long id = createVariant(productId, b).get("id").asLong();
+        Map<String, Object> req = variantBody("A-1", 1_100_000);
+        req.put("version", 0);
+        VariantUpsertRequest put = json.convertValue(req, VariantUpsertRequest.class);
+
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> admin;
+            CountDownLatch adminStarted = new CountDownLatch(1);
+            admin = tx.execute(s -> {
+                ledger.apply(variantRepository.findById(id).orElseThrow(), -1, StockMovementReason.ORDER_PAID, 1L, null);
+                Future<?> f = pool.submit(() -> {
+                    adminStarted.countDown();
+                    return variantService.update(id, put);
+                });
+                try {
+                    adminStarted.await();
+                    Thread.sleep(500); // let the PUT reach the row while we still hold the lock
+                } catch (InterruptedException e) {
+                    throw new IllegalStateException(e);
+                }
+                return f;
+            });
+            admin.get(10, TimeUnit.SECONDS);
+        } finally {
+            pool.shutdownNow();
+        }
+        assertThat(jdbc.queryForObject("select stock_on_hand from variant where id = ?", Integer.class, id)).isEqualTo(9);
+        assertThat(jdbc.queryForObject("select version from variant where id = ?", Long.class, id)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select base_price from variant where id = ?", Long.class, id)).isEqualTo(1_100_000);
+        assertThat(jdbc.queryForObject("select count(*) from stock_movement where reason = 'ORDER_PAID'", Long.class)).isEqualTo(1);
+    }
+
+    @Test
+    void tiersPut_concurrentWithBasePriceChange_neverBreaksInvariant() throws Exception {
+        long id = createVariant("A-1", 2_000_000).get("id").asLong();
+        Map<String, Object> req = variantBody("A-1", 1_800_000);
+        req.put("version", 0);
+        VariantUpsertRequest put = json.convertValue(req, VariantUpsertRequest.class);
+        TiersRequest tiers = new TiersRequest(List.of(new TierDto(10, 1_900_000)));
+
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            CountDownLatch ready = new CountDownLatch(2);
+            CountDownLatch go = new CountDownLatch(1);
+            Future<Object> a = pool.submit(() -> {
+                ready.countDown();
+                go.await();
+                return variantService.replaceTiers(id, tiers);
+            });
+            Future<Object> b = pool.submit(() -> {
+                ready.countDown();
+                go.await();
+                return variantService.update(id, put);
+            });
+            ready.await();
+            go.countDown();
+            int failures = 0;
+            for (Future<Object> f : List.of(a, b)) {
+                try {
+                    f.get(15, TimeUnit.SECONDS);
+                } catch (java.util.concurrent.ExecutionException e) {
+                    assertThat(e.getCause()).isInstanceOf(ApiException.class);
+                    assertThat(((ApiException) e.getCause()).errors().get(0).code()).isEqualTo("TIER_INVALID");
+                    failures++;
+                }
+            }
+            assertThat(failures).isEqualTo(1);
+        } finally {
+            pool.shutdownNow();
+        }
+        assertThat(jdbc.queryForObject("""
+                select count(*) from volume_tier t join variant v on v.id = t.variant_id
+                where t.unit_price >= v.base_price""", Long.class)).isZero();
     }
 
     @Test

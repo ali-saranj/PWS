@@ -68,7 +68,7 @@ public class VariantService {
 
     @Transactional
     public VariantDto update(long id, VariantUpsertRequest req) {
-        Variant variant = find(id);
+        Variant variant = findLocked(id);
         if (req.version() == null) {
             throw ApiException.field("version", "REQUIRED");
         }
@@ -87,7 +87,7 @@ public class VariantService {
 
     @Transactional
     public VariantDto replaceTiers(long id, TiersRequest req) {
-        Variant variant = find(id);
+        Variant variant = findLocked(id);
         List<FieldError> errors = TierPricing.validate(variant.getBasePrice(), req.tiers());
         if (!errors.isEmpty()) {
             throw new ApiException(ErrorCode.VALIDATION_FAILED, errors);
@@ -102,8 +102,8 @@ public class VariantService {
         return after;
     }
 
-    private Variant find(long id) {
-        return variants.findById(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+    private Variant findLocked(long id) {
+        return variants.findByIdForUpdate(id).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
     }
 
     private VariantDto dto(Variant v) {
