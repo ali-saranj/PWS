@@ -39,3 +39,8 @@ export function descendantIds(flat: CategoryDto[], id: number): Set<number> {
   }
   return out
 }
+
+/** Flattens the category tree depth-first, remembering each node's depth for indentation. */
+export function flattenTree(nodes: CategoryNode[], depth = 0): { node: CategoryNode; depth: number }[] {
+  return nodes.flatMap((n) => [{ node: n, depth }, ...flattenTree(n.children, depth + 1)])
+}

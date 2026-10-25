@@ -7,6 +7,8 @@ import { RequireRole } from './auth/RequireRole'
 import BrandsPage from './features/brands/BrandsPage'
 import CategoriesPage from './features/categories/CategoriesPage'
 import DashboardPage from './features/dashboard/DashboardPage'
+import ProductEditorPage from './features/products/ProductEditorPage'
+import ProductListPage from './features/products/ProductListPage'
 import { ComingSoon } from './features/placeholders'
 import AppLayout from './layout/AppLayout'
 
@@ -29,9 +31,9 @@ export const routes: RouteObject[] = [
           { index: true, element: <DashboardPage /> },
           { path: 'categories', element: guarded(CATALOG, <CategoriesPage />) },
           { path: 'brands', element: guarded(CATALOG, <BrandsPage />) },
-          { path: 'products', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
-          { path: 'products/new', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
-          { path: 'products/:id', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
+          { path: 'products', element: guarded(CATALOG, <ProductListPage />) },
+          { path: 'products/new', element: guarded(CATALOG, <ProductEditorPage />) },
+          { path: 'products/:id', element: guarded(CATALOG, <ProductEditorPage />) },
           { path: 'inventory', element: guarded(CATALOG, <ComingSoon titleKey="nav.inventory" />) },
           { path: 'staff', element: guarded(OWNER, <ComingSoon titleKey="nav.staff" />) },
           { path: 'audit', element: guarded(OWNER, <ComingSoon titleKey="nav.audit" />) },
