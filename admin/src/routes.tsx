@@ -4,6 +4,8 @@ import type { StaffRole } from './api/types'
 import { AuthRoot } from './auth/AuthContext'
 import LoginPage from './auth/LoginPage'
 import { RequireRole } from './auth/RequireRole'
+import BrandsPage from './features/brands/BrandsPage'
+import CategoriesPage from './features/categories/CategoriesPage'
 import DashboardPage from './features/dashboard/DashboardPage'
 import { ComingSoon } from './features/placeholders'
 import AppLayout from './layout/AppLayout'
@@ -25,8 +27,8 @@ export const routes: RouteObject[] = [
         element: guarded(ALL, <AppLayout />),
         children: [
           { index: true, element: <DashboardPage /> },
-          { path: 'categories', element: guarded(CATALOG, <ComingSoon titleKey="nav.categories" />) },
-          { path: 'brands', element: guarded(CATALOG, <ComingSoon titleKey="nav.brands" />) },
+          { path: 'categories', element: guarded(CATALOG, <CategoriesPage />) },
+          { path: 'brands', element: guarded(CATALOG, <BrandsPage />) },
           { path: 'products', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
           { path: 'products/new', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
           { path: 'products/:id', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },

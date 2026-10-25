@@ -9,10 +9,20 @@
     "toman": "Toman",
     "loading": "Loading…",
     "retry": "Retry",
-    "comingSoon": "This section is coming soon."
+    "comingSoon": "This section is coming soon.",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "active": "Active",
+    "inactive": "Inactive",
+    "empty": "Nothing here yet."
   },
   "validation": {
-    "integer": "Enter a whole number."
+    "integer": "Enter a whole number.",
+    "required": "This field is required.",
+    "maxLength": "At most {{max}} characters.",
+    "slug": "Slug may contain only lowercase letters, digits and dashes."
   },
   "auth": {
     "title": "Sign in to the admin panel",
@@ -40,5 +50,35 @@
   "dashboard": {
     "welcome": "Welcome, {{name}}",
     "hint": "Pick a section from the side menu."
+  },
+  "form": {
+    "nameFa": "Persian name",
+    "nameEn": "English name",
+    "slug": "Slug",
+    "active": "Active",
+    "sortOrder": "Sort order"
+  },
+  "categories": {
+    "title": "Categories",
+    "add": "Add category",
+    "addChild": "Add subcategory",
+    "edit": "Edit category",
+    "create": "New category",
+    "parent": "Parent category",
+    "noParent": "No parent (top level)",
+    "deleteTitle": "Delete category",
+    "deleteMessage": "Delete the category \"{{name}}\"?"
+  },
+  "brands": {
+    "title": "Brands",
+    "add": "Add brand",
+    "edit": "Edit brand",
+    "create": "New brand",
+    "logo": "Logo",
+    "uploadLogo": "Upload logo",
+    "noLogo": "No logo",
+    "deleteTitle": "Delete brand",
+    "deleteMessage": "Delete the brand \"{{name}}\"?",
+    "fileTooLarge": "The file must not exceed 5 MB."
   }
 }
