@@ -1,5 +1,6 @@
 package ir.pws.store.staff;
 
+import ir.pws.store.audit.AuditService;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.security.AuthCookies;
@@ -43,6 +44,7 @@ public class StaffAuthService {
     private final PasswordEncoder encoder;
     private final Clock clock;
     private final TransactionTemplate tx;
+    private final AuditService audit;
     private final SecureRandom random = new SecureRandom();
     /** Matched against when the username is unknown so that path costs the same bcrypt work as a wrong password. */
     private final String dummyHash;
@@ -54,13 +56,15 @@ public class StaffAuthService {
             JwtService jwt,
             PasswordEncoder encoder,
             Clock clock,
-            PlatformTransactionManager txManager) {
+            PlatformTransactionManager txManager,
+            AuditService audit) {
         this.staff = staff;
         this.refreshTokens = refreshTokens;
         this.otp = otp;
         this.jwt = jwt;
         this.encoder = encoder;
         this.clock = clock;
+        this.audit = audit;
         this.tx = new TransactionTemplate(txManager);
         this.dummyHash = encoder.encode("dummy-password-for-constant-time-login");
     }
@@ -99,6 +103,7 @@ public class StaffAuthService {
         }
         if (!encoder.matches(password, user.getPasswordHash())) {
             user.recordFailedLogin(now, FAILURE_WINDOW, MAX_FAILURES, LOCK_DURATION);
+            audit.recordFor(user.getId(), "STAFF_LOGIN_FAILED", "STAFF_USER", user.getId(), null, null);
             return new Attempt(Outcome.BAD_CREDENTIALS, null, 0);
         }
         if (!user.isActive()) {
@@ -117,6 +122,7 @@ public class StaffAuthService {
                 .filter(StaffUser::isActive)
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHENTICATED));
         otp.verify(user.getMobile(), OtpPurpose.STAFF_LOGIN, code);
+        audit.recordFor(user.getId(), "STAFF_LOGIN", "STAFF_USER", user.getId(), null, null);
         return newSession(user);
     }
 
