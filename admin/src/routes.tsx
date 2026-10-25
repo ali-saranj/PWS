@@ -1,0 +1,42 @@
+import { createBrowserRouter, type RouteObject } from 'react-router'
+import type { ReactNode } from 'react'
+import type { StaffRole } from './api/types'
+import { AuthRoot } from './auth/AuthContext'
+import LoginPage from './auth/LoginPage'
+import { RequireRole } from './auth/RequireRole'
+import DashboardPage from './features/dashboard/DashboardPage'
+import { ComingSoon } from './features/placeholders'
+import AppLayout from './layout/AppLayout'
+
+const ALL: StaffRole[] = ['OWNER', 'PRODUCT_MANAGER', 'ORDER_OPERATOR']
+const CATALOG: StaffRole[] = ['OWNER', 'PRODUCT_MANAGER']
+const OWNER: StaffRole[] = ['OWNER']
+
+function guarded(roles: StaffRole[], element: ReactNode) {
+  return <RequireRole roles={roles}>{element}</RequireRole>
+}
+
+export const routes: RouteObject[] = [
+  {
+    element: <AuthRoot />,
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      {
+        element: guarded(ALL, <AppLayout />),
+        children: [
+          { index: true, element: <DashboardPage /> },
+          { path: 'categories', element: guarded(CATALOG, <ComingSoon titleKey="nav.categories" />) },
+          { path: 'brands', element: guarded(CATALOG, <ComingSoon titleKey="nav.brands" />) },
+          { path: 'products', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
+          { path: 'products/new', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
+          { path: 'products/:id', element: guarded(CATALOG, <ComingSoon titleKey="nav.products" />) },
+          { path: 'inventory', element: guarded(CATALOG, <ComingSoon titleKey="nav.inventory" />) },
+          { path: 'staff', element: guarded(OWNER, <ComingSoon titleKey="nav.staff" />) },
+          { path: 'audit', element: guarded(OWNER, <ComingSoon titleKey="nav.audit" />) },
+        ],
+      },
+    ],
+  },
+]
+
+export const router = createBrowserRouter(routes)

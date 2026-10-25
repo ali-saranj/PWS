@@ -1,12 +1,44 @@
 {
-  "app": { "title": "Store admin panel" },
+  "app": {
+    "title": "Store admin panel"
+  },
   "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
     "language": "Language",
-    "toman": "Toman"
+    "toman": "Toman",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "comingSoon": "This section is coming soon."
   },
   "validation": {
     "integer": "Enter a whole number."
+  },
+  "auth": {
+    "title": "Sign in to the admin panel",
+    "username": "Username",
+    "password": "Password",
+    "signIn": "Sign in",
+    "code": "Verification code",
+    "codeSent": "A verification code was sent to {{mobile}}.",
+    "verify": "Verify and sign in",
+    "back": "Back",
+    "logout": "Log out",
+    "noAccessTitle": "No access",
+    "noAccessBody": "You do not have permission to view this section."
+  },
+  "nav": {
+    "menu": "Menu",
+    "dashboard": "Dashboard",
+    "categories": "Categories",
+    "brands": "Brands",
+    "products": "Products",
+    "inventory": "Inventory",
+    "staff": "Staff",
+    "audit": "Audit log"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}",
+    "hint": "Pick a section from the side menu."
   }
 }
