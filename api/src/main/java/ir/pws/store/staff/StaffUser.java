@@ -103,6 +103,17 @@ public class StaffUser {
         return lockedUntil != null && lockedUntil.isAfter(now);
     }
 
+    public void updateProfile(String fullName, String mobile, StaffRole role, boolean active) {
+        this.fullName = fullName;
+        this.mobile = mobile;
+        this.role = role;
+        this.active = active;
+    }
+
+    public void changePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public Long getId() {
         return id;
     }

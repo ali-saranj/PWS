@@ -15,4 +15,15 @@ public interface StaffUserRepository extends JpaRepository<StaffUser, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from StaffUser u where u.username = :username")
     Optional<StaffUser> findForUpdateByUsername(@Param("username") String username);
+
+    boolean existsByUsernameIgnoreCase(String username);
+
+    boolean existsByMobile(String mobile);
+
+    boolean existsByMobileAndIdNot(String mobile, Long id);
+
+    /** Locks every active owner row (FOR UPDATE) so concurrent demotions are serialised before counting. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from StaffUser u where u.role = ir.pws.store.staff.StaffRole.OWNER and u.active = true order by u.id")
+    java.util.List<StaffUser> lockActiveOwners();
 }
