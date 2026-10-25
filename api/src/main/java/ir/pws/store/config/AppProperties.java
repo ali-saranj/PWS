@@ -1,22 +1,27 @@
 package ir.pws.store.config;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 @ConfigurationProperties("app")
 public record AppProperties(
-        Cookies cookies,
-        Jwt jwt,
-        Otp otp,
+        @NotNull Cookies cookies,
+        @Valid @NotNull Jwt jwt,
+        @Valid @NotNull Otp otp,
         Media media,
         Sms sms,
         Bootstrap bootstrap) {
 
     public record Cookies(boolean secure) {}
 
-    public record Jwt(String staffSecret, String customerSecret) {}
+    public record Jwt(@NotBlank String staffSecret, @NotBlank String customerSecret) {}
 
-    public record Otp(String secret) {}
+    public record Otp(@NotBlank String secret) {}
 
     public record Media(String dir, @DefaultValue("/media") String baseUrl, boolean serve) {}
 
