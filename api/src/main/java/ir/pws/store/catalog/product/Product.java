@@ -119,6 +119,10 @@ public class Product {
         updatedAt = Instant.now();
     }
 
+    public void setStatus(ProductStatus status) {
+        this.status = status;
+    }
+
     public Long getId() { return id; }
     public long getVersion() { return version; }
     public long getBrandId() { return brandId; }

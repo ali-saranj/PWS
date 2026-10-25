@@ -1,5 +1,6 @@
 package ir.pws.store.catalog.product;
 
+import ir.pws.store.catalog.variant.VariantDto;
 import java.util.List;
 
 public record ProductDetailDto(
@@ -19,13 +20,13 @@ public record ProductDetailDto(
         String seoDescriptionFa,
         String seoDescriptionEn,
         List<Object> images,
-        List<Object> variants) {
+        List<VariantDto> variants) {
 
-    /** Images and variants are filled by later tasks. */
-    static ProductDetailDto from(Product p) {
+    /** Images are filled by a later task. */
+    static ProductDetailDto from(Product p, List<VariantDto> variants) {
         return new ProductDetailDto(p.getId(), p.getVersion(), p.getBrandId(), p.getCategoryId(), p.getSlug(),
                 p.getNameFa(), p.getNameEn(), p.getDescriptionFa(), p.getDescriptionEn(), p.getStatus(),
                 p.isFeatured(), p.getSeoTitleFa(), p.getSeoTitleEn(), p.getSeoDescriptionFa(),
-                p.getSeoDescriptionEn(), List.of(), List.of());
+                p.getSeoDescriptionEn(), List.of(), variants);
     }
 }

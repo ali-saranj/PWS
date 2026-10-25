@@ -52,4 +52,9 @@ public class ProductController {
     public ProductDetailDto update(@PathVariable long id, @Valid @RequestBody ProductUpsertRequest request) {
         return service.update(id, request);
     }
+
+    @PostMapping("/{id}/status")
+    public ProductDetailDto changeStatus(@PathVariable long id, @Valid @RequestBody ProductStatusRequest request) {
+        return service.changeStatus(id, request);
+    }
 }

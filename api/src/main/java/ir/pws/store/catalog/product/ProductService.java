@@ -4,14 +4,22 @@ import ir.pws.store.audit.AuditService;
 import ir.pws.store.catalog.brand.BrandRepository;
 import ir.pws.store.catalog.category.CategoryRepository;
 import ir.pws.store.catalog.product.Product.ProductContent;
+import ir.pws.store.catalog.variant.Variant;
+import ir.pws.store.catalog.variant.VariantRepository;
+import ir.pws.store.catalog.variant.VariantService;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.text.HtmlSanitizer;
 import ir.pws.store.common.text.Slugs;
 import ir.pws.store.common.web.PageResponse;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,13 +35,17 @@ public class ProductService {
     private final ProductRepository products;
     private final BrandRepository brands;
     private final CategoryRepository categories;
+    private final VariantRepository variants;
+    private final VariantService variantService;
     private final AuditService audit;
 
     public ProductService(ProductRepository products, BrandRepository brands, CategoryRepository categories,
-            AuditService audit) {
+            VariantRepository variants, VariantService variantService, AuditService audit) {
         this.products = products;
         this.brands = brands;
         this.categories = categories;
+        this.variants = variants;
+        this.variantService = variantService;
         this.audit = audit;
     }
 
@@ -42,13 +54,17 @@ public class ProductService {
             int page, int size) {
         var pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100), LIST_SORT);
         var result = products.findAll(filter(q, status, categoryId, brandId), pageable);
-        // Aggregates from variants/images (Tasks 12-13) are added here, keyed by the page's product ids.
-        return PageResponse.of(result.map(ProductSummaryDto::from));
+        // One aggregate query for the whole page (no N+1). Image thumbnails arrive in a later task.
+        Map<Long, VariantRepository.ProductAggregate> aggregates = result.isEmpty() ? Map.of()
+                : variants.aggregateByProductIds(result.getContent().stream().map(Product::getId).toList()).stream()
+                        .collect(Collectors.toMap(VariantRepository.ProductAggregate::getProductId,
+                                Function.identity()));
+        return PageResponse.of(result.map(p -> ProductSummaryDto.from(p, aggregates.get(p.getId()))));
     }
 
     @Transactional(readOnly = true)
     public ProductDetailDto getDetail(long id) {
-        return ProductDetailDto.from(find(id));
+        return detail(find(id));
     }
 
     @Transactional
@@ -70,12 +86,36 @@ public class ProductService {
             throw new ApiException(ErrorCode.CONFLICT);
         }
         ProductContent content = content(req, id);
-        ProductDetailDto before = ProductDetailDto.from(product);
+        ProductDetailDto before = detail(product);
         product.update(content);
         products.saveAndFlush(product);
         ProductDetailDto after = getDetail(id);
         audit.record("PRODUCT_UPDATE", ENTITY, id, before, after);
         return after;
+    }
+
+    @Transactional
+    public ProductDetailDto changeStatus(long id, ProductStatusRequest req) {
+        Product product = find(id);
+        if (req.version() == null) {
+            throw ApiException.field("version", "REQUIRED");
+        }
+        if (req.version() != product.getVersion()) {
+            throw new ApiException(ErrorCode.CONFLICT);
+        }
+        if (req.status() == ProductStatus.ACTIVE && !variants.existsByProductIdAndActiveTrue(id)) {
+            throw new ApiException(ErrorCode.PRODUCT_NOT_PUBLISHABLE);
+        }
+        ProductDetailDto before = detail(product);
+        product.setStatus(req.status());
+        products.saveAndFlush(product);
+        ProductDetailDto after = detail(product);
+        audit.record("PRODUCT_STATUS_CHANGE", ENTITY, id, before, after);
+        return after;
+    }
+
+    private ProductDetailDto detail(Product product) {
+        return ProductDetailDto.from(product, variantService.listForProduct(product.getId()));
     }
 
     private Product find(long id) {
@@ -110,7 +150,8 @@ public class ProductService {
                 ps.add(cb.or(
                         cb.like(cb.lower(root.get("nameFa")), like, '\\'),
                         cb.like(cb.lower(root.get("nameEn")), like, '\\'),
-                        cb.like(cb.lower(root.get("slug")), like, '\\')));
+                        cb.like(cb.lower(root.get("slug")), like, '\\'),
+                        cb.exists(skuMatch(root, query, cb, like))));
             }
             if (status != null) {
                 ps.add(cb.equal(root.get("status"), status));
@@ -123,6 +164,15 @@ public class ProductService {
             }
             return cb.and(ps.toArray(Predicate[]::new));
         };
+    }
+
+    private static Subquery<Long> skuMatch(Root<Product> root, jakarta.persistence.criteria.CriteriaQuery<?> query,
+            jakarta.persistence.criteria.CriteriaBuilder cb, String like) {
+        Subquery<Long> sub = query.subquery(Long.class);
+        Root<Variant> v = sub.from(Variant.class);
+        return sub.select(v.<Long>get("id")).where(
+                cb.equal(v.get("productId"), root.get("id")),
+                cb.like(cb.lower(v.get("sku")), like, '\\'));
     }
 
     private static String trimToNull(String value) {

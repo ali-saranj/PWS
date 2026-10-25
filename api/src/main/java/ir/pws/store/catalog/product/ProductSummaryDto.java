@@ -1,5 +1,6 @@
 package ir.pws.store.catalog.product;
 
+import ir.pws.store.catalog.variant.VariantRepository;
 import java.time.Instant;
 
 public record ProductSummaryDto(
@@ -16,9 +17,10 @@ public record ProductSummaryDto(
         long totalStock,
         Instant updatedAt) {
 
-    /** Variant/image-derived fields are filled by later tasks. */
-    static ProductSummaryDto from(Product p) {
+    /** Thumbnail is filled by a later task; variant aggregates come from one query per page (null = no variants). */
+    static ProductSummaryDto from(Product p, VariantRepository.ProductAggregate agg) {
         return new ProductSummaryDto(p.getId(), p.getNameFa(), p.getNameEn(), p.getSlug(), p.getStatus(),
-                p.getBrandId(), p.getCategoryId(), null, 0, null, 0, p.getUpdatedAt());
+                p.getBrandId(), p.getCategoryId(), null, agg == null ? 0 : agg.getVariantCount().intValue(),
+                agg == null ? null : agg.getMinPrice(), agg == null ? 0 : agg.getTotalStock(), p.getUpdatedAt());
     }
 }
