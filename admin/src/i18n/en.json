@@ -187,5 +187,33 @@
     "orderedList": "Numbered list",
     "link": "Link",
     "linkPrompt": "Link URL (empty removes the link)"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "search": "Search by product or SKU",
+    "lowStockOnly": "Low stock only",
+    "product": "Product",
+    "sku": "SKU",
+    "stock": "On hand",
+    "threshold": "Low-stock threshold",
+    "adjustBy": "Adjust by",
+    "adjustAria": "Adjust {{sku}}",
+    "historyAria": "History {{sku}}",
+    "history": "Stock history",
+    "noteAll": "Note for all changes",
+    "discard": "Discard",
+    "apply": "Apply {{n}} changes",
+    "apply_one": "Apply {{n}} change",
+    "date": "Date",
+    "change": "Change",
+    "reason": "Reason",
+    "staff": "By",
+    "note": "Note",
+    "reasons": {
+      "INITIAL": "Initial stock",
+      "MANUAL_ADJUSTMENT": "Manual adjustment",
+      "ORDER_PAID": "Order paid",
+      "ORDER_CANCELLED": "Order cancelled"
+    }
   }
 }

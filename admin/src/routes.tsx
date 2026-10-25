@@ -9,6 +9,7 @@ import CategoriesPage from './features/categories/CategoriesPage'
 import DashboardPage from './features/dashboard/DashboardPage'
 import ProductEditorPage from './features/products/ProductEditorPage'
 import ProductListPage from './features/products/ProductListPage'
+import InventoryPage from './features/inventory/InventoryPage'
 import { ComingSoon } from './features/placeholders'
 import AppLayout from './layout/AppLayout'
 
@@ -34,7 +35,7 @@ export const routes: RouteObject[] = [
           { path: 'products', element: guarded(CATALOG, <ProductListPage />) },
           { path: 'products/new', element: guarded(CATALOG, <ProductEditorPage />) },
           { path: 'products/:id', element: guarded(CATALOG, <ProductEditorPage />) },
-          { path: 'inventory', element: guarded(CATALOG, <ComingSoon titleKey="nav.inventory" />) },
+          { path: 'inventory', element: guarded(CATALOG, <InventoryPage />) },
           { path: 'staff', element: guarded(OWNER, <ComingSoon titleKey="nav.staff" />) },
           { path: 'audit', element: guarded(OWNER, <ComingSoon titleKey="nav.audit" />) },
         ],

@@ -187,5 +187,33 @@
     "orderedList": "فهرست شماره‌دار",
     "link": "پیوند",
     "linkPrompt": "نشانی پیوند (خالی = حذف پیوند)"
+  },
+  "inventory": {
+    "title": "موجودی",
+    "search": "جستجو بر اساس محصول یا SKU",
+    "lowStockOnly": "فقط موجودی کم",
+    "product": "محصول",
+    "sku": "SKU",
+    "stock": "موجودی فعلی",
+    "threshold": "آستانه موجودی کم",
+    "adjustBy": "تغییر به میزان",
+    "adjustAria": "تغییر {{sku}}",
+    "historyAria": "تاریخچه {{sku}}",
+    "history": "تاریخچه موجودی",
+    "noteAll": "یادداشت برای همه تغییرات",
+    "discard": "لغو تغییرات",
+    "apply": "اعمال {{n}} تغییر",
+    "apply_one": "اعمال {{n}} تغییر",
+    "date": "تاریخ",
+    "change": "تغییر",
+    "reason": "دلیل",
+    "staff": "توسط",
+    "note": "یادداشت",
+    "reasons": {
+      "INITIAL": "موجودی اولیه",
+      "MANUAL_ADJUSTMENT": "تعدیل دستی",
+      "ORDER_PAID": "سفارش پرداخت‌شده",
+      "ORDER_CANCELLED": "سفارش لغوشده"
+    }
   }
 }

@@ -18,6 +18,22 @@ export function parseLocalizedInt(s: string): number | null {
   return Number.isSafeInteger(n) ? n : null
 }
 
+/** Like parseLocalizedInt but also accepts a leading + or - (ASCII or U+2212 minus). Null when empty or invalid. */
+export function parseLocalizedSignedInt(s: string): number | null {
+  const cleaned = toLatinDigits(s).replace(GROUP_SEPARATORS, '').replace(/^−/, '-')
+  if (!/^[+-]?\d+$/.test(cleaned)) return null
+  const n = Number(cleaned)
+  return Number.isSafeInteger(n) ? n + 0 : null
+}
+
+const PERSIAN_DIGITS = '۰۱۲۳۴۵۶۷۸۹'
+
+/** Shows digits of `s` in Persian for fa, Latin otherwise. */
+export function localizeDigits(s: string, locale: string): string {
+  const latin = toLatinDigits(s)
+  return locale === 'fa' ? latin.replace(/\d/g, (d) => PERSIAN_DIGITS[Number(d)]) : latin
+}
+
 const numberFormats: Record<Locale, Intl.NumberFormat> = {
   fa: new Intl.NumberFormat('fa-IR'),
   en: new Intl.NumberFormat('en-US'),

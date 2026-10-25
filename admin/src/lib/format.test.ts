@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, formatToman, parseLocalizedInt, rialsToToman, tomanToRials } from './format'
+import { formatDate, formatToman, parseLocalizedInt, parseLocalizedSignedInt, rialsToToman, tomanToRials } from './format'
 
 describe('format', () => {
   it('parses localized integers', () => {
@@ -9,6 +9,18 @@ describe('format', () => {
     expect(parseLocalizedInt('')).toBeNull()
     expect(parseLocalizedInt('12a')).toBeNull()
     expect(parseLocalizedInt('1.5')).toBeNull()
+  })
+
+  it('parses signed localized integers', () => {
+    expect(parseLocalizedSignedInt('-۵')).toBe(-5)
+    expect(parseLocalizedSignedInt('+٣')).toBe(3)
+    expect(parseLocalizedSignedInt('−12')).toBe(-12)
+    expect(parseLocalizedSignedInt('7')).toBe(7)
+    expect(parseLocalizedSignedInt('-0')).toBe(0)
+    expect(parseLocalizedSignedInt('-')).toBeNull()
+    expect(parseLocalizedSignedInt('')).toBeNull()
+    expect(parseLocalizedSignedInt('1-2')).toBeNull()
+    expect(parseLocalizedSignedInt('1.5')).toBeNull()
   })
 
   it('formats toman', () => {
