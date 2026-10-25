@@ -28,7 +28,7 @@ const AUTH_PREFIX = '/api/admin/auth/'
 const REFRESH_PATH = '/api/admin/auth/refresh'
 
 let sessionExpiredHandler: () => void = () => {}
-let refreshInFlight: Promise<boolean> | null = null
+let refreshInFlight: Promise<RefreshResult> | null = null
 
 export function setSessionExpiredHandler(fn: () => void): void {
   sessionExpiredHandler = fn
@@ -96,14 +96,21 @@ async function send(path: string, opts: FetchOptions): Promise<Response> {
   }
 }
 
+type RefreshResult = { ok: true } | { ok: false; error: ApiError; expired: boolean }
+
 /** One shared refresh for all concurrent callers: the API revokes every session on refresh-token reuse. */
-function refreshSession(): Promise<boolean> {
-  refreshInFlight ??= send(REFRESH_PATH, { method: 'POST' })
-    .then((res) => res.ok)
-    .catch(() => false)
-    .finally(() => {
-      refreshInFlight = null
-    })
+function refreshSession(): Promise<RefreshResult> {
+  refreshInFlight ??= (async (): Promise<RefreshResult> => {
+    try {
+      const res = await send(REFRESH_PATH, { method: 'POST' })
+      if (res.ok) return { ok: true }
+      return { ok: false, error: await toApiError(res), expired: res.status === 401 || res.status === 403 }
+    } catch (e) {
+      return { ok: false, error: e instanceof ApiError ? e : networkError(), expired: false }
+    }
+  })().finally(() => {
+    refreshInFlight = null
+  })
   return refreshInFlight
 }
 
@@ -112,9 +119,13 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
 
   if (res.status === 401 && !path.startsWith(AUTH_PREFIX)) {
     const original = await toApiError(res)
-    if (!(await refreshSession())) {
-      sessionExpiredHandler()
-      throw original
+    const refreshed = await refreshSession()
+    if (!refreshed.ok) {
+      if (refreshed.expired) {
+        sessionExpiredHandler()
+        throw original
+      }
+      throw refreshed.error
     }
     res = await send(path, opts)
   }

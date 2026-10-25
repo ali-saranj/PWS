@@ -112,6 +112,31 @@ describe('apiFetch', () => {
     expect(handler).toHaveBeenCalledTimes(1)
   })
 
+  it('refresh network error does not call the handler and throws NETWORK_ERROR', async () => {
+    const handler = vi.fn()
+    setSessionExpiredHandler(handler)
+    server.use(
+      http.get('/api/admin/things', () => problem(401, 'UNAUTHENTICATED')),
+      http.post('/api/admin/auth/refresh', () => HttpResponse.error()),
+    )
+    const err = (await apiFetch('/api/admin/things').catch((e) => e)) as ApiError
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err.code).toBe('NETWORK_ERROR')
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('refresh 5xx does not call the handler and throws the refresh problem', async () => {
+    const handler = vi.fn()
+    setSessionExpiredHandler(handler)
+    server.use(
+      http.get('/api/admin/things', () => problem(401, 'UNAUTHENTICATED')),
+      http.post('/api/admin/auth/refresh', () => problem(503, 'SMS_UNAVAILABLE')),
+    )
+    const err = (await apiFetch('/api/admin/things').catch((e) => e)) as ApiError
+    expect(err.status).toBe(503)
+    expect(handler).not.toHaveBeenCalled()
+  })
+
   it('does not try to refresh for /api/admin/auth/* calls', async () => {
     let refreshes = 0
     server.use(
