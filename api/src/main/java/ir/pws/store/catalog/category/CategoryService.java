@@ -1,6 +1,7 @@
 package ir.pws.store.catalog.category;
 
 import ir.pws.store.audit.AuditService;
+import ir.pws.store.catalog.product.ProductRepository;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.text.Slugs;
@@ -19,10 +20,12 @@ public class CategoryService {
 
     private final CategoryRepository categories;
     private final AuditService audit;
+    private final ProductRepository products;
 
-    public CategoryService(CategoryRepository categories, AuditService audit) {
+    public CategoryService(CategoryRepository categories, AuditService audit, ProductRepository products) {
         this.categories = categories;
         this.audit = audit;
+        this.products = products;
     }
 
     @Transactional(readOnly = true)
@@ -69,9 +72,9 @@ public class CategoryService {
         audit.record("CATEGORY_DELETE", ENTITY, id, before, null);
     }
 
-    /** Throws RESOURCE_IN_USE when the category cannot be removed. Extension point: product checks are added later. */
+    /** Throws RESOURCE_IN_USE when the category cannot be removed. */
     public void assertDeletable(long id) {
-        if (categories.existsByParentId(id)) {
+        if (categories.existsByParentId(id) || products.existsByCategoryId(id)) {
             throw new ApiException(ErrorCode.RESOURCE_IN_USE);
         }
     }

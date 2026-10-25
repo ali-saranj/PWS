@@ -1,6 +1,7 @@
 package ir.pws.store.catalog.brand;
 
 import ir.pws.store.audit.AuditService;
+import ir.pws.store.catalog.product.ProductRepository;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.text.Slugs;
@@ -17,11 +18,14 @@ public class BrandService {
 
     private final BrandRepository brands;
     private final AuditService audit;
+    private final ProductRepository products;
     private final String mediaBaseUrl;
 
-    public BrandService(BrandRepository brands, AuditService audit, AppProperties props) {
+    public BrandService(BrandRepository brands, AuditService audit, ProductRepository products,
+            AppProperties props) {
         this.brands = brands;
         this.audit = audit;
+        this.products = products;
         this.mediaBaseUrl = props.media() == null ? "/media" : props.media().baseUrl();
     }
 
@@ -62,9 +66,11 @@ public class BrandService {
         audit.record("BRAND_DELETE", ENTITY, id, before, null);
     }
 
-    /** Throws RESOURCE_IN_USE when the brand cannot be removed. Extension point: product checks are added later. */
+    /** Throws RESOURCE_IN_USE when the brand cannot be removed. */
     public void assertDeletable(long id) {
-        // No references yet; products arrive in a later task.
+        if (products.existsByBrandId(id)) {
+            throw new ApiException(ErrorCode.RESOURCE_IN_USE);
+        }
     }
 
     private Brand find(long id) {
