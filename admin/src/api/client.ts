@@ -1,4 +1,4 @@
-import type { FieldError, ProblemDetail } from './types'
+import type { FieldError, ProblemDetail, StaffMe } from './types'
 
 export class ApiError extends Error {
   status: number
@@ -96,14 +96,14 @@ async function send(path: string, opts: FetchOptions): Promise<Response> {
   }
 }
 
-type RefreshResult = { ok: true } | { ok: false; error: ApiError; expired: boolean }
+type RefreshResult = { ok: true; staff: StaffMe | null } | { ok: false; error: ApiError; expired: boolean }
 
 /** One shared refresh for all concurrent callers: the API revokes every session on refresh-token reuse. */
 function refreshSession(): Promise<RefreshResult> {
   refreshInFlight ??= (async (): Promise<RefreshResult> => {
     try {
       const res = await send(REFRESH_PATH, { method: 'POST' })
-      if (res.ok) return { ok: true }
+      if (res.ok) return { ok: true, staff: await res.json().catch(() => null) }
       return { ok: false, error: await toApiError(res), expired: res.status === 401 || res.status === 403 }
     } catch (e) {
       return { ok: false, error: e instanceof ApiError ? e : networkError(), expired: false }
@@ -133,4 +133,12 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
   if (!res.ok) throw await toApiError(res)
   if (res.status === 204) return undefined as T
   return (await res.json()) as T
+}
+
+/** Refreshes the session through the shared in-flight refresh and returns the signed-in staff. Throws ApiError. */
+export async function refreshAuth(): Promise<StaffMe> {
+  const r = await refreshSession()
+  if (!r.ok) throw r.error
+  if (!r.staff) throw networkError()
+  return r.staff
 }

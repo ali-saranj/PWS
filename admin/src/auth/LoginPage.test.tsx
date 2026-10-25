@@ -27,7 +27,7 @@ describe('LoginPage', () => {
         return HttpResponse.json(owner)
       }),
     )
-    const router = renderRoutes('/login', null)
+    const { router } = renderRoutes('/login', null)
     await fillStep1()
     expect(await screen.findByText(/0912\*\*\*4567/)).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Verification code'), '123456')
@@ -68,5 +68,15 @@ describe('LoginPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Verify and sign in' }))
     await screen.findByText('Welcome, Main Owner')
     expect(code).toBe('12345')
+  })
+
+  it('Back returns to step 1 keeping the username', async () => {
+    server.use(
+      http.post('/api/admin/auth/login', () => HttpResponse.json({ challenge: 'c1', mobileMasked: '0912***4567' })),
+    )
+    renderRoutes('/login', null)
+    await fillStep1()
+    await userEvent.click(await screen.findByRole('button', { name: 'Back' }))
+    expect(await screen.findByLabelText('Username')).toHaveValue('owner')
   })
 })

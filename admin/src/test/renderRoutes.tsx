@@ -9,9 +9,13 @@ import { routes } from '../routes'
 import { server } from './server'
 
 /** Renders the real route tree at `path`; /csrf succeeds and /me returns `staff` (or 401 when null). */
-export function renderRoutes(path: string, staff: StaffMe | null) {
+export function renderRoutes(path: string, staff: StaffMe | null, opts: { customBoot?: boolean } = {}) {
   void i18n.changeLanguage('en')
-  server.use(
+  if (!opts.customBoot)
+    server.use(
+    http.post('/api/admin/auth/refresh', () =>
+      HttpResponse.json({ code: 'UNAUTHENTICATED', messages: { fa: 'ورود لازم است', en: 'Sign in required' } }, { status: 401 }),
+    ),
     http.get('/api/admin/auth/csrf', () => new HttpResponse(null, { status: 204 })),
     http.get('/api/admin/auth/me', () =>
       staff
@@ -29,5 +33,5 @@ export function renderRoutes(path: string, staff: StaffMe | null) {
       <RouterProvider router={router} />
     </QueryClientProvider>,
   )
-  return router
+  return { router, client }
 }

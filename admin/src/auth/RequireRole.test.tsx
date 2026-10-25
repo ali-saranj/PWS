@@ -4,7 +4,7 @@ import { renderRoutes } from '../test/renderRoutes'
 
 describe('RequireRole', () => {
   it('redirects when signed out', async () => {
-    const router = renderRoutes('/staff', null)
+    const { router } = renderRoutes('/staff', null)
     expect(await screen.findByRole('button', { name: 'Sign in' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
   })

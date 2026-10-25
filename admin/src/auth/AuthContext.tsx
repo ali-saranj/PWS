@@ -2,9 +2,10 @@ import { Box, Button, CircularProgress, Stack } from '@mui/material'
 import { useQueryClient } from '@tanstack/react-query'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { flushSync } from 'react-dom'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { csrf, logout, me } from '../api/auth'
-import { ApiError, setSessionExpiredHandler } from '../api/client'
+import { ApiError, refreshAuth, setSessionExpiredHandler } from '../api/client'
 import type { StaffMe } from '../api/types'
 import { ErrorAlert } from '../components/ErrorAlert'
 
@@ -44,13 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setBootError(null)
     csrf()
-      .then(() => me())
+      .then(() =>
+        me().catch((e: unknown) => {
+          // Access token expired but the refresh cookie may still be valid.
+          if (e instanceof ApiError && e.status === 401) return refreshAuth()
+          throw e
+        }),
+      )
       .then((s) => {
         if (!cancelled) setStaff(s)
       })
       .catch((e: unknown) => {
         if (cancelled) return
-        if (!(e instanceof ApiError && e.status === 401)) setBootError(e)
+        if (!(e instanceof ApiError && (e.status === 401 || e.status === 403))) setBootError(e)
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -82,8 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // leave anyway: the server session expires on its own
     }
     queryClient.clear()
-    setStaff(null)
-    void navigate('/login', { replace: true })
+    // Commit the signed-out state first (RequireRole may redirect with a `from`), then navigate
+    // explicitly with empty state so no previous page survives the logout.
+    flushSync(() => setStaff(null))
+    await navigate('/login', { replace: true, state: null })
   }, [queryClient, navigate])
 
   const value = useMemo(() => ({ staff, loading, signIn, signOut }), [staff, loading, signIn, signOut])
