@@ -1,0 +1,11 @@
+# Local development only (no Docker): enables the dev seed migration and bootstraps the OWNER account.
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/dev
+
+app:
+  bootstrap:
+    owner:
+      username: owner
+      password: ChangeMe12345
+      mobile: "09120000000"
