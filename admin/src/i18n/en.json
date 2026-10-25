@@ -129,7 +129,54 @@
     "unsavedTitle": "Unsaved changes",
     "unsavedMessage": "Your unsaved changes will be lost. Leave this page?",
     "leave": "Leave",
-    "stay": "Stay"
+    "stay": "Stay",
+    "variants": {
+      "add": "Add variant",
+      "create": "New variant",
+      "edit": "Edit variant",
+      "sku": "SKU",
+      "flavour": "Flavour",
+      "flavourFa": "Flavour (Persian)",
+      "flavourEn": "Flavour (English)",
+      "size": "Size",
+      "weight": "Weight (grams)",
+      "price": "Price",
+      "basePrice": "Price (Toman)",
+      "compareAt": "Compare-at price (Toman)",
+      "lowStock": "Low-stock threshold",
+      "initialStock": "Initial stock",
+      "activeCol": "Status",
+      "tiers": "Tiers",
+      "compareAtInvalid": "Must be greater than the price.",
+      "baseTierInvalid": "This price would invalidate the volume tiers. Adjust the tiers first."
+    },
+    "tiers": {
+      "title": "Volume tiers for {{sku}}",
+      "base": "Base price: {{price}} Toman",
+      "none": "No volume tiers.",
+      "minQty": "Minimum quantity",
+      "unitPrice": "Unit price (Toman)",
+      "add": "Add tier",
+      "example": "{{qty}} units → {{price}} Toman each",
+      "errors": {
+        "minQty": "Must be at least 2 and different from the other tiers.",
+        "unitPrice": "Must be below the base price and lower than tiers with a smaller quantity."
+      }
+    },
+    "images": {
+      "upload": "Upload images",
+      "hint": "JPEG, PNG or WebP, up to 5 MB each. Drag to reorder or use the arrow buttons.",
+      "badType": "Only JPEG, PNG and WebP images are allowed.",
+      "tooLarge": "The file must not exceed 5 MB.",
+      "uploading": "Uploading",
+      "uploaded": "Uploaded",
+      "moveEarlier": "Move earlier",
+      "moveLater": "Move later",
+      "altFa": "Alt text (Persian)",
+      "altEn": "Alt text (English)",
+      "deleteTitle": "Delete image",
+      "deleteMessage": "Delete this image?"
+    }
   },
   "editor": {
     "bold": "Bold",

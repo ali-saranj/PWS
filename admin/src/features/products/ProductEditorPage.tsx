@@ -11,10 +11,11 @@ import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { applyFieldErrors } from '../../lib/forms'
 import { BasicsTab } from './BasicsTab'
+import { ImagesTab } from './ImagesTab'
 import { FORM_FIELDS, SEO_FIELDS, toFormValues, toRequest, type ProductFormValues } from './productSchema'
 import { SeoTab } from './SeoTab'
 import { StatusControl } from './StatusControl'
-import { TabPlaceholder } from './TabPlaceholder'
+import { VariantsTab } from './VariantsTab'
 
 type TabKey = 'basics' | 'variants' | 'images' | 'seo'
 
@@ -133,7 +134,9 @@ function ProductForm({ initial, reload }: FormProps) {
             <Tab value="images" label={t('products.tabs.images')} disabled={!exists} />
             <Tab value="seo" label={t('products.tabs.seo')} />
           </Tabs>
-          <form onSubmit={save} noValidate>
+          {detail && tab === 'variants' && <VariantsTab productId={detail.id} />}
+          {detail && tab === 'images' && <ImagesTab productId={detail.id} />}
+          <form onSubmit={save} noValidate hidden={tab === 'variants' || tab === 'images'}>
             <Stack spacing={2}>
               <ErrorAlert error={formError} />
               <Box hidden={tab !== 'basics'}>
@@ -142,8 +145,6 @@ function ProductForm({ initial, reload }: FormProps) {
               <Box hidden={tab !== 'seo'}>
                 <SeoTab control={control} register={register} errors={errors} />
               </Box>
-              {tab === 'variants' && <TabPlaceholder />}
-              {tab === 'images' && <TabPlaceholder />}
               <Stack direction="row">
                 <Button type="submit" variant="contained" disabled={saving}>
                   {t('common.save')}
