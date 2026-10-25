@@ -113,7 +113,60 @@ class ApiExceptionHandlerTest {
 
     @Test
     void unsupportedMethod_keepsClientErrorStatus() throws Exception {
-        mvc.perform(post("/throw/not-found")).andExpect(status().isMethodNotAllowed());
+        mvc.perform(post("/throw/not-found"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Allow", containsString("GET")));
+    }
+
+    @Test
+    void unsupportedMediaType_isMapped() throws Exception {
+        mvc.perform(post("/throw/validate").contentType(MediaType.TEXT_PLAIN).content("x"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.code").value("UNSUPPORTED_MEDIA_TYPE"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().exists("Accept"));
+    }
+
+    @Test
+    void multipartFailure_isValidationFailed() throws Exception {
+        mvc.perform(get("/throw/multipart"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("file"));
+    }
+
+    @Test
+    void constraintViolation_usesLeafPropertyName() throws Exception {
+        mvc.perform(get("/throw/constraint"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errors[0].code").value("NotBlank"));
+    }
+
+    @Test
+    void write_usesBootMapperAndKeepsUtf8() throws Exception {
+        ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
+        messages.setBasename("messages");
+        messages.setDefaultEncoding("UTF-8");
+        messages.setFallbackToSystemLocale(false);
+        ProblemFactory factory = new ProblemFactory(
+                messages, org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json().build());
+        org.springframework.mock.web.MockHttpServletResponse response = new org.springframework.mock.web.MockHttpServletResponse();
+        org.slf4j.MDC.put(RequestIdFilter.MDC_KEY, "req-1");
+        try {
+            factory.write(new org.springframework.mock.web.MockHttpServletRequest(), response, ErrorCode.UNAUTHENTICATED);
+        } finally {
+            org.slf4j.MDC.remove(RequestIdFilter.MDC_KEY);
+        }
+        String fa = messages.getMessage("error.UNAUTHENTICATED", null, ProblemFactory.FA);
+        org.junit.jupiter.api.Assertions.assertEquals(401, response.getStatus());
+        org.junit.jupiter.api.Assertions.assertTrue(response.getContentType().startsWith("application/problem+json"));
+        String body = response.getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        com.jayway.jsonpath.DocumentContext json = com.jayway.jsonpath.JsonPath.parse(body);
+        org.junit.jupiter.api.Assertions.assertEquals("UNAUTHENTICATED", json.read("$.code"));
+        org.junit.jupiter.api.Assertions.assertEquals(fa, json.read("$.messages.fa"));
+        org.junit.jupiter.api.Assertions.assertEquals("req-1", json.read("$.requestId"));
     }
 
     /** Nested in a test class, so Spring Boot's TestTypeExcludeFilter keeps it out of component scanning. */
@@ -152,6 +205,17 @@ class ApiExceptionHandlerTest {
         @org.springframework.web.bind.annotation.GetMapping("/boom")
         String boom() {
             throw new IllegalStateException("secret");
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/multipart")
+        String multipart() {
+            throw new org.springframework.web.multipart.MultipartException("bad");
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/constraint")
+        String constraint() {
+            var v = jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator().validate(new Body(""));
+            throw new jakarta.validation.ConstraintViolationException(v);
         }
 
         @org.springframework.web.bind.annotation.GetMapping("/field")

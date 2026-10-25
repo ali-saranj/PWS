@@ -1,6 +1,8 @@
 package ir.pws.store.common.error;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -8,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -92,6 +94,26 @@ public class ApiExceptionHandler {
         return respond(ErrorCode.VALIDATION_FAILED, List.of(new FieldError("file", "FILE_TOO_LARGE")), request);
     }
 
+    @ExceptionHandler(MultipartException.class)
+    ResponseEntity<ProblemDetail> handleMultipart(MultipartException ex, HttpServletRequest request) {
+        return respond(ErrorCode.VALIDATION_FAILED, List.of(new FieldError("file", "INVALID")), request);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    ResponseEntity<ProblemDetail> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        List<FieldError> errors = ex.getConstraintViolations().stream()
+                .map(v -> {
+                    String field = null;
+                    for (Path.Node node : v.getPropertyPath()) {
+                        field = node.getName();
+                    }
+                    String code = v.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName();
+                    return new FieldError(field == null ? "" : field, code);
+                })
+                .toList();
+        return respond(ErrorCode.VALIDATION_FAILED, errors, request);
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     ResponseEntity<ProblemDetail> handleNoResource(NoResourceFoundException ex, HttpServletRequest request) {
         return respond(ErrorCode.NOT_FOUND, List.of(), request);
@@ -103,22 +125,25 @@ public class ApiExceptionHandler {
         if (ex instanceof AccessDeniedException || ex instanceof AuthenticationException) {
             throw ex;
         }
-        // Remaining framework 4xx errors (405, 415, ...) keep their status.
-        if (ex instanceof ErrorResponse er && er.getStatusCode().value() == 404) {
-            return respond(ErrorCode.NOT_FOUND, List.of(), request);
-        }
         if (ex instanceof ErrorResponse er && er.getStatusCode().is4xxClientError()) {
-            return respondWithStatus(er.getStatusCode(), request);
+            ErrorCode code = switch (er.getStatusCode().value()) {
+                case 404 -> ErrorCode.NOT_FOUND;
+                case 405 -> ErrorCode.METHOD_NOT_ALLOWED;
+                case 415 -> ErrorCode.UNSUPPORTED_MEDIA_TYPE;
+                default -> ErrorCode.VALIDATION_FAILED;
+            };
+            ResponseEntity<ProblemDetail> response = respond(code, List.of(), request);
+            ProblemDetail problem = response.getBody();
+            if (code == ErrorCode.VALIDATION_FAILED && problem != null) {
+                problem.setStatus(er.getStatusCode().value());
+            }
+            return ResponseEntity.status(er.getStatusCode())
+                    .headers(er.getHeaders())
+                    .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                    .body(problem);
         }
         log.error("Unhandled exception", ex);
         return respond(ErrorCode.INTERNAL_ERROR, List.of(), request);
-    }
-
-    private ResponseEntity<ProblemDetail> respondWithStatus(HttpStatusCode status, HttpServletRequest request) {
-        ProblemDetail problem =
-                problems.build(ErrorCode.VALIDATION_FAILED, List.of(), problems.resolveLocale(request));
-        problem.setStatus(status.value());
-        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(problem);
     }
 
     private ResponseEntity<ProblemDetail> respond(ErrorCode code, List<FieldError> errors, HttpServletRequest request) {
