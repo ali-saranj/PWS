@@ -70,6 +70,26 @@ describe('BrandsPage', () => {
     await userEvent.click(confirm)
     expect(await screen.findByText('Brand is in use')).toBeInTheDocument()
   })
+
+  it('clears a stale delete error when a later logo upload is rejected', async () => {
+    server.use(
+      http.get('/api/admin/brands', () => HttpResponse.json([brand])),
+      http.delete('/api/admin/brands/7', () =>
+        HttpResponse.json(
+          { code: 'RESOURCE_IN_USE', messages: { fa: 'در حال استفاده', en: 'Brand is in use' } },
+          { status: 409 },
+        ),
+      ),
+    )
+    renderRoutes('/brands', owner)
+    await userEvent.click(await screen.findByRole('button', { name: /Delete: اپتیموم/ }))
+    await userEvent.click((await screen.findAllByRole('button', { name: 'Delete' })).at(-1)!)
+    expect(await screen.findByText('Brand is in use')).toBeInTheDocument()
+    const big = new File([new Uint8Array(6 * 1024 * 1024)], 'big.png', { type: 'image/png' })
+    fireEvent.change(screen.getByTestId('logo-input-7'), { target: { files: [big] } })
+    expect(await screen.findByText('The file must not exceed 5 MB.')).toBeInTheDocument()
+    expect(screen.queryByText('Brand is in use')).not.toBeInTheDocument()
+  })
 })
 
 async function vi_waitFor(cond: () => boolean) {

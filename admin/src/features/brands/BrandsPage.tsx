@@ -29,6 +29,7 @@ export default function BrandsPage() {
     if (!file) return
     setLocalError(null)
     upload.reset()
+    del.reset()
     if (file.size > MAX_LOGO_BYTES) {
       setLocalError(t('brands.fileTooLarge'))
       return
@@ -120,6 +121,8 @@ export default function BrandsPage() {
         onCancel={() => setToDelete(null)}
         onConfirm={() => {
           if (!toDelete) return
+          upload.reset()
+          setLocalError(null)
           del.mutate(toDelete.id, { onSettled: () => setToDelete(null) })
         }}
       />
