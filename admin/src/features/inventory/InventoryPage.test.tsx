@@ -109,3 +109,58 @@ describe('InventoryPage', () => {
     expect(screen.getByText('—')).toBeInTheDocument()
   })
 })
+
+describe('InventoryPage fixes', () => {
+  it('renders the apply bar outside the Card so it can stick to the viewport', async () => {
+    server.use(http.get('/api/admin/inventory', () => HttpResponse.json(page([row(1)]))))
+    renderRoutes('/inventory', owner)
+    await userEvent.type(await screen.findByLabelText('Adjust SKU-1'), '1')
+    const bar = screen.getByTestId('apply-bar')
+    expect(bar.closest('.MuiCard-root')).toBeNull()
+  })
+
+  it('never shows another variant history while loading, and starts at page 0', async () => {
+    const requests: string[] = []
+    server.use(
+      http.get('/api/admin/inventory', () => HttpResponse.json(page([row(1), row(2)]))),
+      http.get('/api/admin/variants/:id/movements', async ({ params, request }) => {
+        requests.push(`${params.id}:${new URL(request.url).searchParams.get('page')}`)
+        if (params.id === '2') await new Promise((r) => setTimeout(r, 300))
+        return HttpResponse.json({
+          items: [{ id: 1, delta: 1, reason: 'INITIAL', note: `note-of-${params.id}`, staffUsername: 'owner', createdAt: '2026-10-24T10:00:00Z' }],
+          page: 0, size: 20, total: 1,
+        })
+      }),
+    )
+    renderRoutes('/inventory', owner)
+    await userEvent.click(await screen.findByRole('button', { name: 'History SKU-1' }))
+    expect(await screen.findByText('note-of-1')).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByText('note-of-1')).not.toBeInTheDocument())
+    await userEvent.click(await screen.findByRole('button', { name: 'History SKU-2' }))
+    expect(screen.queryByText('note-of-1')).not.toBeInTheDocument()
+    expect(await screen.findByText('note-of-2')).toBeInTheDocument()
+    expect(requests).toEqual(['1:0', '2:0'])
+  })
+
+  it('names the SKU of an off-page row whose adjustment failed', async () => {
+    server.use(
+      http.get('/api/admin/inventory', ({ request }) => {
+        const pg = Number(new URL(request.url).searchParams.get('page') ?? 0)
+        return HttpResponse.json({ items: [row(pg + 1)], page: pg, size: 20, total: 40 })
+      }),
+      http.post('/api/admin/inventory/adjustments', () =>
+        HttpResponse.json(
+          { code: 'VALIDATION_FAILED', messages: { fa: 'x', en: 'Invalid' }, errors: [{ field: 'adjustments[0].delta', code: 'STOCK_NEGATIVE', message: 'Stock cannot go negative' }] },
+          { status: 400 },
+        ),
+      ),
+    )
+    renderRoutes('/inventory', owner)
+    await userEvent.type(await screen.findByLabelText('Adjust SKU-1'), '-99')
+    await userEvent.click(screen.getByRole('button', { name: 'Go to next page' }))
+    await screen.findByLabelText('Adjust SKU-2')
+    await userEvent.click(screen.getByRole('button', { name: 'Apply 1 change' }))
+    expect(await screen.findByText('SKU-1: Stock cannot go negative')).toBeInTheDocument()
+  })
+})

@@ -1,5 +1,5 @@
 import { CircularProgress, Drawer, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, Typography, Box } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMovements } from '../../api/inventory'
 import { ErrorAlert } from '../../components/ErrorAlert'
@@ -14,14 +14,21 @@ interface Props {
 const SIZE = 20
 
 export function MovementsDrawer({ variantId, title, onClose }: Props) {
+  return (
+    <Drawer anchor="right" open={variantId != null} onClose={onClose}>
+      {variantId != null && <MovementsContent key={variantId} variantId={variantId} title={title} />}
+    </Drawer>
+  )
+}
+
+function MovementsContent({ variantId, title }: { variantId: number; title: string }) {
   const { t, i18n } = useTranslation()
   const locale = i18n.language === 'en' ? 'en' : 'fa'
   const [page, setPage] = useState(0)
-  useEffect(() => setPage(0), [variantId])
   const { data, isLoading, error } = useMovements(variantId, page, SIZE)
 
   return (
-    <Drawer anchor="right" open={variantId != null} onClose={onClose}>
+    <>
       <Box sx={{ width: { xs: '100vw', sm: 520 }, p: 2 }}>
         <Typography variant="h6">{t('inventory.history')}</Typography>
         <Typography color="text.secondary" sx={{ mb: 2 }}>{title}</Typography>
@@ -63,6 +70,6 @@ export function MovementsDrawer({ variantId, title, onClose }: Props) {
           />
         )}
       </Box>
-    </Drawer>
+    </>
   )
 }

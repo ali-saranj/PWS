@@ -1,9 +1,9 @@
 import HistoryIcon from '@mui/icons-material/History'
 import {
-  Box, Button, Card, CardContent, CircularProgress, FormControlLabel, IconButton, Paper, Stack, Switch, Table,
+  Alert, Box, Button, Card, CardContent, CircularProgress, FormControlLabel, IconButton, Paper, Stack, Switch, Table,
   TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, Typography,
 } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { useAdjustStock, useInventory } from '../../api/inventory'
@@ -37,6 +37,7 @@ export default function InventoryPage() {
 
   // Pending deltas (raw text, keyed by variantId) survive paging and filter changes.
   const [pending, setPending] = useState<Record<number, string>>({})
+  const [skus, setSkus] = useState<Record<number, string>>({})
   const [rowErrors, setRowErrors] = useState<Record<number, string>>({})
   const [generalError, setGeneralError] = useState<unknown>(null)
   const [note, setNote] = useState('')
@@ -65,7 +66,8 @@ export default function InventoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search])
 
-  const setDelta = (variantId: number, text: string) => {
+  const setDelta = (variantId: number, sku: string, text: string) => {
+    setSkus((m) => ({ ...m, [variantId]: sku }))
     setPending((p) => {
       const next = { ...p }
       if (text === '') delete next[variantId]
@@ -91,6 +93,9 @@ export default function InventoryPage() {
     setNote('')
   }
 
+  const shownIds = new Set((data?.items ?? []).map((r) => r.variantId))
+  const offPageErrors = Object.entries(rowErrors).filter(([id]) => !shownIds.has(Number(id)))
+
   const apply = () => {
     const trimmed = note.trim()
     const adjustments: AdjustmentItem[] = changes.map((c) => ({
@@ -109,19 +114,17 @@ export default function InventoryPage() {
         },
         onError: (err) => {
           const errs: Record<number, string> = {}
-          let unmapped = true
+          let unmapped = !(err instanceof ApiError) || err.fieldErrors.length === 0
           if (err instanceof ApiError) {
             for (const fe of err.fieldErrors) {
               const m = DELTA_ERROR.exec(fe.field)
               const target = m ? adjustments[Number(m[1])] : undefined
-              if (target) {
-                errs[target.variantId] ??= fe.message
-                unmapped = false
-              }
+              if (target) errs[target.variantId] ??= fe.message
+              else unmapped = true
             }
           }
           setRowErrors(errs)
-          setGeneralError(unmapped || !(err instanceof ApiError) ? err : null)
+          setGeneralError(unmapped ? err : null)
         },
       },
     )
@@ -132,6 +135,7 @@ export default function InventoryPage() {
     [locale === 'fa' ? r.flavourFa : r.flavourEn || r.flavourFa, r.sizeLabel].filter(Boolean).join(' · ')
 
   return (
+    <Fragment>
     <Card>
       <CardContent>
         <Typography variant="h5" sx={{ mb: 2 }}>{t('inventory.title')}</Typography>
@@ -144,6 +148,13 @@ export default function InventoryPage() {
         </Stack>
         <ErrorAlert error={error} />
         <ErrorAlert error={generalError} />
+        {offPageErrors.length > 0 && (
+          <Alert severity="error" sx={{ mb: 1 }}>
+            {offPageErrors.map(([id, message]) => (
+              <div key={id}>{`${skus[Number(id)] ?? id}: ${message}`}</div>
+            ))}
+          </Alert>
+        )}
         {isLoading && <CircularProgress aria-label={t('common.loading')} />}
         {data && data.items.length === 0 && <Typography color="text.secondary">{t('common.empty')}</Typography>}
         {data && data.items.length > 0 && (
@@ -186,7 +197,7 @@ export default function InventoryPage() {
                         <TextField
                           size="small"
                           value={localizeDigits(text, locale)}
-                          onChange={(e) => setDelta(r.variantId, e.target.value.trim())}
+                          onChange={(e) => setDelta(r.variantId, r.sku, e.target.value.trim())}
                           error={invalidText || !!serverError}
                           helperText={serverError ?? (invalidText ? t('validation.integer') : undefined)}
                           slotProps={{
@@ -219,8 +230,9 @@ export default function InventoryPage() {
           />
         )}
       </CardContent>
+    </Card>
       {entries.length > 0 && (
-        <Paper elevation={6} sx={{ position: 'sticky', bottom: 0, p: 2, zIndex: 1 }}>
+        <Paper elevation={6} data-testid="apply-bar" sx={{ position: 'sticky', bottom: 0, p: 2, zIndex: 1 }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ alignItems: { md: 'center' } }}>
             <TextField
               size="small"
@@ -246,6 +258,6 @@ export default function InventoryPage() {
         title={historyRow ? `${productName(historyRow)} — ${historyRow.sku}` : ''}
         onClose={() => setHistoryRow(null)}
       />
-    </Card>
+    </Fragment>
   )
 }

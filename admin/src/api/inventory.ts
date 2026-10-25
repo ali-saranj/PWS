@@ -38,6 +38,7 @@ export function useMovements(variantId: number | null, page: number, size: numbe
     queryKey: ['movements', variantId, page, size],
     enabled: variantId != null,
     queryFn: () => apiFetch<Page<StockMovementDto>>(`/api/admin/variants/${variantId}/movements?page=${page}&size=${size}`),
-    placeholderData: keepPreviousData,
+    // Keep the old rows while paging the same variant, never across variants.
+    placeholderData: (prev, prevQuery) => (prevQuery?.queryKey[1] === variantId ? prev : undefined),
   })
 }
