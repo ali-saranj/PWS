@@ -105,6 +105,18 @@ class StaffAuthFlowTest extends IntegrationTest {
     // ---- tests ----
 
     @Test
+    void login_usernameCaseAndWhitespaceInsensitive() throws Exception {
+        StaffUser u = adminAuth.createStaff(StaffRole.OWNER);
+        login("  " + u.getUsername().toUpperCase() + " ", AdminAuth.PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
+    void login_overLongPassword_is401() throws Exception {
+        StaffUser u = adminAuth.createStaff(StaffRole.OWNER);
+        login(u.getUsername(), "x".repeat(80)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void fullLogin_setsCookies_andMeWorks() throws Exception {
         StaffUser u = adminAuth.createStaff(StaffRole.OWNER);
         MvcResult loggedIn = login(u.getUsername(), AdminAuth.PASSWORD)

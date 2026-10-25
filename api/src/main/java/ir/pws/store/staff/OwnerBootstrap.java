@@ -41,12 +41,12 @@ public class OwnerBootstrap implements ApplicationRunner {
             return;
         }
         staff.save(new StaffUser(
-                owner.username().trim(),
+                owner.username().trim().toLowerCase(java.util.Locale.ROOT),
                 encoder.encode(owner.password()),
                 MobileNumbers.normalize(owner.mobile()),
                 "Owner",
                 StaffRole.OWNER));
-        log.info("Created bootstrap OWNER account '{}'", owner.username().trim());
+        log.info("Created bootstrap OWNER account '{}'", owner.username().trim().toLowerCase(java.util.Locale.ROOT));
     }
 
     private static boolean isBlank(String s) {

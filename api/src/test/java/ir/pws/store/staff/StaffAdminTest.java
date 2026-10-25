@@ -142,6 +142,27 @@ class StaffAdminTest extends IntegrationTest {
     }
 
     @Test
+    void overLongPassword_isFieldPasswordTooLong() throws Exception {
+        StaffUser owner = adminAuth.createStaff(StaffRole.OWNER);
+        String tooLong = "ک".repeat(37); // 2 bytes each in UTF-8 = 74 bytes
+        Map<String, Object> body = newStaff("sara");
+        body.put("password", tooLong);
+        create(owner, body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("password"))
+                .andExpect(jsonPath("$.errors[0].code").value("PASSWORD_TOO_LONG"));
+        StaffUser pm = adminAuth.createStaff(StaffRole.PRODUCT_MANAGER);
+        mvc.perform(post("/api/admin/staff/" + pm.getId() + "/password")
+                        .with(adminAuth.staff(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("password", tooLong))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].code").value("PASSWORD_TOO_LONG"));
+        body.put("password", "x".repeat(72));
+        create(owner, body).andExpect(status().isCreated());
+    }
+
+    @Test
     void persianDigitMobile_isNormalised() throws Exception {
         StaffUser owner = adminAuth.createStaff(StaffRole.OWNER);
         Map<String, Object> body = newStaff("sara");
@@ -285,8 +306,10 @@ class StaffAdminTest extends IntegrationTest {
         String listBody = mvc.perform(get("/api/admin/staff").with(adminAuth.staff(owner)))
                 .andReturn().getResponse().getContentAsString();
         String createBody = create(owner, newStaff("sara"))
+                .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         String updateRes = update(owner, owner.getId(), updateBody(owner, "OWNER", true))
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         for (String body : List.of(listBody, createBody, updateRes)) {
             assertThat(body).doesNotContain("passwordHash").doesNotContain("password").doesNotContain("$2");

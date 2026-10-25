@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(properties = {
-    "app.bootstrap.owner.username=boss",
+    "app.bootstrap.owner.username= Boss ",
     "app.bootstrap.owner.password=Sup3r-secret-pass",
     "app.bootstrap.owner.mobile=+989121234567"
 })
@@ -29,7 +29,7 @@ class OwnerBootstrapTest extends IntegrationTest {
     AdminAuth adminAuth;
 
     @Test
-    void createsOwnerWhenNoStaff() {
+    void createsOwnerWhenNoStaff_withUsernameTrimmedAndLowerCased() {
         bootstrap.bootstrap();
 
         assertThat(repo.findAll()).hasSize(1);

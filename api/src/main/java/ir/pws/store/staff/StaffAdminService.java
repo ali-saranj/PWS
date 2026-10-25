@@ -103,5 +103,8 @@ public class StaffAdminService {
         if (password.length() < MIN_PASSWORD_LENGTH) {
             throw ApiException.field("password", "PASSWORD_TOO_SHORT");
         }
+        if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > StaffAuthService.MAX_PASSWORD_BYTES) {
+            throw ApiException.field("password", "PASSWORD_TOO_LONG");
+        }
     }
 }

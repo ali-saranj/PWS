@@ -33,6 +33,7 @@ public class StaffAuthService {
     static final Duration FAILURE_WINDOW = Duration.ofMinutes(15);
     static final Duration LOCK_DURATION = Duration.ofMinutes(15);
     static final int MAX_FAILURES = 5;
+    public static final int MAX_PASSWORD_BYTES = 72;
 
     /** The authenticated staff member plus the freshly issued raw tokens (the refresh token is never stored raw). */
     public record Session(StaffUser user, String accessToken, String refreshToken) {}
@@ -79,7 +80,7 @@ public class StaffAuthService {
      * errors are thrown only after that commit, and the OTP is issued outside it.
      */
     public LoginChallenge login(String username, String password) {
-        Attempt attempt = tx.execute(s -> attempt(username == null ? "" : username.trim(), password));
+        Attempt attempt = tx.execute(s -> attempt(username == null ? "" : username.trim().toLowerCase(java.util.Locale.ROOT), password));
         switch (attempt.outcome()) {
             case LOCKED -> throw new ApiException(ErrorCode.RATE_LIMITED);
             case BAD_CREDENTIALS -> throw new ApiException(ErrorCode.UNAUTHENTICATED);
@@ -92,6 +93,10 @@ public class StaffAuthService {
 
     private Attempt attempt(String username, String password) {
         Instant now = clock.instant();
+        if (password == null || password.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
+            encoder.matches("x", dummyHash); // BCrypt rejects >72 bytes; treat as a plain wrong password
+            return new Attempt(Outcome.BAD_CREDENTIALS, null, 0);
+        }
         Optional<StaffUser> found = staff.findForUpdateByUsername(username);
         if (found.isEmpty()) {
             encoder.matches(password, dummyHash);
