@@ -18,6 +18,7 @@ import java.util.List;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -65,11 +66,15 @@ public class OtpService {
         }
     }
 
-    @Transactional(noRollbackFor = ApiException.class)
+    /**
+     * Runs in its own transaction so a caller that lets the ApiException propagate cannot roll back the
+     * attempt increment; the row lock serialises concurrent verifies so the attempt cap cannot be bypassed.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor = ApiException.class)
     public void verify(String normalizedMobile, OtpPurpose purpose, String code) {
         Instant now = clock.instant();
         OtpCode otp = repository
-                .findFirstByMobileAndPurposeOrderByCreatedAtDescIdDesc(normalizedMobile, purpose)
+                .findFirstForUpdateByMobileAndPurposeOrderByCreatedAtDescIdDesc(normalizedMobile, purpose)
                 .orElseThrow(() -> new ApiException(ErrorCode.OTP_INVALID));
         if (otp.getConsumedAt() != null) {
             throw new ApiException(ErrorCode.OTP_INVALID);

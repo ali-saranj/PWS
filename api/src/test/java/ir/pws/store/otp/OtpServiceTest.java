@@ -13,7 +13,12 @@ import ir.pws.store.notification.SmsException;
 import ir.pws.store.notification.SmsTemplate;
 import ir.pws.store.support.IntegrationTest;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,5 +155,59 @@ class OtpServiceTest extends IntegrationTest {
         String code = lastCode();
         String stored = jdbc.queryForObject("SELECT code_hash FROM otp_code", String.class);
         assertThat(stored).isNotEqualTo(code).hasSize(64);
+    }
+
+    /** Runs the action on n threads released simultaneously; returns the error code (or null on success) per call. */
+    private List<ErrorCode> concurrently(int n, Runnable action) throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(n);
+        try {
+            CountDownLatch ready = new CountDownLatch(n);
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<ErrorCode>> futures = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                futures.add(pool.submit(() -> {
+                    ready.countDown();
+                    start.await();
+                    try {
+                        action.run();
+                        return null;
+                    } catch (ApiException e) {
+                        return e.code();
+                    }
+                }));
+            }
+            ready.await();
+            start.countDown();
+            List<ErrorCode> results = new ArrayList<>();
+            for (Future<ErrorCode> f : futures) {
+                results.add(f.get());
+            }
+            return results;
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void concurrentWrongGuesses_cannotBypassAttemptCap() throws Exception {
+        otp.issue(MOBILE, P);
+        String code = lastCode();
+        String wrong = wrongCode(code);
+        List<ErrorCode> results = concurrently(10, () -> otp.verify(MOBILE, P, wrong));
+        // Increments stop at the cap: exactly 5 guesses are counted, the rest are rejected up front.
+        assertThat(jdbc.queryForObject("SELECT attempts FROM otp_code", Integer.class)).isEqualTo(5);
+        assertThat(results).doesNotContainNull();
+        assertThat(results.stream().filter(c -> c == ErrorCode.OTP_INVALID).count()).isEqualTo(4);
+        assertThat(results.stream().filter(c -> c == ErrorCode.OTP_TOO_MANY_ATTEMPTS).count()).isEqualTo(6);
+        assertCode(() -> otp.verify(MOBILE, P, code), ErrorCode.OTP_TOO_MANY_ATTEMPTS);
+    }
+
+    @Test
+    void concurrentCorrectVerifies_succeedExactlyOnce() throws Exception {
+        otp.issue(MOBILE, P);
+        String code = lastCode();
+        List<ErrorCode> results = concurrently(5, () -> otp.verify(MOBILE, P, code));
+        assertThat(results.stream().filter(c -> c == null).count()).isEqualTo(1);
+        assertThat(results.stream().filter(c -> c == ErrorCode.OTP_INVALID).count()).isEqualTo(4);
     }
 }
