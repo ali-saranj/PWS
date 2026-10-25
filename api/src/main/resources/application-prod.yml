@@ -1,0 +1,33 @@
+server:
+  forward-headers-strategy: native
+
+logging:
+  structured:
+    format:
+      console: ecs
+
+app:
+  cookies:
+    secure: true
+  jwt:
+    staff-secret: ${APP_JWT_STAFF_SECRET}
+    customer-secret: ${APP_JWT_CUSTOMER_SECRET}
+  otp:
+    secret: ${APP_OTP_SECRET}
+  media:
+    dir: ${APP_MEDIA_DIR}
+    serve: false
+  sms:
+    provider: ${APP_SMS_PROVIDER}
+    kavenegar:
+      api-key: ${APP_SMS_KAVENEGAR_API_KEY}
+      base-url: ${APP_SMS_KAVENEGAR_BASE_URL}
+      templates:
+        otp: ${APP_SMS_KAVENEGAR_TEMPLATE_OTP}
+        order-paid: ${APP_SMS_KAVENEGAR_TEMPLATE_ORDER_PAID}
+        order-shipped: ${APP_SMS_KAVENEGAR_TEMPLATE_ORDER_SHIPPED}
+  bootstrap:
+    owner:
+      username: ${APP_BOOTSTRAP_OWNER_USERNAME}
+      password: ${APP_BOOTSTRAP_OWNER_PASSWORD}
+      mobile: ${APP_BOOTSTRAP_OWNER_MOBILE}

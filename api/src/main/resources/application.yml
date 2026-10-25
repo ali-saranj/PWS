@@ -1,0 +1,45 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  messages:
+    basename: messages
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+# Dev/test defaults. application-prod.yml overrides every secret with an env var and no default.
+app:
+  cookies:
+    secure: false
+  jwt:
+    staff-secret: dev-staff-secret-change-me-0123456789abcdef
+    customer-secret: dev-customer-secret-change-me-0123456789abcdef
+  otp:
+    secret: dev-otp-secret-change-me-0123456789abcdef
+  media:
+    dir: ${user.dir}/.media
+    base-url: /media
+    serve: true
+  sms:
+    provider: logging
+    kavenegar:
+      api-key: dev-kavenegar-api-key
+      base-url: https://api.kavenegar.com
+      templates:
+        otp: pws-otp
+        order-paid: pws-order-paid
+        order-shipped: pws-order-shipped
+  bootstrap:
+    owner:
+      username: owner
+      password: dev-owner-password
+      mobile: "09120000000"
