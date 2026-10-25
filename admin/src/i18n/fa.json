@@ -1,0 +1,12 @@
+{
+  "app": { "title": "پنل مدیریت فروشگاه" },
+  "common": {
+    "confirm": "تأیید",
+    "cancel": "انصراف",
+    "language": "زبان",
+    "toman": "تومان"
+  },
+  "validation": {
+    "integer": "یک عدد صحیح وارد کنید."
+  }
+}

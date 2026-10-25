@@ -1,0 +1,12 @@
+{
+  "app": { "title": "Store admin panel" },
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "language": "Language",
+    "toman": "Toman"
+  },
+  "validation": {
+    "integer": "Enter a whole number."
+  }
+}
