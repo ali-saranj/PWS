@@ -37,6 +37,32 @@ public final class TestImages {
         return java.util.Arrays.copyOf(ok, 40);
     }
 
+    /** A JPEG carrying an EXIF Orientation tag (big-endian TIFF in an APP1 segment right after SOI). */
+    public static byte[] jpegWithOrientation(int w, int h, int orientation) {
+        byte[] jpg = jpeg(w, h);
+        byte[] tiff = {'M', 'M', 0, 0x2A, 0, 0, 0, 8, 0, 1, 0x01, 0x12, 0, 3, 0, 0, 0, 1,
+                0, (byte) orientation, 0, 0, 0, 0, 0, 0};
+        int len = 2 + 6 + tiff.length;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(jpg, 0, 2);
+        out.write(0xFF);
+        out.write(0xE1);
+        out.write(len >> 8);
+        out.write(len & 0xFF);
+        out.writeBytes(new byte[] {'E', 'x', 'i', 'f', 0, 0});
+        out.writeBytes(tiff);
+        out.write(jpg, 2, jpg.length - 2);
+        return out.toByteArray();
+    }
+
+    public static int height(byte[] image) {
+        try {
+            return ImageIO.read(new ByteArrayInputStream(image)).getHeight();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static int width(byte[] image) {
         try {
             return ImageIO.read(new ByteArrayInputStream(image)).getWidth();

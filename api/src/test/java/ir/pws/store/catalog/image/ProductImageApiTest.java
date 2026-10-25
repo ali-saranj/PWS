@@ -251,6 +251,20 @@ class ProductImageApiTest extends IntegrationTest {
     }
 
     @Test
+    void missingFilePart_isRequiredFieldError() throws Exception {
+        long brandId = jdbc.queryForObject("select id from brand limit 1", Long.class);
+        for (String url : List.of("/api/admin/products/" + productId + "/images",
+                "/api/admin/brands/" + brandId + "/logo")) {
+            mvc.perform(multipart(url).file(new MockMultipartFile("other", "a.png", "image/png", new byte[] {1}))
+                    .with(adminAuth.staff(pm)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                    .andExpect(jsonPath("$.errors[0].field").value("file"))
+                    .andExpect(jsonPath("$.errors[0].code").value("REQUIRED"));
+        }
+    }
+
+    @Test
     void storage_rejectsPathEscape() {
         var storage = new LocalMediaStorage(new ir.pws.store.config.AppProperties(null, null, null,
                 new ir.pws.store.config.AppProperties.Media(mediaDir, "/media", true), null, null));

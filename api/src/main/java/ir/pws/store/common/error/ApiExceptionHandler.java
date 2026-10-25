@@ -21,6 +21,7 @@ import org.springframework.validation.method.ParameterErrors;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -92,6 +93,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<ProblemDetail> handleUploadTooLarge(MaxUploadSizeExceededException ex, HttpServletRequest request) {
         return respond(ErrorCode.VALIDATION_FAILED, List.of(new FieldError("file", "FILE_TOO_LARGE")), request);
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    ResponseEntity<ProblemDetail> handleMissingPart(MissingServletRequestPartException ex, HttpServletRequest request) {
+        return respond(ErrorCode.VALIDATION_FAILED, List.of(new FieldError(ex.getRequestPartName(), "REQUIRED")), request);
     }
 
     @ExceptionHandler(MultipartException.class)

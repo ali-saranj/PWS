@@ -59,6 +59,42 @@ class ImageProcessorTest {
         assertInvalid(out.toByteArray());
     }
 
+    @Test
+    void exifOrientation6_rotatesToPortrait() {
+        ProcessedImage out = processor.process(TestImages.jpegWithOrientation(300, 200, 6));
+        assertThat(TestImages.width(out.large())).isEqualTo(200);
+        assertThat(TestImages.height(out.large())).isEqualTo(300);
+        assertThat(TestImages.width(out.thumb())).isEqualTo(200);
+    }
+
+    @Test
+    void exifOrientation6_largeSource_isResizedByOrientedWidth() {
+        ProcessedImage out = processor.process(TestImages.jpegWithOrientation(3000, 2000, 6));
+        assertThat(TestImages.width(out.large())).isEqualTo(1600);
+        assertThat(TestImages.height(out.large())).isEqualTo(2400);
+        assertThat(TestImages.width(out.thumb())).isEqualTo(400);
+        assertThat(TestImages.height(out.thumb())).isEqualTo(600);
+    }
+
+    @Test
+    void exifOrientation1_orAbsent_isUnchanged() {
+        for (byte[] jpg : new byte[][] {TestImages.jpegWithOrientation(300, 200, 1), TestImages.jpeg(300, 200)}) {
+            ProcessedImage out = processor.process(jpg);
+            assertThat(TestImages.width(out.large())).isEqualTo(300);
+            assertThat(TestImages.height(out.large())).isEqualTo(200);
+        }
+    }
+
+    @Test
+    void encoderFailure_isNotReportedAsImageInvalid() {
+        var broken = new ImageProcessor(() -> {
+            throw new IllegalStateException("No WebP ImageWriter available");
+        });
+        assertThatThrownBy(() -> broken.process(TestImages.png(100, 100)))
+                .isInstanceOf(IllegalStateException.class)
+                .isNotInstanceOf(ApiException.class);
+    }
+
     private void assertInvalid(byte[] bytes) {
         assertThatThrownBy(() -> processor.process(bytes)).isInstanceOf(ApiException.class)
                 .satisfies(e -> assertThat(((ApiException) e).errors().get(0).code()).isEqualTo("IMAGE_INVALID"));
