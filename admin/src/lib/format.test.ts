@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, formatToman, parseLocalizedInt, parseLocalizedSignedInt, rialsToToman, tomanToRials } from './format'
+import { formatDate, formatDateTime, formatToman, parseLocalizedInt, parseLocalizedSignedInt, rialsToToman, tomanToRials } from './format'
 
 describe('format', () => {
   it('parses localized integers', () => {
@@ -36,5 +36,10 @@ describe('format', () => {
   it('formats dates in Tehran time', () => {
     expect(formatDate('2026-10-25T10:00:00Z', 'fa')).toBe('۱۴۰۵/۰۸/۰۳')
     expect(formatDate('2026-10-25T10:00:00Z', 'en')).toBe('Oct 25, 2026')
+  })
+
+  it('formats date and time in Tehran time', () => {
+    expect(formatDateTime('2026-10-25T10:00:00Z', 'en')).toBe('Oct 25, 2026, 1:30 PM')
+    expect(formatDateTime('2026-10-25T10:00:00Z', 'fa')).toMatch(/^۱۴۰۵\/۰۸\/۰۳.*۱۳:۳۰$/)
   })
 })

@@ -10,7 +10,8 @@ import DashboardPage from './features/dashboard/DashboardPage'
 import ProductEditorPage from './features/products/ProductEditorPage'
 import ProductListPage from './features/products/ProductListPage'
 import InventoryPage from './features/inventory/InventoryPage'
-import { ComingSoon } from './features/placeholders'
+import AuditPage from './features/audit/AuditPage'
+import StaffPage from './features/staff/StaffPage'
 import AppLayout from './layout/AppLayout'
 
 const ALL: StaffRole[] = ['OWNER', 'PRODUCT_MANAGER', 'ORDER_OPERATOR']
@@ -36,8 +37,8 @@ export const routes: RouteObject[] = [
           { path: 'products/new', element: guarded(CATALOG, <ProductEditorPage />) },
           { path: 'products/:id', element: guarded(CATALOG, <ProductEditorPage />) },
           { path: 'inventory', element: guarded(CATALOG, <InventoryPage />) },
-          { path: 'staff', element: guarded(OWNER, <ComingSoon titleKey="nav.staff" />) },
-          { path: 'audit', element: guarded(OWNER, <ComingSoon titleKey="nav.audit" />) },
+          { path: 'staff', element: guarded(OWNER, <StaffPage />) },
+          { path: 'audit', element: guarded(OWNER, <AuditPage />) },
         ],
       },
     ],

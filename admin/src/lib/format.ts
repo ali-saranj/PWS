@@ -74,3 +74,28 @@ const dateFormats: Record<Locale, Intl.DateTimeFormat> = {
 export function formatDate(iso: string, locale: Locale): string {
   return dateFormats[locale].format(new Date(iso)).replace(BIDI_MARKS, '')
 }
+
+const dateTimeFormats: Record<Locale, Intl.DateTimeFormat> = {
+  fa: new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+    timeZone: 'Asia/Tehran',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }),
+  en: new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tehran',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }),
+}
+
+/** Date plus time in Tehran time (Jalali for fa). */
+export function formatDateTime(iso: string, locale: Locale): string {
+  return dateTimeFormats[locale].format(new Date(iso)).replace(BIDI_MARKS, '')
+}

@@ -22,7 +22,9 @@
     "integer": "Enter a whole number.",
     "required": "This field is required.",
     "maxLength": "At most {{max}} characters.",
-    "slug": "Slug may contain only lowercase letters, digits and dashes."
+    "slug": "Slug may contain only lowercase letters, digits and dashes.",
+    "passwordMin": "Password must be at least {{min}} characters.",
+    "passwordMax": "Password must be at most {{max}} bytes."
   },
   "auth": {
     "title": "Sign in to the admin panel",
@@ -214,6 +216,55 @@
       "MANUAL_ADJUSTMENT": "Manual adjustment",
       "ORDER_PAID": "Order paid",
       "ORDER_CANCELLED": "Order cancelled"
+    }
+  },
+  "staff": {
+    "title": "Staff",
+    "add": "Add staff member",
+    "create": "New staff member",
+    "edit": "Edit staff member",
+    "username": "Username",
+    "usernameHint": "Stored in lowercase.",
+    "password": "Password",
+    "newPassword": "New password",
+    "fullName": "Full name",
+    "mobile": "Mobile",
+    "role": "Role",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "resetPassword": "Reset password",
+    "resetHint": "Set a new password for {{name}}. Their active sessions will be signed out.",
+    "selfTitle": "Change your own access?",
+    "selfWarning": "You are changing your own role or deactivating your own account. You may lose access to this panel.",
+    "roles": {
+      "OWNER": "Owner",
+      "PRODUCT_MANAGER": "Product manager",
+      "ORDER_OPERATOR": "Order operator"
+    }
+  },
+  "audit": {
+    "title": "Audit log",
+    "entityType": "Entity type",
+    "staffMember": "Staff member",
+    "all": "All",
+    "date": "Date",
+    "staff": "By",
+    "action": "Action",
+    "entityId": "Entity ID",
+    "ip": "IP",
+    "showChanges": "Show changes: {{id}}",
+    "field": "Field",
+    "before": "Before",
+    "after": "After",
+    "noChanges": "No changes recorded.",
+    "entityTypes": {
+      "STAFF_USER": "Staff",
+      "CATEGORY": "Category",
+      "BRAND": "Brand",
+      "PRODUCT": "Product",
+      "VARIANT": "Variant",
+      "PRODUCT_IMAGE": "Product image",
+      "INVENTORY": "Inventory"
     }
   }
 }
