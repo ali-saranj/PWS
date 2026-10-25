@@ -1,6 +1,7 @@
 package ir.pws.store.common.security;
 
 import ir.pws.store.config.AppProperties;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -49,7 +50,9 @@ public class SecurityConfig {
                 .requestCache(AbstractHttpConfigurer::disable)
                 .exceptionHandling(e -> e.authenticationEntryPoint(handlers).accessDeniedHandler(handlers))
                 .addFilterBefore(new StaffJwtCookieFilter(jwt), UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(a -> a.requestMatchers("/actuator/health", "/actuator/health/**")
+                .authorizeHttpRequests(a -> a.dispatcherTypeMatchers(DispatcherType.ERROR)
+                        .permitAll() // container-level errors keep their real status instead of becoming 401
+                        .requestMatchers("/actuator/health", "/actuator/health/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/media/**")
                         .permitAll()
@@ -59,7 +62,8 @@ public class SecurityConfig {
                                 HttpMethod.POST,
                                 "/api/admin/auth/login",
                                 "/api/admin/auth/verify",
-                                "/api/admin/auth/refresh")
+                                "/api/admin/auth/refresh",
+                                "/api/admin/auth/logout")
                         .permitAll()
                         .requestMatchers("/api/admin/**")
                         .authenticated()

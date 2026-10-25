@@ -81,6 +81,28 @@ public class StaffUser {
         updatedAt = Instant.now();
     }
 
+    /** Counts a failed password within a rolling window; the 5th failure in the window locks the account. */
+    public void recordFailedLogin(Instant now, java.time.Duration window, int maxFailures, java.time.Duration lock) {
+        if (failedLoginWindowStart == null || failedLoginWindowStart.plus(window).isBefore(now)) {
+            failedLoginCount = 0;
+            failedLoginWindowStart = now;
+        }
+        failedLoginCount++;
+        if (failedLoginCount >= maxFailures) {
+            lockedUntil = now.plus(lock);
+        }
+    }
+
+    public void clearLoginFailures() {
+        failedLoginCount = 0;
+        failedLoginWindowStart = null;
+        lockedUntil = null;
+    }
+
+    public boolean isLocked(Instant now) {
+        return lockedUntil != null && lockedUntil.isAfter(now);
+    }
+
     public Long getId() {
         return id;
     }

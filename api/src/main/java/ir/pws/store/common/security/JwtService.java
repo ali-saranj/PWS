@@ -5,6 +5,7 @@ import ir.pws.store.staff.StaffRole;
 import ir.pws.store.staff.StaffUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -90,7 +91,13 @@ public class JwtService {
                     .requireAudience(audience)
                     .clock(() -> Date.from(clock.instant()))
                     .build();
-            return Optional.of(parser.parseSignedClaims(token).getPayload());
+            Jws<Claims> jws = parser.parseSignedClaims(token);
+            // Pin HS256 and require an expiry: a token that never expires is never valid.
+            if (!Jwts.SIG.HS256.getId().equals(jws.getHeader().getAlgorithm())
+                    || jws.getPayload().getExpiration() == null) {
+                return Optional.empty();
+            }
+            return Optional.of(jws.getPayload());
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

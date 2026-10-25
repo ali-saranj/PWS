@@ -32,6 +32,9 @@ class StaffSecurityTest extends IntegrationTest {
     @Autowired
     JwtService jwt;
 
+    @org.springframework.beans.factory.annotation.Value("${app.jwt.staff-secret}")
+    String staffSecret;
+
     private Cookie accessCookie(String token) {
         return new Cookie(AuthCookies.STAFF_ACCESS, token);
     }
@@ -129,5 +132,47 @@ class StaffSecurityTest extends IntegrationTest {
     void postWithCsrf_isAllowed() throws Exception {
         StaffUser owner = adminAuth.createStaff(StaffRole.OWNER);
         mvc.perform(post("/api/admin/test-probe/echo").with(adminAuth.staff(owner))).andExpect(status().isOk());
+    }
+
+    @Test
+    void errorDispatch_isPermitted_soContainerErrorsKeepTheirStatus() throws Exception {
+        mvc.perform(get("/api/admin/test-probe/error-dispatch")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/test-probe/error-dispatch").with(request -> {
+                    request.setDispatcherType(jakarta.servlet.DispatcherType.ERROR);
+                    return request;
+                }))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void tokenWithoutExp_isRejected() throws Exception {
+        StaffUser owner = adminAuth.createStaff(StaffRole.OWNER);
+        String token = Jwts.builder()
+                .subject(String.valueOf(owner.getId()))
+                .audience()
+                .add(JwtService.STAFF_AUDIENCE)
+                .and()
+                .claim("username", owner.getUsername())
+                .claim("role", "OWNER")
+                .signWith(Keys.hmacShaKeyFor(staffSecret.getBytes(StandardCharsets.UTF_8)), Jwts.SIG.HS256)
+                .compact();
+        mvc.perform(get("/api/admin/auth/me").cookie(accessCookie(token))).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void tokenWithOtherHmacAlgorithm_isRejected() throws Exception {
+        StaffUser owner = adminAuth.createStaff(StaffRole.OWNER);
+        java.util.Base64.Encoder b64 = java.util.Base64.getUrlEncoder().withoutPadding();
+        String header = b64.encodeToString("{\"alg\":\"HS384\"}".getBytes(StandardCharsets.UTF_8));
+        String payload = b64.encodeToString(("{\"sub\":\"" + owner.getId() + "\",\"aud\":\""
+                        + JwtService.STAFF_AUDIENCE + "\",\"username\":\"" + owner.getUsername()
+                        + "\",\"role\":\"OWNER\",\"exp\":" + (clock.instant().getEpochSecond() + 600) + "}")
+                .getBytes(StandardCharsets.UTF_8));
+        javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA384");
+        mac.init(new javax.crypto.spec.SecretKeySpec(staffSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA384"));
+        String signature = b64.encodeToString(
+                mac.doFinal((header + "." + payload).getBytes(StandardCharsets.US_ASCII)));
+        mvc.perform(get("/api/admin/auth/me").cookie(accessCookie(header + "." + payload + "." + signature)))
+                .andExpect(status().isUnauthorized());
     }
 }

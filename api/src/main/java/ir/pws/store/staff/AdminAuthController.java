@@ -3,6 +3,7 @@ package ir.pws.store.staff;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.security.StaffPrincipal;
+import ir.pws.store.staff.dto.StaffMe;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/admin/auth")
 public class AdminAuthController {
-
-    public record MeResponse(long id, String username, String fullName, StaffRole role) {}
 
     private final StaffUserRepository staff;
 
@@ -30,10 +29,10 @@ public class AdminAuthController {
     }
 
     @GetMapping("/me")
-    public MeResponse me(@AuthenticationPrincipal StaffPrincipal principal) {
+    public StaffMe me(@AuthenticationPrincipal StaffPrincipal principal) {
         StaffUser user = staff.findById(principal.id())
                 .filter(StaffUser::isActive)
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHENTICATED));
-        return new MeResponse(user.getId(), user.getUsername(), user.getFullName(), user.getRole());
+        return StaffMe.from(user);
     }
 }

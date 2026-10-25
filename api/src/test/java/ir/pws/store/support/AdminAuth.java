@@ -6,6 +6,8 @@ import ir.pws.store.staff.StaffRole;
 import ir.pws.store.staff.StaffUser;
 import ir.pws.store.staff.StaffUserRepository;
 import jakarta.servlet.http.Cookie;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,9 +50,29 @@ public class AdminAuth {
 
     public RequestPostProcessor staff(StaffUser user) {
         Cookie access = new Cookie(AuthCookies.STAFF_ACCESS, jwt.staffAccessToken(user));
+        return withCookies(access);
+    }
+
+    /**
+     * CSRF double-submit only (no login): a random {@code XSRF-TOKEN} cookie plus a matching
+     * {@code X-XSRF-TOKEN} header. For unauthenticated POSTs (login/verify/refresh). Never use spring-security-test
+     * {@code csrf()}: it swaps the shared CsrfFilter token repository and breaks other tests.
+     */
+    public RequestPostProcessor csrfOnly() {
+        return withCookies();
+    }
+
+    /** Adds the given cookies plus a CSRF pair, keeping any cookies already on the request. */
+    private RequestPostProcessor withCookies(Cookie... extra) {
         String xsrf = UUID.randomUUID().toString();
         return request -> {
-            request.setCookies(access, new Cookie("XSRF-TOKEN", xsrf));
+            List<Cookie> all = new ArrayList<>();
+            if (request.getCookies() != null) {
+                all.addAll(List.of(request.getCookies()));
+            }
+            all.addAll(List.of(extra));
+            all.add(new Cookie("XSRF-TOKEN", xsrf));
+            request.setCookies(all.toArray(new Cookie[0]));
             request.addHeader("X-XSRF-TOKEN", xsrf);
             return request;
         };

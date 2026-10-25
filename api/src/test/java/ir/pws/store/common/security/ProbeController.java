@@ -17,6 +17,12 @@ class ProbeController {
         return "ok";
     }
 
+    /** Not authenticated by any rule other than the ERROR-dispatch permit; used to prove that permit. */
+    @GetMapping("/error-dispatch")
+    String errorDispatch() {
+        return "ok";
+    }
+
     @PostMapping("/echo")
     String echo() {
         return "ok";
