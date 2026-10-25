@@ -295,4 +295,55 @@ class StaffAuthFlowTest extends IntegrationTest {
                 .extracting(Cookie::getName)
                 .containsExactlyInAnyOrder("pws_admin_rt", AuthCookies.STAFF_ACCESS, "XSRF-TOKEN");
     }
+
+    private List<Integer> parallelLogins(String username, List<String> passwords) throws Exception {
+        java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(passwords.size());
+        try {
+            List<java.util.concurrent.Future<Integer>> futures = new java.util.ArrayList<>();
+            for (String password : passwords) {
+                futures.add(pool.submit(() -> {
+                    start.await();
+                    return login(username, password).andReturn().getResponse().getStatus();
+                }));
+            }
+            start.countDown();
+            List<Integer> statuses = new java.util.ArrayList<>();
+            for (var f : futures) {
+                statuses.add(f.get(60, java.util.concurrent.TimeUnit.SECONDS));
+            }
+            return statuses;
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void concurrentWrongPasswords_areAllCounted_andLock() throws Exception {
+        StaffUser u = adminAuth.createStaff(StaffRole.OWNER);
+        List<Integer> statuses = parallelLogins(u.getUsername(), java.util.Collections.nCopies(10, WRONG));
+        assertThat(statuses).allMatch(c -> c == 401 || c == 429);
+        Integer count = jdbc.queryForObject(
+                "SELECT failed_login_count FROM staff_user WHERE id = ?", Integer.class, u.getId());
+        assertThat(count).isEqualTo(5);
+        assertThat(jdbc.queryForObject(
+                        "SELECT locked_until FROM staff_user WHERE id = ?", java.sql.Timestamp.class, u.getId()))
+                .isNotNull();
+        login(u.getUsername(), AdminAuth.PASSWORD)
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+    }
+
+    @Test
+    void concurrentLoginsWithOneCorrectPassword_yieldAtMostOneSuccess_andNeverConflict() throws Exception {
+        StaffUser u = adminAuth.createStaff(StaffRole.OWNER);
+        for (int i = 0; i < 4; i++) {
+            login(u.getUsername(), WRONG).andExpect(status().isUnauthorized());
+        }
+        List<String> passwords = new java.util.ArrayList<>(java.util.Collections.nCopies(9, WRONG));
+        passwords.add(AdminAuth.PASSWORD);
+        List<Integer> statuses = parallelLogins(u.getUsername(), passwords);
+        assertThat(statuses).allMatch(c -> c == 200 || c == 401 || c == 429);
+        assertThat(statuses.stream().filter(c -> c == 200).count()).isLessThanOrEqualTo(1);
+    }
 }

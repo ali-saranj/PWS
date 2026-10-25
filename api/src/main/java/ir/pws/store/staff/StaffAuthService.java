@@ -65,39 +65,49 @@ public class StaffAuthService {
         this.dummyHash = encoder.encode("dummy-password-for-constant-time-login");
     }
 
+    private enum Outcome { OK, BAD_CREDENTIALS, LOCKED }
+
+    private record Attempt(Outcome outcome, String mobile, long staffId) {}
+
     /**
-     * Deliberately not {@code @Transactional}: the failure counter is committed in its own transaction so the
-     * ApiException thrown afterwards cannot roll it back.
+     * Not {@code @Transactional}: the password check and lockout bookkeeping run in one short transaction that
+     * holds a row lock on the staff user (so parallel guesses are serialised and all counted) and always commits;
+     * errors are thrown only after that commit, and the OTP is issued outside it.
      */
     public LoginChallenge login(String username, String password) {
+        Attempt attempt = tx.execute(s -> attempt(username == null ? "" : username.trim(), password));
+        switch (attempt.outcome()) {
+            case LOCKED -> throw new ApiException(ErrorCode.RATE_LIMITED);
+            case BAD_CREDENTIALS -> throw new ApiException(ErrorCode.UNAUTHENTICATED);
+            default -> {
+                otp.issue(attempt.mobile(), OtpPurpose.STAFF_LOGIN);
+                return new LoginChallenge(jwt.staffChallenge(attempt.staffId()), MobileNumbers.mask(attempt.mobile()));
+            }
+        }
+    }
+
+    private Attempt attempt(String username, String password) {
         Instant now = clock.instant();
-        Optional<StaffUser> found = staff.findByUsername(username == null ? "" : username.trim());
+        Optional<StaffUser> found = staff.findForUpdateByUsername(username);
         if (found.isEmpty()) {
             encoder.matches(password, dummyHash);
-            throw new ApiException(ErrorCode.UNAUTHENTICATED);
+            return new Attempt(Outcome.BAD_CREDENTIALS, null, 0);
         }
         StaffUser user = found.get();
         if (user.isLocked(now)) {
-            throw new ApiException(ErrorCode.RATE_LIMITED);
+            return new Attempt(Outcome.LOCKED, null, 0);
         }
-        boolean passwordOk = encoder.matches(password, user.getPasswordHash());
-        if (!passwordOk) {
-            recordFailure(user.getId(), now);
-            throw new ApiException(ErrorCode.UNAUTHENTICATED);
+        if (!encoder.matches(password, user.getPasswordHash())) {
+            user.recordFailedLogin(now, FAILURE_WINDOW, MAX_FAILURES, LOCK_DURATION);
+            return new Attempt(Outcome.BAD_CREDENTIALS, null, 0);
         }
         if (!user.isActive()) {
-            throw new ApiException(ErrorCode.UNAUTHENTICATED);
+            return new Attempt(Outcome.BAD_CREDENTIALS, null, 0);
         }
         if (user.getFailedLoginCount() > 0 || user.getLockedUntil() != null) {
-            tx.executeWithoutResult(s -> staff.findById(user.getId()).ifPresent(StaffUser::clearLoginFailures));
+            user.clearLoginFailures();
         }
-        otp.issue(user.getMobile(), OtpPurpose.STAFF_LOGIN);
-        return new LoginChallenge(jwt.staffChallenge(user.getId()), MobileNumbers.mask(user.getMobile()));
-    }
-
-    private void recordFailure(long staffId, Instant now) {
-        tx.executeWithoutResult(s -> staff.findById(staffId)
-                .ifPresent(u -> u.recordFailedLogin(now, FAILURE_WINDOW, MAX_FAILURES, LOCK_DURATION)));
+        return new Attempt(Outcome.OK, user.getMobile(), user.getId());
     }
 
     @Transactional
