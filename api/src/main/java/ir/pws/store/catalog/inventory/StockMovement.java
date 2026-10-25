@@ -76,4 +76,5 @@ public class StockMovement {
     public Long getRefId() { return refId; }
     public Long getStaffUserId() { return staffUserId; }
     public String getNote() { return note; }
+    public Instant getCreatedAt() { return createdAt; }
 }

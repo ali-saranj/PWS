@@ -15,6 +15,29 @@ public interface VariantRepository extends JpaRepository<Variant, Long> {
     @Query("select v from Variant v where v.id = :id")
     Optional<Variant> findByIdForUpdate(long id);
 
+    /** Locks all given rows in ascending id order (one SELECT ... ORDER BY id FOR UPDATE). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select v from Variant v where v.id in :ids order by v.id")
+    List<Variant> lockAllByIdOrdered(Collection<Long> ids);
+
+    @Query(value = """
+            select new ir.pws.store.catalog.inventory.InventoryRowDto(v.id, p.id, p.nameFa, p.nameEn, v.sku,
+                   v.flavourFa, v.flavourEn, v.sizeLabel, v.stockOnHand, v.lowStockThreshold, v.active)
+            from Variant v, Product p
+            where p.id = v.productId
+              and (:lowStock = false or v.stockOnHand <= v.lowStockThreshold)
+              and (lower(v.sku) like :like escape '\\' or lower(p.nameFa) like :like escape '\\'
+                   or lower(coalesce(p.nameEn, '')) like :like escape '\\')
+            order by v.stockOnHand asc, v.id asc""",
+            countQuery = """
+            select count(v) from Variant v, Product p
+            where p.id = v.productId
+              and (:lowStock = false or v.stockOnHand <= v.lowStockThreshold)
+              and (lower(v.sku) like :like escape '\\' or lower(p.nameFa) like :like escape '\\'
+                   or lower(coalesce(p.nameEn, '')) like :like escape '\\')""")
+    org.springframework.data.domain.Page<ir.pws.store.catalog.inventory.InventoryRowDto> searchInventory(
+            String like, boolean lowStock, org.springframework.data.domain.Pageable pageable);
+
     boolean existsBySku(String sku);
 
     boolean existsBySkuAndIdNot(String sku, long id);
