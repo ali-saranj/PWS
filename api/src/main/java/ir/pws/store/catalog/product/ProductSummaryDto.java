@@ -17,10 +17,10 @@ public record ProductSummaryDto(
         long totalStock,
         Instant updatedAt) {
 
-    /** Thumbnail is filled by a later task; variant aggregates come from one query per page (null = no variants). */
-    static ProductSummaryDto from(Product p, VariantRepository.ProductAggregate agg) {
+    /** Variant aggregates and thumbnail come from one query each per page (null aggregate = no variants). */
+    static ProductSummaryDto from(Product p, String thumbnailUrl, VariantRepository.ProductAggregate agg) {
         return new ProductSummaryDto(p.getId(), p.getNameFa(), p.getNameEn(), p.getSlug(), p.getStatus(),
-                p.getBrandId(), p.getCategoryId(), null, agg == null ? 0 : agg.getVariantCount().intValue(),
+                p.getBrandId(), p.getCategoryId(), thumbnailUrl, agg == null ? 0 : agg.getVariantCount().intValue(),
                 agg == null ? null : agg.getMinPrice(), agg == null ? 0 : agg.getTotalStock(), p.getUpdatedAt());
     }
 }

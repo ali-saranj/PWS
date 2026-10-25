@@ -1,5 +1,6 @@
 package ir.pws.store.catalog.brand;
 
+import ir.pws.store.catalog.image.ProductImageController;
 import ir.pws.store.common.security.Roles;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -12,8 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/admin/brands")
@@ -40,6 +43,11 @@ public class BrandController {
     @PutMapping("/{id}")
     public BrandDto update(@PathVariable long id, @Valid @RequestBody BrandRequest request) {
         return service.update(id, request);
+    }
+
+    @PostMapping("/{id}/logo")
+    public BrandDto uploadLogo(@PathVariable long id, @RequestParam("file") MultipartFile file) {
+        return service.uploadLogo(id, ProductImageController.bytes(file));
     }
 
     @DeleteMapping("/{id}")

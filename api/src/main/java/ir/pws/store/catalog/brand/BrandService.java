@@ -1,12 +1,18 @@
 package ir.pws.store.catalog.brand;
 
 import ir.pws.store.audit.AuditService;
+import ir.pws.store.catalog.image.ImageProcessor;
+import ir.pws.store.catalog.image.MediaStorage;
+import ir.pws.store.catalog.image.MediaTransactions;
+import ir.pws.store.catalog.image.ProcessedImage;
 import ir.pws.store.catalog.product.ProductRepository;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.text.Slugs;
 import ir.pws.store.config.AppProperties;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +25,17 @@ public class BrandService {
     private final BrandRepository brands;
     private final AuditService audit;
     private final ProductRepository products;
+    private final ImageProcessor imageProcessor;
+    private final MediaStorage storage;
     private final String mediaBaseUrl;
 
     public BrandService(BrandRepository brands, AuditService audit, ProductRepository products,
-            AppProperties props) {
+            ImageProcessor imageProcessor, MediaStorage storage, AppProperties props) {
         this.brands = brands;
         this.audit = audit;
         this.products = products;
+        this.imageProcessor = imageProcessor;
+        this.storage = storage;
         this.mediaBaseUrl = props.media() == null ? "/media" : props.media().baseUrl();
     }
 
@@ -57,6 +67,24 @@ public class BrandService {
     }
 
     @Transactional
+    public BrandDto uploadLogo(long id, byte[] bytes) {
+        Brand brand = find(id);
+        ProcessedImage processed = imageProcessor.process(bytes);
+        BrandDto before = toDto(brand);
+        String previous = brand.getLogoPath();
+        String path = "brands/" + id + "/" + UUID.randomUUID() + "-400.webp";
+        MediaTransactions.saveFiles(storage, Map.of(path, processed.thumb()));
+        brand.setLogoPath(path);
+        brands.saveAndFlush(brand);
+        if (previous != null) {
+            MediaTransactions.deleteFilesAfterCommit(storage, List.of(previous));
+        }
+        BrandDto after = toDto(brand);
+        audit.record("BRAND_LOGO_UPLOAD", ENTITY, id, before, after);
+        return after;
+    }
+
+    @Transactional
     public void delete(long id) {
         Brand brand = find(id);
         assertDeletable(id);
@@ -64,6 +92,9 @@ public class BrandService {
         brands.delete(brand);
         brands.flush();
         audit.record("BRAND_DELETE", ENTITY, id, before, null);
+        if (brand.getLogoPath() != null) {
+            MediaTransactions.deleteFilesAfterCommit(storage, List.of(brand.getLogoPath()));
+        }
     }
 
     /** Throws RESOURCE_IN_USE when the brand cannot be removed. */

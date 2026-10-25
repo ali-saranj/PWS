@@ -64,6 +64,10 @@ public class Brand {
         updatedAt = Instant.now();
     }
 
+    public void setLogoPath(String logoPath) {
+        this.logoPath = logoPath;
+    }
+
     public Long getId() {
         return id;
     }

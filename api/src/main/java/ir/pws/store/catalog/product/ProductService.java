@@ -3,6 +3,7 @@ package ir.pws.store.catalog.product;
 import ir.pws.store.audit.AuditService;
 import ir.pws.store.catalog.brand.BrandRepository;
 import ir.pws.store.catalog.category.CategoryRepository;
+import ir.pws.store.catalog.image.ProductImageService;
 import ir.pws.store.catalog.product.Product.ProductContent;
 import ir.pws.store.catalog.variant.Variant;
 import ir.pws.store.catalog.variant.VariantRepository;
@@ -37,15 +38,17 @@ public class ProductService {
     private final CategoryRepository categories;
     private final VariantRepository variants;
     private final VariantService variantService;
+    private final ProductImageService imageService;
     private final AuditService audit;
 
     public ProductService(ProductRepository products, BrandRepository brands, CategoryRepository categories,
-            VariantRepository variants, VariantService variantService, AuditService audit) {
+            VariantRepository variants, VariantService variantService, ProductImageService imageService, AuditService audit) {
         this.products = products;
         this.brands = brands;
         this.categories = categories;
         this.variants = variants;
         this.variantService = variantService;
+        this.imageService = imageService;
         this.audit = audit;
     }
 
@@ -54,12 +57,15 @@ public class ProductService {
             int page, int size) {
         var pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100), LIST_SORT);
         var result = products.findAll(filter(q, status, categoryId, brandId), pageable);
-        // One aggregate query for the whole page (no N+1). Image thumbnails arrive in a later task.
-        Map<Long, VariantRepository.ProductAggregate> aggregates = result.isEmpty() ? Map.of()
-                : variants.aggregateByProductIds(result.getContent().stream().map(Product::getId).toList()).stream()
+        // One aggregate query and one thumbnail query for the whole page (no N+1).
+        List<Long> ids = result.getContent().stream().map(Product::getId).toList();
+        Map<Long, VariantRepository.ProductAggregate> aggregates = ids.isEmpty() ? Map.of()
+                : variants.aggregateByProductIds(ids).stream()
                         .collect(Collectors.toMap(VariantRepository.ProductAggregate::getProductId,
                                 Function.identity()));
-        return PageResponse.of(result.map(p -> ProductSummaryDto.from(p, aggregates.get(p.getId()))));
+        Map<Long, String> thumbs = imageService.thumbUrls(ids);
+        return PageResponse.of(result.map(p -> ProductSummaryDto.from(p, thumbs.get(p.getId()),
+                aggregates.get(p.getId()))));
     }
 
     @Transactional(readOnly = true)
@@ -115,7 +121,8 @@ public class ProductService {
     }
 
     private ProductDetailDto detail(Product product) {
-        return ProductDetailDto.from(product, variantService.listForProduct(product.getId()));
+        return ProductDetailDto.from(product, imageService.listForProduct(product.getId()),
+                variantService.listForProduct(product.getId()));
     }
 
     private Product find(long id) {
