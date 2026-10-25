@@ -1,0 +1,162 @@
+package ir.pws.store.common.error;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.emptyString;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import ir.pws.store.common.web.RequestIdFilter;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+class ApiExceptionHandlerTest {
+
+    private MockMvc mvc;
+
+    @BeforeEach
+    void setUp() {
+        ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
+        messages.setBasename("messages");
+        messages.setDefaultEncoding("UTF-8");
+        messages.setFallbackToSystemLocale(false);
+        ProblemFactory factory = new ProblemFactory(messages, new com.fasterxml.jackson.databind.ObjectMapper());
+        mvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
+                .setControllerAdvice(new ApiExceptionHandler(factory))
+                .addFilters(new RequestIdFilter())
+                .build();
+    }
+
+    @Test
+    void apiException_rendersProblemWithBothLanguages() throws Exception {
+        mvc.perform(get("/throw/not-found"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.messages.fa").value(not(emptyString())))
+                .andExpect(jsonPath("$.messages.en").value(not(emptyString())))
+                .andExpect(jsonPath("$.requestId").exists());
+    }
+
+    @Test
+    void beanValidation_listsFieldErrors() throws Exception {
+        mvc.perform(post("/throw/validate").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("name"))
+                .andExpect(jsonPath("$.errors[0].code").value("NotBlank"));
+    }
+
+    @Test
+    void malformedJson_isValidationFailed() throws Exception {
+        mvc.perform(post("/throw/validate").contentType(MediaType.APPLICATION_JSON).content("{"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+    }
+
+    @Test
+    void optimisticLock_isConflict() throws Exception {
+        mvc.perform(get("/throw/optimistic"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void dataIntegrityViolation_isConflict() throws Exception {
+        mvc.perform(get("/throw/integrity"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void maxUpload_isFileTooLarge() throws Exception {
+        mvc.perform(get("/throw/upload"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("file"))
+                .andExpect(jsonPath("$.errors[0].code").value("FILE_TOO_LARGE"));
+    }
+
+    @Test
+    void unexpected_isInternalErrorWithoutDetails() throws Exception {
+        mvc.perform(get("/throw/boom"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+                .andExpect(content().string(not(containsString("secret"))));
+    }
+
+    @Test
+    void fieldMessage_followsAcceptLanguage() throws Exception {
+        mvc.perform(get("/throw/field").header("Accept-Language", "en"))
+                .andExpect(jsonPath("$.errors[0].message").value("Invalid value"));
+        mvc.perform(get("/throw/field"))
+                .andExpect(jsonPath("$.errors[0].message").value(not("Invalid value")))
+                .andExpect(jsonPath("$.errors[0].message").value(not(emptyString())));
+    }
+
+    @Test
+    void unsupportedMethod_keepsClientErrorStatus() throws Exception {
+        mvc.perform(post("/throw/not-found")).andExpect(status().isMethodNotAllowed());
+    }
+
+    /** Nested in a test class, so Spring Boot's TestTypeExcludeFilter keeps it out of component scanning. */
+    @Controller
+    @RequestMapping("/throw")
+    @ResponseBody
+    static class ThrowingController {
+
+        record Body(@NotBlank String name) {}
+
+        @org.springframework.web.bind.annotation.GetMapping("/not-found")
+        String notFound() {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
+
+        @PostMapping("/validate")
+        String validate(@Valid @RequestBody Body body) {
+            return "ok";
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/optimistic")
+        String optimistic() {
+            throw new ObjectOptimisticLockingFailureException("Product", 1L);
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/integrity")
+        String integrity() {
+            throw new DataIntegrityViolationException("dup");
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/upload")
+        String upload() {
+            throw new MaxUploadSizeExceededException(5);
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/boom")
+        String boom() {
+            throw new IllegalStateException("secret");
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/field")
+        String field() {
+            throw ApiException.field("name", "INVALID");
+        }
+    }
+}
