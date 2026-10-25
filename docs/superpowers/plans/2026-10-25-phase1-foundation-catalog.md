@@ -94,16 +94,16 @@ README.md
 **Interfaces:**
 - Produces: `AppProperties` (`@ConfigurationProperties("app")` record) with nested `cookies.secure`, `jwt.staffSecret`, `jwt.customerSecret`, `otp.secret`, `media.dir`, `media.baseUrl` (default `/media`), `media.serve` (bool), `sms.provider` (`logging`|`kavenegar`), `sms.kavenegar.{apiKey, baseUrl, templates.{otp, orderPaid, orderShipped}}`, `bootstrap.owner.{username,password,mobile}`. A `Clock` bean (`Clock.systemUTC()`). `IntegrationTest`: abstract base, `@SpringBootTest @AutoConfigureMockMvc @AutoConfigureEmbeddedDatabase(provider = ZONKY) @ActiveProfiles("test")`, exposes `protected MockMvc mvc`, `protected MutableClock clock`, and truncates all tables except `flyway_schema_history` in `@BeforeEach` via `DbCleaner`. `MutableClock extends Clock` with `setInstant(Instant)` and `advance(Duration)`, registered `@Primary` in `TestConfig`. Response header `X-Request-Id` on every response, and the same ID in log MDC key `requestId`.
 
-- [ ] **Step 1: Generate project**
+- [x] **Step 1: Generate project**
 
 ```bash
 cd /Users/ali/Documents/PWS && curl -s "https://start.spring.io/starter.zip?type=maven-project&language=java&javaVersion=17&groupId=ir.pws&artifactId=store-api&name=store-api&packageName=ir.pws.store&dependencies=web,data-jpa,validation,security,actuator,flyway,postgresql" -o /tmp/api.zip && mkdir api && unzip -q /tmp/api.zip -d api && cd api && ./mvnw -q -v
 ```
 Rename the generated main class to `StoreApplication`. Add to `pom.xml`: `io.jsonwebtoken:jjwt-api/impl/jackson` 0.12.x, `org.jsoup:jsoup`, `com.github.usefulness:webp-imageio` (latest), and test-scoped `io.zonky.test:embedded-database-spring-test` 2.x, `org.springframework.security:spring-security-test`, `org.wiremock:wiremock-standalone` 3.x. Add the Zonky Postgres 16 binaries BOM (`io.zonky.test.postgres:embedded-postgres-binaries-bom`, 16.x) in `dependencyManagement`. Make sure `flyway-database-postgresql` is present.
 
-- [ ] **Step 2: Write `application.yml`**: `spring.jpa.open-in-view=false`, `spring.jpa.hibernate.ddl-auto=validate`, `spring.servlet.multipart.max-file-size=5MB`, `max-request-size=6MB`, `spring.messages.basename=messages`, `management.endpoints.web.exposure.include=health`. Test and dev defaults: `app.cookies.secure=false`, 32+-byte dev secrets, `app.sms.provider=logging`, `app.media.dir=${user.dir}/.media`, `app.media.serve=true`. `application-prod.yml`: `app.cookies.secure=true`, `app.media.serve=false`, `logging.structured.format.console=ecs`, `server.forward-headers-strategy=native`; every secret is read from an env var with no default.
+- [x] **Step 2: Write `application.yml`**: `spring.jpa.open-in-view=false`, `spring.jpa.hibernate.ddl-auto=validate`, `spring.servlet.multipart.max-file-size=5MB`, `max-request-size=6MB`, `spring.messages.basename=messages`, `management.endpoints.web.exposure.include=health`. Test and dev defaults: `app.cookies.secure=false`, 32+-byte dev secrets, `app.sms.provider=logging`, `app.media.dir=${user.dir}/.media`, `app.media.serve=true`. `application-prod.yml`: `app.cookies.secure=true`, `app.media.serve=false`, `logging.structured.format.console=ecs`, `server.forward-headers-strategy=native`; every secret is read from an env var with no default.
 
-- [ ] **Step 3: Write the failing tests** in `RequestIdFilterTest extends IntegrationTest`
+- [x] **Step 3: Write the failing tests** in `RequestIdFilterTest extends IntegrationTest`
 
 ```java
 @Test void health_isUp() throws Exception {
@@ -119,15 +119,15 @@ Rename the generated main class to `StoreApplication`. Add to `pom.xml`: `io.jso
 }
 ```
 
-- [ ] **Step 4: Run** `cd api && ./mvnw -q test -Dtest=RequestIdFilterTest`. Expected: FAIL (no filter).
+- [x] **Step 4: Run** `cd api && ./mvnw -q test -Dtest=RequestIdFilterTest`. Expected: FAIL (no filter).
 
-- [ ] **Step 5: Implement `RequestIdFilter extends OncePerRequestFilter`** (highest precedence). It accepts an incoming `X-Request-Id` only if it matches `[A-Za-z0-9\-]{1,64}`; otherwise it generates a random UUID. It sets the MDC key and the response header, and clears the MDC in `finally`. Also implement the support classes listed above and `DevStoreApplication`: `SpringApplication.from(StoreApplication::main).with(DevDatabaseConfig.class).withAdditionalProfiles("dev").run(args)`, where `DevDatabaseConfig` (test sources) starts `EmbeddedPostgres.builder().setPort(5433).setDataDirectory(Path.of(".devdb")).setCleanDataDirectory(false).start()` and exposes its `DataSource` as `@Primary`. Add `.devdb/` and `.media/` to `.gitignore`.
+- [x] **Step 5: Implement `RequestIdFilter extends OncePerRequestFilter`** (highest precedence). It accepts an incoming `X-Request-Id` only if it matches `[A-Za-z0-9\-]{1,64}`; otherwise it generates a random UUID. It sets the MDC key and the response header, and clears the MDC in `finally`. Also implement the support classes listed above and `DevStoreApplication`: `SpringApplication.from(StoreApplication::main).with(DevDatabaseConfig.class).withAdditionalProfiles("dev").run(args)`, where `DevDatabaseConfig` (test sources) starts `EmbeddedPostgres.builder().setPort(5433).setDataDirectory(Path.of(".devdb")).setCleanDataDirectory(false).start()` and exposes its `DataSource` as `@Primary`. Add `.devdb/` and `.media/` to `.gitignore`.
 
-- [ ] **Step 6: Run** `./mvnw -q test`. Expected: PASS (all 3, plus the generated context test).
+- [x] **Step 6: Run** `./mvnw -q test`. Expected: PASS (all 3, plus the generated context test).
 
-- [ ] **Step 7: Verify the dev run.** Run `./mvnw -q spring-boot:test-run` in the background, then `curl -s localhost:8080/actuator/health`. Expected: `{"status":"UP"}`. Stop the process.
+- [x] **Step 7: Verify the dev run.** Run `./mvnw -q spring-boot:test-run` in the background, then `curl -s localhost:8080/actuator/health`. Expected: `{"status":"UP"}`. Stop the process.
 
-- [ ] **Step 8: Commit** `feat(api): scaffold Spring Boot API with request IDs and embedded Postgres test harness`
+- [x] **Step 8: Commit** `feat(api): scaffold Spring Boot API with request IDs and embedded Postgres test harness`
 
 ### Task 2: Problem+JSON error handling
 
@@ -143,7 +143,7 @@ Rename the generated main class to `StoreApplication`. Add to `pom.xml`: `io.jso
   - `ProblemFactory.build(ErrorCode code, List<FieldError> errors, Locale locale)`, which returns a `ProblemDetail` with `code`, `messages.fa`, `messages.en`, `requestId` (from MDC) and `errors[{field, code, message}]` (message taken from the request's `Accept-Language`, default `fa`). Message keys are `error.<CODE>` and `field.<code>`. Security handlers (Task 6) reuse it.
   - `record PageResponse<T>(List<T> items, int page, int size, long total)` with `static <T> PageResponse<T> of(Page<T>)`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```java
 @Test void apiException_rendersProblemWithBothLanguages() — GET /throw/not-found →
@@ -158,10 +158,10 @@ Rename the generated main class to `StoreApplication`. Add to `pom.xml`: `io.jso
 @Test void fieldMessage_followsAcceptLanguage() — Accept-Language: en on a field error → $.errors[0].message is the English text
 ```
 
-- [ ] **Step 2: Run** `./mvnw -q test -Dtest=ApiExceptionHandlerTest`. Expected: FAIL.
-- [ ] **Step 3: Implement** the handler (`@RestControllerAdvice`) for `ApiException`, `MethodArgumentNotValidException`, `HandlerMethodValidationException`, `HttpMessageNotReadableException`, `ObjectOptimisticLockingFailureException`, `DataIntegrityViolationException`, `MaxUploadSizeExceededException`, `NoResourceFoundException` (→ `NOT_FOUND`) and `Exception` (log with stack trace → `INTERNAL_ERROR`). Write Persian and English messages for every error code and field code.
-- [ ] **Step 4: Run** the tests. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(api): problem+json error handling with fa/en messages`
+- [x] **Step 2: Run** `./mvnw -q test -Dtest=ApiExceptionHandlerTest`. Expected: FAIL.
+- [x] **Step 3: Implement** the handler (`@RestControllerAdvice`) for `ApiException`, `MethodArgumentNotValidException`, `HandlerMethodValidationException`, `HttpMessageNotReadableException`, `ObjectOptimisticLockingFailureException`, `DataIntegrityViolationException`, `MaxUploadSizeExceededException`, `NoResourceFoundException` (→ `NOT_FOUND`) and `Exception` (log with stack trace → `INTERNAL_ERROR`). Write Persian and English messages for every error code and field code.
+- [x] **Step 4: Run** the tests. Expected: PASS.
+- [x] **Step 5: Commit** `feat(api): problem+json error handling with fa/en messages`
 
 ### Task 3: Text utilities (digits, mobile, slug, HTML)
 
@@ -177,7 +177,7 @@ Rename the generated main class to `StoreApplication`. Add to `pom.xml`: `io.jso
   - `Slugs.isValid(String) → boolean`.
   - `HtmlSanitizer.sanitize(String) → String`: `null` stays `null`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```java
 assertThat(Digits.toLatin("۰۹۱۲٣٤٥")).isEqualTo("0912345");
@@ -194,7 +194,7 @@ assertThat(Slugs.isValid("a".repeat(121))).isFalse();
 assertThat(HtmlSanitizer.sanitize("<h2>T</h2><p onclick=x>a<script>b</script></p>")).isEqualTo("<h2>T</h2>\n<p>a</p>");
 ```
 
-- [ ] **Step 2: Run** them and confirm they FAIL. **Step 3: Implement.** Mobile: convert digits to Latin, strip spaces, dashes and parentheses, handle the prefixes `+98`, `0098`, `98` (when length is 12), and a bare `9`, then require `^09\d{9}$`. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): digit, mobile, slug and HTML utilities`
+- [x] **Step 2: Run** them and confirm they FAIL. **Step 3: Implement.** Mobile: convert digits to Latin, strip spaces, dashes and parentheses, handle the prefixes `+98`, `0098`, `98` (when length is 12), and a bare `9`, then require `^09\d{9}$`. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): digit, mobile, slug and HTML utilities`
 
 ### Task 4: SMS sender (logging fake + Kavenegar)
 
@@ -209,7 +209,7 @@ assertThat(HtmlSanitizer.sanitize("<h2>T</h2><p onclick=x>a<script>b</script></p
   - `LoggingSmsSender` is the bean when `app.sms.provider=logging`; it also exposes `List<SentSms> sent()` and `void clear()` (`record SentSms(String mobile, SmsTemplate template, List<String> tokens)`).
   - `KavenegarSmsSender` is the bean when `app.sms.provider=kavenegar`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```java
 @Test void send_callsVerifyLookupWithTemplateAndTokens() — stub GET /v1/KEY/verify/lookup.json returning 200 {"return":{"status":200}};
@@ -219,7 +219,7 @@ assertThat(HtmlSanitizer.sanitize("<h2>T</h2><p onclick=x>a<script>b</script></p
 @Test void timeout_throwsSmsException() — stub with fixed delay 2s, sender built with 500 ms timeout → SmsException
 ```
 
-- [ ] **Step 2: Run** them and confirm FAIL. **Step 3: Implement** `KavenegarSmsSender(AppProperties props, Duration timeout)`. Production uses a 10 s timeout. Use Spring `RestClient` with `SimpleClientHttpRequestFactory` connect and read timeouts; URL-encode the tokens and don't retry. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): SMS sender abstraction with Kavenegar and logging implementations`
+- [x] **Step 2: Run** them and confirm FAIL. **Step 3: Implement** `KavenegarSmsSender(AppProperties props, Duration timeout)`. Production uses a 10 s timeout. Use Spring `RestClient` with `SimpleClientHttpRequestFactory` connect and read timeouts; URL-encode the tokens and don't retry. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): SMS sender abstraction with Kavenegar and logging implementations`
 
 ### Task 5: OTP service
 
@@ -236,7 +236,7 @@ assertThat(HtmlSanitizer.sanitize("<h2>T</h2><p onclick=x>a<script>b</script></p
 
 Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), expires_at, attempts INT DEFAULT 0, consumed_at NULL)`, with an index on `(mobile, purpose, created_at DESC)`.
 
-- [ ] **Step 1: Write failing tests** (each reads the code from `LoggingSmsSender.sent()`)
+- [x] **Step 1: Write failing tests** (each reads the code from `LoggingSmsSender.sent()`)
 
 ```java
 @Test void issueThenVerify_succeedsOnce() — verify(code) ok; verify(code) again → OTP_INVALID
@@ -252,7 +252,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
 @Test void codeIsNotStoredInPlaintext() — the stored code_hash is not equal to the code
 ```
 
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** Generate the code with `SecureRandom`, zero-padded. The hash is hex HMAC-SHA256 of `mobile:purpose:code` keyed with `otp.secret`, and is compared in constant time. `issue` is `@Transactional`, so an `SmsException` → `ApiException(SMS_UNAVAILABLE)` rolls back the row. `verify` is `@Transactional(noRollbackFor = ApiException.class)` so attempt increments persist. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): OTP issue/verify with rate limits and attempt caps`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** Generate the code with `SecureRandom`, zero-padded. The hash is hex HMAC-SHA256 of `mobile:purpose:code` keyed with `otp.secret`, and is compared in constant time. `issue` is `@Transactional`, so an `SmsException` → `ApiException(SMS_UNAVAILABLE)` rolls back the row. `verify` is `@Transactional(noRollbackFor = ApiException.class)` so attempt increments persist. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): OTP issue/verify with rate limits and attempt caps`
 
 ### Task 6: Staff model, JWT cookies, security config, owner bootstrap
 
@@ -282,7 +282,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
     - `GET /api/admin/auth/me` → `{id, username, fullName, role}`.
   - Test helper `AdminAuth`: `static RequestPostProcessor staff(StaffUser)` adds a valid `pws_admin_at` cookie and `csrf()`; `StaffUser createStaff(StaffRole)` persists one with mobile `0912000000<n>` and password `Password123!`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```java
 @Test void me_withoutCookie_is401Problem() — $.code "UNAUTHENTICATED", content type problem+json
@@ -298,10 +298,10 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
 @Test void doesNothingWhenStaffExists()
 ```
 
-- [ ] **Step 2: Run** and confirm FAIL.
-- [ ] **Step 3: Implement.** Use a stateless session. CSRF: `CookieCsrfTokenRepository.withHttpOnlyFalse()` with a plain `CsrfTokenRequestAttributeHandler`. `StaffJwtCookieFilter` runs only for `/api/admin/**`. `permitAll` covers `/actuator/health`, `/media/**`, `/api/admin/auth/{csrf,login,verify,refresh}`. `/api/admin/**` requires authentication and every other path is `denyAll`. `@EnableMethodSecurity`. The entry point and access-denied handler write problem JSON through `ProblemFactory`. Passwords use `BCryptPasswordEncoder(12)`.
-- [ ] **Step 4: Run** and confirm PASS.
-- [ ] **Step 5: Commit** `feat(api): staff model, JWT cookie auth, CSRF and owner bootstrap`
+- [x] **Step 2: Run** and confirm FAIL.
+- [x] **Step 3: Implement.** Use a stateless session. CSRF: `CookieCsrfTokenRepository.withHttpOnlyFalse()` with a plain `CsrfTokenRequestAttributeHandler`. `StaffJwtCookieFilter` runs only for `/api/admin/**`. `permitAll` covers `/actuator/health`, `/media/**`, `/api/admin/auth/{csrf,login,verify,refresh}`. `/api/admin/**` requires authentication and every other path is `denyAll`. `@EnableMethodSecurity`. The entry point and access-denied handler write problem JSON through `ProblemFactory`. Passwords use `BCryptPasswordEncoder(12)`.
+- [x] **Step 4: Run** and confirm PASS.
+- [x] **Step 5: Commit** `feat(api): staff model, JWT cookie auth, CSRF and owner bootstrap`
 
 ### Task 7: Staff login flow (password → SMS code), refresh, logout, lockout
 
@@ -318,7 +318,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `POST /api/admin/auth/logout` → `204` and clears the cookies.
   - `StaffAuthService.revokeAllFor(long staffId)` (used by Task 9).
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```java
 @Test void fullLogin_setsCookies_andMeWorks() — login → challenge; code from LoggingSmsSender; verify → Set-Cookie pws_admin_at (HttpOnly, Path=/api/admin) and pws_admin_rt (HttpOnly, Path=/api/admin/auth); GET /me with the access cookie → 200
@@ -335,7 +335,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
 @Test void refreshTokenStoredHashed() — no refresh_token.token_hash equals the cookie value
 ```
 
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** The refresh token is 32 random bytes, Base64URL-encoded; store its SHA-256 hex and expire it after 12 h. Lockout state lives on `staff_user`: if `failed_login_window_start` is older than 15 min, reset the count before incrementing; on the 5th failure set `locked_until = now + 15m`. A locked account answers `RATE_LIMITED` before the password is checked. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): two-step staff login with lockout, refresh rotation and logout`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** The refresh token is 32 random bytes, Base64URL-encoded; store its SHA-256 hex and expire it after 12 h. Lockout state lives on `staff_user`: if `failed_login_window_start` is older than 15 min, reset the count before incrementing; on the 5th failure set `locked_until = now + 15m`. A locked account answers `RATE_LIMITED` before the password is checked. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): two-step staff login with lockout, refresh rotation and logout`
 
 ### Task 8: Audit log
 
@@ -350,8 +350,8 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `AuditService.record(String action, String entityType, Long entityId, Object before, Object after)`: serialises with the app `ObjectMapper` and takes the staff from the `SecurityContext` (or an explicit `recordFor(Long staffId, …)` overload for login events) and the IP from the current request.
   - `GET /api/admin/audit?entityType&staffUserId&page&size` (OWNER) → `PageResponse<AuditEntryDto{id, staffUsername, action, entityType, entityId, before, after, ip, createdAt}>`, newest first.
 
-- [ ] **Step 1: Write failing tests:** `loginSuccess_isAudited`, `failedPassword_isAudited`, `list_isOwnerOnly` (PRODUCT_MANAGER → 403), `list_filtersByEntityType_newestFirst`, `beforeAndAfter_areJsonObjects` (`$.items[0].after.name` readable).
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): audit log with owner-only listing`
+- [x] **Step 1: Write failing tests:** `loginSuccess_isAudited`, `failedPassword_isAudited`, `list_isOwnerOnly` (PRODUCT_MANAGER → 403), `list_filtersByEntityType_newestFirst`, `beforeAndAfter_areJsonObjects` (`$.items[0].after.name` readable).
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): audit log with owner-only listing`
 
 ### Task 9: Staff management API
 
@@ -367,7 +367,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `PUT /api/admin/staff/{id} {fullName, mobile, role, active, version}` → `StaffDto`;
   - `POST /api/admin/staff/{id}/password {password}` → 204.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `create_returnsStaff_andAudits`
   - `duplicateUsername_isFieldDuplicate` (`errors[0].field` `username`, code `DUPLICATE`, case-insensitive)
   - `shortPassword_isFieldPasswordTooShort` (fewer than 10 characters)
@@ -378,7 +378,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `passwordReset_revokesRefreshTokens`
   - `productManager_isForbidden`
   - `responsesNeverContainPasswordHash`
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): owner-managed staff accounts`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): owner-managed staff accounts`
 
 ## Part B — Catalog API
 
@@ -399,7 +399,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `CategoryService.assertDeletable(long id)` and `BrandService.assertDeletable(long id)` are extension points that Task 11 extends with product checks.
 - Validation: `nameFa` required, max 200; `nameEn` optional, max 200; slug required and valid.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `createAndList`
   - `invalidSlug_isFieldSlugInvalid`
   - `duplicateSlug_isFieldDuplicate`
@@ -411,7 +411,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `orderOperator_isForbidden`
   - `missingNameFa_isRequired`
   - For brands: `brandCrud`, `duplicateBrandSlug`.
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): category tree and brand management`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): category tree and brand management`
 
 ### Task 11: Products (basics, list, filters, optimistic locking)
 
@@ -432,7 +432,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `ProductService.getDetail(long id)` is reused by Tasks 12–13 to fill `images` and `variants`.
 - `ProductUpsertRequest {brandId, categoryId, slug, nameFa, nameEn, descriptionFa, descriptionEn, featured, seoTitleFa, seoTitleEn, seoDescriptionFa, seoDescriptionEn, version?}`. Limits: SEO titles ≤ 70 characters, SEO descriptions ≤ 160.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `create_isDraft_andSanitisesDescription`
   - `update_withStaleVersion_isConflict`: two `GET`s → `PUT` A succeeds → `PUT` B with the old version → 409 `CONFLICT` (Review Focus 2)
   - `unknownBrandOrCategory_is404`
@@ -441,7 +441,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `list_paginates_andCapsSizeAt100`
   - `deleteCategoryUsedByProduct_isResourceInUse`, `deleteBrandUsedByProduct_isResourceInUse` (Review Focus 4)
   - `update_isAuditedWithBeforeAndAfter`
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): product CRUD with filters and optimistic locking`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): product CRUD with filters and optimistic locking`
 
 ### Task 12: Variants, volume tiers, tier pricing, publish status
 
@@ -466,7 +466,7 @@ Table `otp_code(mobile VARCHAR(11), purpose VARCHAR(20), code_hash VARCHAR(64), 
   - `POST /api/admin/products/{id}/status {status, version}` → `ProductDetailDto`. `ACTIVE` requires at least one active variant, otherwise `PRODUCT_NOT_PUBLISHABLE`.
   - Variants are never deleted, only deactivated (`active=false`).
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```java
 // TierPricingTest
@@ -495,7 +495,7 @@ VariantApiTest:
 - `productDetail_includesVariantsAndTiers`
 - `summary_showsVariantCountMinPriceTotalStock`
 
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): variants, volume tiers and publish rules`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): variants, volume tiers and publish rules`
 
 ### Task 13: Product images and brand logos
 
@@ -518,7 +518,7 @@ VariantApiTest:
     - `POST /api/admin/brands/{id}/logo` (multipart) → `BrandDto`, stored as `brands/<id>/<uuid>-400.webp` only.
   - `MediaWebConfig` serves `/media/**` from `app.media.dir` when `app.media.serve=true`.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `jpeg_isResizedTo1600And400Webp` (output starts with `RIFF`, bytes 8–11 are `WEBP`; decoded widths 1600 and 400)
   - `smallImage_isNotUpscaled` (300 px stays 300 in both)
   - `textFile_isImageInvalid`
@@ -529,7 +529,7 @@ VariantApiTest:
   - `over5MB_isFileTooLarge`
   - `brandLogo_upload`
   - `uploads_areAudited`
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** If `webp-imageio` has no native binary for the platform, stop and report it instead of switching formats. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): product images and brand logos with WebP processing`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** If `webp-imageio` has no native binary for the platform, stop and report it instead of switching formats. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): product images and brand logos with WebP processing`
 
 ### Task 14: Inventory API
 
@@ -544,7 +544,7 @@ VariantApiTest:
   - `POST /api/admin/inventory/adjustments {adjustments: [{variantId, delta, note}]}` → `InventoryRowDto[]`: all-or-nothing. Variant rows are locked with `SELECT … FOR UPDATE` in ascending ID order to avoid deadlocks. `delta ≠ 0`, `note` ≤ 500 characters. Errors are named `adjustments[i].delta` with code `STOCK_NEGATIVE`.
   - `GET /api/admin/variants/{id}/movements?page&size` → `PageResponse<StockMovementDto {id, delta, reason, note, staffUsername, createdAt}>`.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `adjust_updatesStock_andRecordsMovementWithStaff`
   - `batchIsAllOrNothing` (first valid, second would go negative → 400; first unchanged)
   - `persianDigitsAreNotAccepted_asJsonNumbers`: the API takes JSON numbers only, and the UI converts digits (documents the contract)
@@ -552,7 +552,7 @@ VariantApiTest:
   - `searchBySkuAndName`
   - `concurrentAdjustments_doNotLoseUpdates` (Review Focus 3): stock 10; 10 threads each `delta -1` in parallel through `MockMvc` on an executor → final 0, 10 movements. Then 2 threads `-1` on stock 1 → exactly one succeeds and one gets `STOCK_NEGATIVE`.
   - `orderOperator_isForbidden`
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): inventory listing and batch stock adjustments`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(api): inventory listing and batch stock adjustments`
 
 ## Part C — Admin app
 
@@ -581,8 +581,8 @@ VariantApiTest:
   - `LocalizedNumberField` (MUI `TextField` + RHF `Controller`): shows digits in the current locale, accepts either digit set, and emits a `number | null`.
   - `ErrorAlert({error})`: shows `error.messages[locale]`.
 
-- [ ] **Step 1: Install** `@mui/material @emotion/react @emotion/styled @emotion/cache @mui/stylis-plugin-rtl stylis @mui/icons-material react-router @tanstack/react-query react-hook-form zod @hookform/resolvers i18next react-i18next @fontsource/vazirmatn @fontsource/inter` and dev `vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom msw`.
-- [ ] **Step 2: Write failing tests**
+- [x] **Step 1: Install** `@mui/material @emotion/react @emotion/styled @emotion/cache @mui/stylis-plugin-rtl stylis @mui/icons-material react-router @tanstack/react-query react-hook-form zod @hookform/resolvers i18next react-i18next @fontsource/vazirmatn @fontsource/inter` and dev `vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom msw`.
+- [x] **Step 2: Write failing tests**
 
 ```ts
 expect(parseLocalizedInt('۱٬۲۰۰٬۰۰۰')).toBe(1200000);
@@ -606,7 +606,7 @@ expect(formatDate('2026-10-25T10:00:00Z', 'en')).toBe('Oct 25, 2026');
 
 `LocalizedNumberField.test.tsx`: typing `۱۲۰۰` emits `1200`; typing `abc` shows a validation message and emits `null`.
 
-- [ ] **Step 3: Run** `cd admin && npx vitest run`. Expected: FAIL. **Step 4: Implement.** **Step 5: Run** and confirm PASS. Also `npx tsc -b && npx vite build` with no errors. **Step 6: Commit** `feat(admin): scaffold with RTL theme, i18n, formatting and API client`
+- [x] **Step 3: Run** `cd admin && npx vitest run`. Expected: FAIL. **Step 4: Implement.** **Step 5: Run** and confirm PASS. Also `npx tsc -b && npx vite build` with no errors. **Step 6: Commit** `feat(admin): scaffold with RTL theme, i18n, formatting and API client`
 
 ### Task 16: Admin login and role-aware shell
 
@@ -624,7 +624,7 @@ expect(formatDate('2026-10-25T10:00:00Z', 'en')).toBe('Oct 25, 2026');
   - Routes: `/login`, `/`, `/categories`, `/brands`, `/products`, `/products/new`, `/products/:id`, `/inventory`, `/staff`, `/audit`.
   - `AppLayout`: an MUI `AppBar` with a language toggle (فا/EN), the staff name and a logout button, and a permanent `Drawer` on desktop (temporary below `md`). The drawer anchors to the right in RTL automatically through the theme direction.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```ts
 expect(visibleNavItems('ORDER_OPERATOR')).toEqual(['dashboard']);
@@ -640,7 +640,7 @@ LoginPage tests:
 
 RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`.
 
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** On boot, `App` calls `csrf()` then `me()`; a 401 from `me()` means signed out. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): two-step login and role-aware layout`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** On boot, `App` calls `csrf()` then `me()`; a 401 from `me()` means signed out. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): two-step login and role-aware layout`
 
 ### Task 17: Categories and brands screens
 
@@ -654,12 +654,12 @@ RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`
   - `buildTree(flat: CategoryDto[]): CategoryNode[]`, where `CategoryNode = CategoryDto & {children: CategoryNode[]}`, sorted by `sortOrder` then `id`.
   - Shared form rule: the slug auto-fills from `nameEn` (lower-case, non-alphanumerics → `-`, trimmed) until the user edits it. Server field errors map onto RHF fields through `setError(field, {message})`.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `buildTree nests and sorts`
   - `buildTree tolerates orphan parentId (treated as root)`
   - `deleting a category in use shows RESOURCE_IN_USE message`
   - `duplicate slug error is shown under the slug field`
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** Categories use an indented tree list with add-child, edit and delete actions. The parent select excludes the category itself and its descendants. Brands use a table with the logo thumbnail, an edit dialog and a logo upload. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): category tree and brand management screens`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** Categories use an indented tree list with add-child, edit and delete actions. The parent select excludes the category itself and its descendants. Brands use a table with the logo thumbnail, an edit dialog and a logo upload. **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): category tree and brand management screens`
 
 ### Task 18: Product list and editor (basics, SEO, status)
 
@@ -674,14 +674,14 @@ RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`
   - `ProductEditorPage` has tabs **Basics | Variants | Images | SEO**. Variants and Images are mounted by Task 19 and disabled until the product exists. The status control shows the current status chip plus Publish/Unpublish/Archive actions.
   - List filters (search, status, category, brand) live in URL search params.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `list reads filters from URL and shows status chips`
   - `create navigates to /products/:id`
   - `409 CONFLICT on save shows reload prompt; reload refetches and keeps the editor open`
   - `PRODUCT_NOT_PUBLISHABLE shows its message`
   - `SEO title counter warns above 70 chars`
   - `unsaved changes prompt on navigation` (React Router `useBlocker`)
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): product list and editor with SEO and publish control`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): product list and editor with SEO and publish control`
 
 ### Task 19: Variants, tiers and images tabs
 
@@ -696,14 +696,14 @@ RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`
   - The variants tab is a table (SKU, flavour, size, price in Toman, stock, active) with Add/Edit dialogs that use `LocalizedNumberField` and Toman ↔ Rial conversion, plus a "Tiers" button that opens `TierEditor`. `TierEditor` shows a live example ("10 units → X Toman each").
   - The images tab allows multiple uploads with per-file progress and errors, drag to reorder (native HTML5 drag events, saved on drop), edit alt text (fa/en) and delete with confirmation.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `tierRules rejects minQty < 2, price >= base, non-decreasing price, duplicate minQty`
   - `TierEditor sends Rials (Toman × 10) to API`
   - `variant dialog accepts Persian digits for price and stock`
   - `server TIER_INVALID errors map to the right row`
   - `ImagesTab shows IMAGE_INVALID for a rejected file and keeps uploading the others`
   - `reorder sends the new id order`
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): variant, volume tier and image management`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): variant, volume tier and image management`
 
 ### Task 20: Inventory screen
 
@@ -714,11 +714,11 @@ RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`
 **Interfaces:**
 - Produces: a table with search and a low-stock toggle. Each row has an editable "adjust by" cell (signed number, Persian digits accepted). A sticky "Apply N changes" bar submits one batch with an optional shared note. A row's history icon opens `MovementsDrawer`. Low-stock rows are highlighted.
 
-- [ ] **Step 1: Write failing tests:**
+- [x] **Step 1: Write failing tests:**
   - `batch submits only non-zero deltas`
   - `STOCK_NEGATIVE error highlights the offending row and keeps the entered values`
   - `low-stock toggle sets lowStock=true`
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): inventory screen with batch adjustments`
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): inventory screen with batch adjustments`
 
 ### Task 21: Staff and audit screens
 
@@ -732,8 +732,8 @@ RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`
   - The audit page is a paged table filtered by entity type and staff member. Expanding a row shows `JsonDiff`.
   - `JsonDiff({before, after})` lists the changed top-level keys with old and new values.
 
-- [ ] **Step 1: Write failing tests:** `LAST_OWNER error shown on role field`, `JsonDiff lists only changed keys`, `audit dates render in Jalali for fa`.
-- [ ] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): staff management and audit log screens`
+- [x] **Step 1: Write failing tests:** `LAST_OWNER error shown on role field`, `JsonDiff lists only changed keys`, `audit dates render in Jalali for fa`.
+- [x] **Step 2: Run** and confirm FAIL. **Step 3: Implement.** **Step 4: Run** and confirm PASS. **Step 5: Commit** `feat(admin): staff management and audit log screens`
 
 ## Part D — Dev stack and verification
 
@@ -744,9 +744,9 @@ RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`
 - Create: `deploy/docker-compose.dev.yml` (`postgres:16` on 5432 with the volume `pgdata`, for machines with Docker), `README.md` (prerequisites; run the API with `./mvnw spring-boot:test-run`; run the admin with `npm run dev`; where the dev SMS codes appear in the API log; how to run the tests).
 - Test: `DevSeedTest extends IntegrationTest` with `@ActiveProfiles({"test","dev"})`, which asserts that the seeded counts load and every seeded tier passes `TierPricing.validate`.
 
-- [ ] **Step 1: Write the failing test.** **Step 2: Run** it and confirm FAIL. **Step 3: Write the seed.** **Step 4: Run** it and confirm PASS.
-- [ ] **Step 5: Run the full suites:** `cd api && ./mvnw -q verify` → BUILD SUCCESS; `cd admin && npx vitest run && npx tsc -b && npx vite build` → all pass.
-- [ ] **Step 6: Manual check in the browser** (both servers running). Go through these steps in Persian, then switch to English and spot-check that the layout flips to LTR:
+- [x] **Step 1: Write the failing test.** **Step 2: Run** it and confirm FAIL. **Step 3: Write the seed.** **Step 4: Run** it and confirm PASS.
+- [x] **Step 5: Run the full suites:** `cd api && ./mvnw -q verify` → BUILD SUCCESS; `cd admin && npx vitest run && npx tsc -b && npx vite build` → all pass.
+- [x] **Step 6: Manual check in the browser** (both servers running). Go through these steps in Persian, then switch to English and spot-check that the layout flips to LTR:
   1. Log in as `owner`, taking the code from the API log.
   2. Create a category.
   3. Create a brand and upload its logo.
@@ -756,4 +756,4 @@ RequireRole tests: `redirects when signed out`, `shows no-access for wrong role`
   7. Adjust the stock by −5 and check the movement history.
   8. Create a PRODUCT_MANAGER, log in as them, and confirm that Staff and Audit are hidden and `/staff` shows "no access".
   9. Check that the audit log shows these actions.
-- [ ] **Step 7: Commit** `chore: dev seed data, compose file and README`
+- [x] **Step 7: Commit** `chore: dev seed data, compose file and README`
