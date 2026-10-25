@@ -8,6 +8,7 @@ import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { normalizeLinkUrl } from '../lib/linkUrl'
 
 interface Props {
   label: string
@@ -74,10 +75,12 @@ export function RichTextEditor({ label, value, onChange, error }: Props) {
 
   const setLink = () => {
     if (!editor) return
-    const url = window.prompt(t('editor.linkPrompt'), editor.getAttributes('link').href ?? 'https://')
-    if (url === null) return
-    if (url.trim() === '') editor.chain().focus().extendMarkRange('link').unsetLink().run()
-    else editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run()
+    const input = window.prompt(t('editor.linkPrompt'), editor.getAttributes('link').href ?? 'https://')
+    if (input === null) return
+    const href = normalizeLinkUrl(input)
+    if (href === null) return
+    if (href === '') editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    else editor.chain().focus().extendMarkRange('link').setLink({ href }).run()
   }
 
   return (

@@ -116,15 +116,15 @@ export function BasicsTab({ control, register, setValue, errors, slugTouched }: 
       <Controller
         control={control}
         name="descriptionFa"
-        render={({ field }) => (
-          <RichTextEditor label={t('products.descriptionFa')} value={field.value} onChange={field.onChange} />
+        render={({ field, fieldState }) => (
+          <RichTextEditor label={t('products.descriptionFa')} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
         )}
       />
       <Controller
         control={control}
         name="descriptionEn"
-        render={({ field }) => (
-          <RichTextEditor label={t('products.descriptionEn')} value={field.value} onChange={field.onChange} />
+        render={({ field, fieldState }) => (
+          <RichTextEditor label={t('products.descriptionEn')} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
         )}
       />
     </Stack>

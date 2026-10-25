@@ -20,7 +20,7 @@ type TabKey = 'basics' | 'variants' | 'images' | 'seo'
 
 interface FormProps {
   initial: ProductDetailDto | null
-  reload: () => Promise<ProductDetailDto | undefined>
+  reload: () => Promise<ProductDetailDto>
 }
 
 function ProductForm({ initial, reload }: FormProps) {
@@ -34,6 +34,7 @@ function ProductForm({ initial, reload }: FormProps) {
   const [formError, setFormError] = useState<unknown>(null)
   const [conflict, setConflict] = useState(false)
   const [reloading, setReloading] = useState(false)
+  const [reloadError, setReloadError] = useState<unknown>(null)
   const slugTouched = useRef(initial != null)
   const leaving = useRef(false)
 
@@ -90,15 +91,13 @@ function ProductForm({ initial, reload }: FormProps) {
   const doReload = async () => {
     setReloading(true)
     try {
-      const fresh = await reload()
-      if (fresh) {
-        adopt(fresh)
-        setFormError(null)
-      }
+      adopt(await reload())
+      setFormError(null)
+      setReloadError(null)
       setConflict(false)
     } catch (e) {
-      setConflict(false)
-      setFormError(e)
+      // Keep the dialog open and the user's edits untouched.
+      setReloadError(e)
     } finally {
       setReloading(false)
     }
@@ -158,10 +157,14 @@ function ProductForm({ initial, reload }: FormProps) {
         open={conflict}
         title={t('products.conflictTitle')}
         message={t('products.conflictMessage')}
+        extra={<ErrorAlert error={reloadError} />}
         confirmLabel={t('products.reload')}
         loading={reloading}
         onConfirm={() => void doReload()}
-        onCancel={() => setConflict(false)}
+        onCancel={() => {
+          setConflict(false)
+          setReloadError(null)
+        }}
       />
       <ConfirmDialog
         open={blocker.state === 'blocked'}
@@ -185,5 +188,5 @@ export default function ProductEditorPage() {
 
   if (productId != null && isLoading) return <CircularProgress aria-label={t('common.loading')} />
   if (productId != null && !data) return <ErrorAlert error={error} />
-  return <ProductForm key={data?.id ?? 'new'} initial={data ?? null} reload={async () => (await refetch()).data} />
+  return <ProductForm key={data?.id ?? 'new'} initial={data ?? null} reload={async () => (await refetch({ throwOnError: true })).data!} />
 }

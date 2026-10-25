@@ -95,6 +95,43 @@ describe('ProductEditorPage', () => {
     expect(puts[2]).toMatchObject({ version: 4 })
   })
 
+  it('failed reload keeps the dialog open, shows the error and keeps edits', async () => {
+    let fail = false
+    server.use(
+      http.get('/api/admin/products/5', () => (fail ? problem(500, 'INTERNAL_ERROR', 'Server exploded') : HttpResponse.json(detail()))),
+      http.put('/api/admin/products/5', () => problem(409, 'CONFLICT', 'Stale version')),
+    )
+    renderRoutes('/products/5', owner)
+    const nameFa = await screen.findByLabelText('Persian name')
+    await userEvent.clear(nameFa)
+    await userEvent.type(nameFa, 'ویرایش من')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    const dialog = await screen.findByRole('dialog')
+    fail = true
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Reload' }))
+    expect(await within(dialog).findByText('Server exploded')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByLabelText('Persian name')).toHaveValue('ویرایش من')
+  })
+
+  it('shows a server field error on the description editor', async () => {
+    server.use(
+      http.get('/api/admin/products/5', () => HttpResponse.json(detail())),
+      http.put('/api/admin/products/5', () =>
+        HttpResponse.json(
+          { code: 'VALIDATION_FAILED', messages: { fa: 'خطا', en: 'Invalid' }, errors: [{ field: 'descriptionFa', code: 'INVALID', message: 'Description is bad' }] },
+          { status: 400 },
+        ),
+      ),
+    )
+    renderRoutes('/products/5', owner)
+    await userEvent.type(await screen.findByLabelText('English name'), 'x')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText('Description is bad')).toBeInTheDocument()
+  })
+
   it('PRODUCT_NOT_PUBLISHABLE shows its message', async () => {
     server.use(
       http.get('/api/admin/products/5', () => HttpResponse.json(detail())),

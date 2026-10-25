@@ -1,10 +1,12 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
   open: boolean
   title: string
   message?: string
+  extra?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
   destructive?: boolean
@@ -17,6 +19,7 @@ export function ConfirmDialog({
   open,
   title,
   message,
+  extra,
   confirmLabel,
   cancelLabel,
   destructive,
@@ -28,9 +31,10 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onClose={onCancel}>
       <DialogTitle>{title}</DialogTitle>
-      {message && (
+      {(message || extra) && (
         <DialogContent>
-          <DialogContentText>{message}</DialogContentText>
+          {message && <DialogContentText>{message}</DialogContentText>}
+          {extra}
         </DialogContent>
       )}
       <DialogActions>
