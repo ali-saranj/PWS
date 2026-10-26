@@ -37,16 +37,16 @@
 - Consumes: Flyway tables `category`, `brand`, `product`, `variant`, `volume_tier`, `stock_movement`.
 - Produces: Authentic Iranian deli categories (سوسیس و هات‌داگ, کالباس و ژامبون, خیارشور و ترشیجات, سس و چاشنی, نان ساندویچی, چیپس و تنقلات, کنسروجات), brands (آندره, ۲۰۲, یک‌و‌یک, دلپذیر, کاله), products, variants with pre-set portion weights (e.g. 250g sliced, 500g, 1kg), volume tiers, and initial stock movements.
 
-- [ ] **Step 1: Write the updated assertions in `DevSeedTest.java`**
+- [x] **Step 1: Write the updated assertions in `DevSeedTest.java`**
 
 Update `seedsExpectedCounts` to check for 7 categories (with subcategories), 5 brands, 3 deli products, and variants with valid tiers and stock balance.
 
-- [ ] **Step 2: Run `DevSeedTest` to verify failure**
+- [x] **Step 2: Run `DevSeedTest` to verify failure**
 
 Run: `cd api && ./mvnw test -Dtest=DevSeedTest`
 Expected: FAIL due to mismatch with existing bodybuilding seed.
 
-- [ ] **Step 3: Replace content of `V1000__dev_seed.sql`**
+- [x] **Step 3: Replace content of `V1000__dev_seed.sql`**
 
 Insert categories:
 1. `سوسیس و هات‌داگ` (`sausages-hotdogs`)
@@ -77,17 +77,17 @@ Insert products and variants:
 
 Add volume tiers and initial stock ledger entries.
 
-- [ ] **Step 4: Run `DevSeedTest` to verify pass**
+- [x] **Step 4: Run `DevSeedTest` to verify pass**
 
 Run: `cd api && ./mvnw test -Dtest=DevSeedTest`
 Expected: PASS.
 
-- [ ] **Step 5: Run full API test suite**
+- [x] **Step 5: Run full API test suite**
 
 Run: `cd api && ./mvnw -q test`
 Expected: All tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add api/src/main/resources/db/dev/V1000__dev_seed.sql api/src/test/java/ir/pws/store/DevSeedTest.java
@@ -110,7 +110,7 @@ git commit -m "feat(api): update dev seed catalog to deli and grocery products"
 - Consumes: i18n translation keys under `products.variants`.
 - Produces: Context-appropriate labels for deli store: "طعم / مدل" (Flavor / Style) instead of only "طعم" (Flavour).
 
-- [ ] **Step 1: Update i18n translation strings**
+- [x] **Step 1: Update i18n translation strings**
 
 In `admin/src/i18n/fa.json`:
 - `"flavour": "طعم / مدل"`
@@ -122,22 +122,22 @@ In `admin/src/i18n/en.json`:
 - `"flavourFa": "Style / Flavor (Persian)"`
 - `"flavourEn": "Style / Flavor (English)"`
 
-- [ ] **Step 2: Update README.md header and description**
+- [x] **Step 2: Update README.md header and description**
 
 Update `README.md` to state:
 `# PWS — deli & grocery store (فروشگاه پروتئینی و سوپرمارکتی)` and reflect the deli catalog categories.
 
-- [ ] **Step 3: Run admin test suite**
+- [x] **Step 3: Run admin test suite**
 
 Run: `cd admin && npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 4: Run admin type check and build**
+- [x] **Step 4: Run admin type check and build**
 
 Run: `cd admin && npx tsc -b && npx vite build`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add admin/src/i18n/fa.json admin/src/i18n/en.json README.md
