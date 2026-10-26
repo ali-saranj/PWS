@@ -340,13 +340,13 @@ shop/
   - Fast courier delivery value proposition banner.
   - "پرفروش‌ترین محصولات" carousel with customer ratings and prices in Toman.
 
-- [ ] **Step 1: Write failing test for `HomePage.test.tsx`**
-- [ ] **Step 2: Run test to confirm failure**
+- [x] **Step 1: Write failing test for `HomePage.test.tsx`**
+- [x] **Step 2: Run test to confirm failure**
   - `cd shop && npm test`
-- [ ] **Step 3: Implement homepage sections and connect to `/api/shop/catalog/home`**
-- [ ] **Step 4: Run test and verify pass**
+- [x] **Step 3: Implement homepage sections and connect to `/api/shop/catalog/home`**
+- [x] **Step 4: Run test and verify pass**
   - `cd shop && npm test`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   - `git commit -m "feat(shop): homepage layout with carousels, promo tiles, and category circles"`
 
 ---
@@ -367,11 +367,11 @@ shop/
   - `/category/[slug]`: Subcategory filter, price range slider, in-stock toggle, and sort controls.
   - Reusable `ProductCard` with price in Toman, discount badge, weight/portion label, and instant add-to-cart button.
 
-- [ ] **Step 1: Write failing test for `SearchPage.test.tsx`**
-- [ ] **Step 2: Implement search page, category listing page, and filtering controls**
-- [ ] **Step 3: Run tests and verify pass**
+- [x] **Step 1: Write failing test for `SearchPage.test.tsx`**
+- [x] **Step 2: Implement search page, category listing page, and filtering controls**
+- [x] **Step 3: Run tests and verify pass**
   - `cd shop && npm test`
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   - `git commit -m "feat(shop): search results and category listing with faceted filters"`
 
 ---
