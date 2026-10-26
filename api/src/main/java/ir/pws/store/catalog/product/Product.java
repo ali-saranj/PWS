@@ -138,5 +138,6 @@ public class Product {
     public String getSeoTitleEn() { return seoTitleEn; }
     public String getSeoDescriptionFa() { return seoDescriptionFa; }
     public String getSeoDescriptionEn() { return seoDescriptionEn; }
+    public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

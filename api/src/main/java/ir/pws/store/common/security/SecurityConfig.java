@@ -76,6 +76,8 @@ public class SecurityConfig {
                                 "/api/shop/auth/refresh",
                                 "/api/shop/auth/logout")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/shop/catalog/**")
+                        .permitAll()
                         .requestMatchers("/api/shop/auth/me", "/api/shop/customer/**")
                         .authenticated()
                         .anyRequest()

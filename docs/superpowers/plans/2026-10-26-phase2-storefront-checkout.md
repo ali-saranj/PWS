@@ -129,15 +129,15 @@ shop/
   - `POST /api/shop/auth/logout`: clears customer cookies.
   - `GET/POST /api/shop/customer/addresses`: CRUD for delivery addresses with `is_default` handling.
 
-- [ ] **Step 1: Write `V8__customer_accounts_addresses.sql` migration**
-- [ ] **Step 2: Write failing test in `CustomerAuthIntegrationTest.java`**
+- [x] **Step 1: Write `V8__customer_accounts_addresses.sql` migration**
+- [x] **Step 2: Write failing test in `CustomerAuthIntegrationTest.java`**
   - Verify requesting OTP, verifying code, retrieving profile via `/api/shop/auth/me`, and address management.
-- [ ] **Step 3: Run test to confirm failure**
+- [x] **Step 3: Run test to confirm failure**
   - `cd api && ./mvnw test -Dtest=CustomerAuthIntegrationTest`
-- [ ] **Step 4: Implement Customer entities, repositories, auth service, controller, and security filter**
-- [ ] **Step 5: Run test to verify pass**
+- [x] **Step 4: Implement Customer entities, repositories, auth service, controller, and security filter**
+- [x] **Step 5: Run test to verify pass**
   - `cd api && ./mvnw test -Dtest=CustomerAuthIntegrationTest`
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   - `git commit -m "feat(api): customer accounts, addresses, and shop auth module"`
 
 ---
@@ -159,14 +159,14 @@ shop/
   - `GET /api/shop/catalog/search?q=...`: Robust full-text search matching product `nameFa`, `nameEn`, `descriptionHtml`, brand name, category name, and variant SKU.
   - `GET /api/shop/catalog/products/{slug}`: Active product detail, sorted variants, volume discount ladder, images, stock availability.
 
-- [ ] **Step 1: Write failing tests in `PublicCatalogIntegrationTest.java`**
+- [x] **Step 1: Write failing tests in `PublicCatalogIntegrationTest.java`**
   - Tests home response sections, keyword search in product descriptions, price sorting, and slug detail.
-- [ ] **Step 2: Run test to confirm failure**
+- [x] **Step 2: Run test to confirm failure**
   - `cd api && ./mvnw test -Dtest=PublicCatalogIntegrationTest`
-- [ ] **Step 3: Implement `PublicCatalogService` and `PublicCatalogController` with Spring Data Specifications**
-- [ ] **Step 4: Run test to verify pass**
+- [x] **Step 3: Implement `PublicCatalogService` and `PublicCatalogController` with Spring Data Specifications**
+- [x] **Step 4: Run test to verify pass**
   - `cd api && ./mvnw test -Dtest=PublicCatalogIntegrationTest`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   - `git commit -m "feat(api): public storefront catalog and multi-attribute search endpoints"`
 
 ---
