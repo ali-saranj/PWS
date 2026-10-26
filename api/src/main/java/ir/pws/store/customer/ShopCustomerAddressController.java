@@ -9,8 +9,11 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,5 +41,28 @@ public class ShopCustomerAddressController {
             @AuthenticationPrincipal CustomerPrincipal principal,
             @Valid @RequestBody AddressRequest request) {
         return addressService.createAddress(principal.customerId(), request);
+    }
+
+    @PutMapping("/{id}")
+    public AddressDto update(
+            @AuthenticationPrincipal CustomerPrincipal principal,
+            @PathVariable("id") Long id,
+            @Valid @RequestBody AddressRequest request) {
+        return addressService.updateAddress(principal.customerId(), id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            @AuthenticationPrincipal CustomerPrincipal principal,
+            @PathVariable("id") Long id) {
+        addressService.deleteAddress(principal.customerId(), id);
+    }
+
+    @PutMapping("/{id}/default")
+    public AddressDto setDefault(
+            @AuthenticationPrincipal CustomerPrincipal principal,
+            @PathVariable("id") Long id) {
+        return addressService.setDefaultAddress(principal.customerId(), id);
     }
 }
