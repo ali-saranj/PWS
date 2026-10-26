@@ -69,11 +69,12 @@ function SearchPageContent({
       const query = resolvedQuery.trim();
 
       try {
-        const res = await api.get<{ content: any[] }>(
+        const res = await api.get<{ items?: any[]; content?: any[] }>(
           `/api/shop/catalog/search?q=${encodeURIComponent(query)}`
         );
-        if (!isCancelled && res?.content && Array.isArray(res.content)) {
-          setProducts(res.content);
+        const productList = res?.items || res?.content;
+        if (!isCancelled && productList && Array.isArray(productList)) {
+          setProducts(productList);
           setLoading(false);
           return;
         }

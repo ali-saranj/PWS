@@ -20,6 +20,8 @@ export interface PopularProductItem {
   reviewsCount?: number;
   portionLabel?: string;
   inStock?: boolean;
+  defaultVariantId?: number;
+  variantId?: number;
 }
 
 export const DEFAULT_POPULAR_PRODUCTS: PopularProductItem[] = [
@@ -99,10 +101,11 @@ export const PopularProductsCarousel: React.FC<PopularProductsCarouselProps> = (
   const [wishlist, setWishlist] = useState<Record<number, boolean>>({});
 
   const handleAddToCart = (product: PopularProductItem) => {
+    const effectiveVariantId = product.defaultVariantId || product.variantId || product.id * 10;
     addItem({
       id: `prod-${product.id}`,
       productId: product.id,
-      variantId: product.id * 10,
+      variantId: effectiveVariantId,
       name: product.nameFa,
       variantName: product.portionLabel || 'بسته استاندارد',
       priceToman: product.priceToman,

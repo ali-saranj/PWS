@@ -127,4 +127,81 @@ describe('ProductDetailPage (PDP)', () => {
     const addToCartBtn = screen.getByRole('button', { name: /ناموجود/i });
     expect(addToCartBtn).toBeDisabled();
   });
+
+  it('calls real API /api/shop/catalog/products/${slug}, maps real database variant ID, and passes real variant ID to cart', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/shop/catalog/products/real-salami-slug')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                id: 55,
+                slug: 'real-salami-slug',
+                nameFa: 'سالامی ممتاز واقعی',
+                nameEn: 'Real Premium Salami',
+                brandNameFa: 'میکائیلیان',
+                categoryId: 3,
+                categoryNameFa: 'کالباس و سالامی',
+                inStock: true,
+                variants: [
+                  {
+                    id: 5501,
+                    sku: 'SALAMI-5501',
+                    sizeLabel: 'بسته ۲۵۰ گرمی اسلایس',
+                    priceToman: 195000,
+                    stockOnHand: 15,
+                    inStock: true,
+                    tiers: [],
+                  },
+                ],
+              })
+            ),
+          json: () =>
+            Promise.resolve({
+              id: 55,
+              slug: 'real-salami-slug',
+              nameFa: 'سالامی ممتاز واقعی',
+              nameEn: 'Real Premium Salami',
+              brandNameFa: 'میکائیلیان',
+              categoryId: 3,
+              categoryNameFa: 'کالباس و سالامی',
+              inStock: true,
+              variants: [
+                {
+                  id: 5501,
+                  sku: 'SALAMI-5501',
+                  sizeLabel: 'بسته ۲۵۰ گرمی اسلایس',
+                  priceToman: 195000,
+                  stockOnHand: 15,
+                  inStock: true,
+                  tiers: [],
+                },
+              ],
+            }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve('{}'),
+        json: () => Promise.resolve({}),
+      });
+    });
+
+    render(<ProductDetailPage params={Promise.resolve({ slug: 'real-salami-slug' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: /سالامی ممتاز واقعی/i })).toBeInTheDocument();
+    });
+
+    const addToCartBtn = screen.getByRole('button', { name: /افزودن به سبد خرید/i });
+    fireEvent.click(addToCartBtn);
+
+    const cartItems = useCartStore.getState().items;
+    expect(cartItems).toHaveLength(1);
+    expect(cartItems[0].productId).toBe(55);
+    expect(cartItems[0].variantId).toBe(5501);
+  });
 });

@@ -20,6 +20,8 @@ export interface ProductItem {
   inStock?: boolean;
   totalStock?: number;
   weightLabel?: string;
+  defaultVariantId?: number;
+  variantId?: number;
 }
 
 export const DEFAULT_SPECIAL_OFFERS: ProductItem[] = [
@@ -97,10 +99,11 @@ export const SpecialOffersCarousel: React.FC<SpecialOffersCarouselProps> = ({
   const [addedIds, setAddedIds] = useState<Record<number, boolean>>({});
 
   const handleAddToCart = (product: ProductItem) => {
+    const effectiveVariantId = product.defaultVariantId || product.variantId || product.id * 10;
     addItem({
       id: `prod-${product.id}`,
       productId: product.id,
-      variantId: product.id * 10,
+      variantId: effectiveVariantId,
       name: product.nameFa,
       variantName: product.weightLabel || 'بسته استاندارد',
       priceToman: product.priceToman,

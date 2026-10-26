@@ -148,6 +148,7 @@ class PublicCatalogIntegrationTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(2))
                 .andExpect(jsonPath("$.items[?(@.slug == 'p1')]").exists())
+                .andExpect(jsonPath("$.items[?(@.slug == 'p1')].defaultVariantId").exists())
                 .andExpect(jsonPath("$.items[?(@.slug == 'p2')]").exists());
 
         // 2. Sort by price ascending

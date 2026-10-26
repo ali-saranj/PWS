@@ -25,6 +25,8 @@ export interface ProductData {
   totalStock?: number;
   unit?: string;
   badges?: string[];
+  defaultVariantId?: number;
+  variantId?: number;
 }
 
 export interface ProductCardProps extends Partial<ProductData> {
@@ -69,10 +71,12 @@ export const ProductCard: React.FC<ProductCardProps> = (props) => {
 
     if (!inStock) return;
 
+    const effectiveVariantId = item.defaultVariantId || item.variantId || id;
+
     addItem({
-      id: `product-${id}`,
+      id: `product-${id}-variant-${effectiveVariantId}`,
       productId: id,
-      variantId: id,
+      variantId: effectiveVariantId,
       name: nameFa,
       variantName: displayPortion || 'بسته استاندارد',
       priceToman,

@@ -82,9 +82,10 @@ function CategoryPageContent({ slug }: { slug: string }) {
       setLoading(true);
       try {
         const queryParam = currentCategory.id ? `categoryId=${currentCategory.id}` : `slug=${slug}`;
-        const res = await api.get<{ content: any[] }>(`/api/shop/catalog/products?${queryParam}`);
-        if (active && res?.content && Array.isArray(res.content)) {
-          setProducts(res.content);
+        const res = await api.get<{ items?: any[]; content?: any[] }>(`/api/shop/catalog/products?${queryParam}`);
+        const productList = res?.items || res?.content;
+        if (active && productList && Array.isArray(productList)) {
+          setProducts(productList);
           setLoading(false);
           return;
         }

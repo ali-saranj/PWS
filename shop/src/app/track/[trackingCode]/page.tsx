@@ -90,39 +90,9 @@ export default function OrderTrackingPage({ params }: PageProps) {
           setData(res);
         }
       } catch (err: any) {
-        // Fallback for development/testing if order code doesn't exist on live backend
         if (isMounted) {
-          setData({
-            trackingCode: trackingCode,
-            orderNumber: `ORD-${trackingCode.replace(/\D/g, '') || '8000'}`,
-            status: 'PREPARING',
-            placedAt: new Date().toISOString(),
-            paidAt: new Date().toISOString(),
-            recipientNameMasked: 'خریدار گرامی (م***)',
-            recipientMobileMasked: '۰۹۱۲***۴۵۶۷',
-            province: 'تهران',
-            city: 'تهران',
-            courierNotes: 'ارسال با خودروی مجهز به کانتینر خنک‌کننده',
-            items: [
-              {
-                productNameFa: 'سوسیس و کالباس پروتئینی سبد سبز',
-                variantLabelFa: 'بسته استاندارد ۵۰۰ گرمی',
-                qty: 1,
-              },
-            ],
-            timeline: [
-              {
-                status: 'AWAITING_APPROVAL',
-                timestamp: new Date(Date.now() - 3600000).toISOString(),
-                note: 'پرداخت انجام و سفارش در صف پردازش قرار گرفت.',
-              },
-              {
-                status: 'PREPARING',
-                timestamp: new Date().toISOString(),
-                note: 'در حال آماده‌سازی و برش پروتئینی.',
-              },
-            ],
-          });
+          setData(null);
+          setError('سفارش با این کد رهگیری یافت نشد.');
         }
       } finally {
         if (isMounted) {
@@ -154,7 +124,7 @@ export default function OrderTrackingPage({ params }: PageProps) {
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
           <h2 className="text-lg font-bold text-gray-800 mb-2">سفارش یافت نشد</h2>
           <p className="text-sm text-gray-500 mb-6">
-            سفارشی با کد پیگیری وارد شده یافت نشد. لطفاً کد را مجدداً بررسی فرمایید.
+            سفارش با این کد رهگیری یافت نشد. لطفاً کد را مجدداً بررسی فرمایید.
           </p>
           <Link
             href="/track"

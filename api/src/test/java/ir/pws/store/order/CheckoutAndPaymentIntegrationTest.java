@@ -383,6 +383,65 @@ class CheckoutAndPaymentIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    @DisplayName("Payment callback resilience: when stock is depleted due to expired reservation, payment succeeds, stock does not go negative, and order is flagged for attention")
+    void paymentCallback_whenReservationExpiredAndStockDepleted_succeedsWithoutRollback_andFlagsAttention() throws Exception {
+        checkout_createsOrder_reservesStock_andCallsZarinpal();
+
+        // Advance 16 minutes so reservation expires
+        clock.advance(Duration.ofMinutes(16));
+        reservationExpiryJob.releaseExpiredReservations();
+
+        // Simulate another customer or inventory adjustment zeroing out the stock
+        Variant v = variantRepository.findById(variant.getId()).orElseThrow();
+        v.setStockOnHand(0);
+        variantRepository.save(v);
+
+        wireMockServer.stubFor(WireMock.post(urlEqualTo("/pg/v4/payment/verify.json"))
+                .willReturn(okJson("""
+                        {
+                          "data": {
+                            "code": 100,
+                            "message": "Paid",
+                            "card_pan": "502229******1234",
+                            "ref_id": 99887766,
+                            "fee_type": "Merchant",
+                            "fee": 0
+                          },
+                          "errors": []
+                        }
+                        """)));
+
+        // Callback must succeed (HTTP 200) without throwing STOCK_NEGATIVE or rolling back
+        mvc.perform(get("/api/shop/payments/zarinpal/callback")
+                        .param("Authority", "A00000000000000000000000000123456789")
+                        .param("Status", "OK"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.refId").value("99887766"));
+
+        // Verify payment is recorded as PAID
+        Payment payment = paymentRepository.findByAuthority("A00000000000000000000000000123456789").orElseThrow();
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(payment.getRefId()).isEqualTo("99887766");
+
+        // Verify order has needsAttention == true
+        Order order = orderRepository.findById(payment.getOrderId()).orElseThrow();
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.AWAITING_APPROVAL);
+        assertThat(order.isNeedsAttention()).isTrue();
+
+        // Stock must not be negative (still 0)
+        Variant updatedVariant = variantRepository.findById(variant.getId()).orElseThrow();
+        assertThat(updatedVariant.getStockOnHand()).isEqualTo(0);
+
+        // Verify OrderStatusHistory contains SYSTEM notification
+        List<OrderStatusHistory> history = statusHistoryRepository.findByOrderIdOrderByCreatedAtAsc(order.getId());
+        assertThat(history).anySatisfy(h -> {
+            assertThat(h.getActorType()).isEqualTo(ActorType.SYSTEM);
+            assertThat(h.getNote()).contains("کسری موجودی");
+        });
+    }
+
+    @Test
     @DisplayName("Public tracking endpoint returns masked, safe order status without authentication")
     void trackOrder_publicEndpoint_returnsSafeDtoWithTimelineAndItems() throws Exception {
         paymentCallback_success_deductsStock_marksConsumed_andTransitionsOrderToAwaitingApproval();

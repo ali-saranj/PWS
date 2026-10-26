@@ -295,7 +295,7 @@ public class CheckoutService {
 
     @Transactional
     public PaymentCallbackResponse handlePaymentCallback(String authority, String status) {
-        Payment payment = paymentRepository.findByAuthority(authority)
+        Payment payment = paymentRepository.findByAuthorityForUpdate(authority)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         Order order = orderRepository.findById(payment.getOrderId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -339,9 +339,32 @@ public class CheckoutService {
 
         // Deduct variant stock on hand via StockLedger and record StockMovement
         List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+        boolean hasStockShortage = false;
         for (OrderItem item : items) {
-            Variant v = variantRepository.findById(item.getVariantId()).orElseThrow();
-            stockLedger.apply(v, -item.getQty(), StockMovementReason.ORDER_PAID, order.getId(), "سفارش " + order.getOrderNumber());
+            Variant v = variantRepository.findByIdForUpdate(item.getVariantId()).orElseThrow();
+            int currentStock = v.getStockOnHand();
+            if (currentStock >= item.getQty()) {
+                stockLedger.apply(v, -item.getQty(), StockMovementReason.ORDER_PAID, order.getId(), "سفارش " + order.getOrderNumber());
+            } else {
+                hasStockShortage = true;
+                int decrement = Math.max(0, currentStock);
+                if (decrement > 0) {
+                    stockLedger.apply(v, -decrement, StockMovementReason.ORDER_PAID, order.getId(), "سفارش " + order.getOrderNumber() + " (کسری موجودی)");
+                }
+                statusHistoryRepository.save(new OrderStatusHistory(
+                        order.getId(),
+                        OrderStatus.AWAITING_APPROVAL,
+                        OrderStatus.AWAITING_APPROVAL,
+                        ActorType.SYSTEM,
+                        null,
+                        "کسری موجودی برای محصول " + item.getProductNameFa() + " (" + (item.getVariantLabelFa() != null ? item.getVariantLabelFa() : "") + ") به دلیل انقضای رزرو؛ نیازمند بررسی مدیر است."
+                ));
+            }
+        }
+
+        if (hasStockShortage) {
+            order.setNeedsAttention(true);
+            orderRepository.save(order);
         }
 
         statusHistoryRepository.save(new OrderStatusHistory(

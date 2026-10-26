@@ -107,6 +107,41 @@ describe('Task 12: Payment Callback & Real-Time Order Tracking', () => {
       // Cart should not be emptied on failure
       expect(useCartStore.getState().items).toHaveLength(1);
     });
+
+    it('renders failure alert when backend callback fails and does not synthesize fake tracking codes', async () => {
+      vi.spyOn(navigation, 'useSearchParams').mockReturnValue(
+        new URLSearchParams('Authority=A00000001234&Status=OK')
+      );
+
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        if (url.includes('/api/shop/payments/zarinpal/callback')) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            statusText: 'Internal Server Error',
+            text: () => Promise.resolve('Error verifying payment'),
+            json: () => Promise.resolve({ code: 'GATEWAY_ERROR' }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve('{}'),
+          json: () => Promise.resolve({}),
+        });
+      });
+
+      render(<PaymentCallbackPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/پرداخت ناموفق/i)).toBeInTheDocument();
+      });
+
+      // Does not synthesize fake tracking codes or claim success
+      expect(screen.queryByText(/پرداخت با موفقیت انجام شد/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/TRK-/i)).not.toBeInTheDocument();
+      expect(useCartStore.getState().items).toHaveLength(1);
+    });
   });
 
   describe('OrderTrackingTimeline Component', () => {
@@ -279,6 +314,37 @@ describe('Task 12: Payment Callback & Real-Time Order Tracking', () => {
 
       // Customer support link
       expect(screen.getByText(/پشتیبانی مشتریان/i)).toBeInTheDocument();
+    });
+
+    it('renders error state when tracking lookup returns 404 and does not show fake buyer data', async () => {
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        if (url.includes('/api/shop/orders/track/TRK-NONEXISTENT')) {
+          return Promise.resolve({
+            ok: false,
+            status: 404,
+            statusText: 'Not Found',
+            text: () => Promise.resolve('{"code":"NOT_FOUND"}'),
+            json: () => Promise.resolve({ code: 'NOT_FOUND' }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve('{}'),
+          json: () => Promise.resolve({}),
+        });
+      });
+
+      render(<OrderTrackingPage params={Promise.resolve({ trackingCode: 'TRK-NONEXISTENT' })} />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/سفارش یافت نشد/i)).toBeInTheDocument();
+        expect(screen.getByText(/سفارش با این کد رهگیری یافت نشد/i)).toBeInTheDocument();
+      });
+
+      // Does NOT show fake order or fake customer name
+      expect(screen.queryByText(/خریدار گرامی/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/پیک بادپا/i)).not.toBeInTheDocument();
     });
   });
 

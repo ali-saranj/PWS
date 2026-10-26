@@ -22,5 +22,6 @@ public record ProductSummaryResponse(
         boolean inStock,
         long totalStock,
         boolean featured,
-        List<String> badges
+        List<String> badges,
+        Long defaultVariantId
 ) {}

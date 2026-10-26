@@ -287,6 +287,7 @@ public class PublicCatalogService {
 
             Brand b = brandMap.get(p.getBrandId());
             Category c = catMap.get(p.getCategoryId());
+            Long defaultVariantId = pVars.get(0).getId();
 
             return new ProductSummaryResponse(
                     p.getId(),
@@ -308,7 +309,8 @@ public class PublicCatalogService {
                     inStock,
                     totalStock,
                     p.isFeatured(),
-                    badges);
+                    badges,
+                    defaultVariantId);
         }).filter(Objects::nonNull).toList();
     }
 

@@ -64,39 +64,29 @@ function PaymentCallbackContent() {
         }>(`/api/shop/payments/zarinpal/callback?${query}`);
 
         if (isMounted) {
-          if (data && data.success) {
+          if (data && data.success && data.trackingCode && data.orderNumber) {
             // Clear cart on successful order confirmation
             useCartStore.getState().clearCart();
             setResult({
               success: true,
-              trackingCode: data.trackingCode || `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
-              orderNumber: data.orderNumber || `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-              refId: data.refId || authority || 'ZP-SUCCESS',
+              trackingCode: data.trackingCode,
+              orderNumber: data.orderNumber,
+              refId: data.refId || authority,
             });
           } else {
             setResult({
               success: false,
-              message: data?.message || 'تراکنش ناموفق بود یا توسط کاربر لغو شد.',
+              message: data?.message || 'تراکنش ناموفق بود یا تایید نشد.',
             });
           }
         }
       } catch (err: any) {
         if (isMounted) {
-          // If Status was OK, provide fallback in dev/test environment if backend unreachable
-          if (statusParam.toUpperCase() === 'OK') {
-            useCartStore.getState().clearCart();
-            setResult({
-              success: true,
-              trackingCode: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
-              orderNumber: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-              refId: authority || 'ZP-SIMULATED',
-            });
-          } else {
-            setResult({
-              success: false,
-              message: 'تراکنش ناموفق بود یا توسط کاربر لغو شد.',
-            });
-          }
+          setResult({
+            success: false,
+            message:
+              'خطا در ارتباط با سرور و تایید تراکنش. اگر مبلغی از حساب شما کسر شده است، ظرف حداکثر ۷۲ ساعت آینده بازگردانده خواهد شد. با پشتیبانی تماس بگیرید.',
+          });
         }
       } finally {
         if (isMounted) {

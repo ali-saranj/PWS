@@ -30,24 +30,124 @@ import {
   getProductDetailBySlug,
   ProductDetailData,
   ProductVariant,
+  VolumeTier,
 } from '@/lib/productDetail';
 import { MOCK_CATALOG_PRODUCTS } from '@/lib/mockProducts';
 import { useCartStore } from '@/lib/cartStore';
 import { formatToman, toPersianDigits } from '@/lib/format';
+import { api } from '@/lib/api';
+
+function mapBackendProductToDetail(backend: any): ProductDetailData {
+  const variants: ProductVariant[] = (backend.variants || []).map((v: any) => {
+    const label = v.sizeLabel || v.flavourFa || (v.weightGrams ? `${v.weightGrams} گرم` : 'استاندارد');
+    return {
+      id: v.id,
+      nameFa: label,
+      weightLabel: label,
+      priceToman: v.priceToman || Math.round((v.basePriceRials || 0) / 10),
+      compareAtPriceToman: v.compareAtPriceToman || (v.compareAtPriceRials ? Math.round(v.compareAtPriceRials / 10) : undefined),
+      discountPercent: v.discountPercent ?? undefined,
+      stock: v.stockOnHand ?? 0,
+      inStock: v.inStock ?? (v.stockOnHand > 0),
+      sku: v.sku,
+    };
+  });
+
+  const volumeTiers: VolumeTier[] = [];
+  if (backend.variants) {
+    for (const v of backend.variants) {
+      if (v.tiers && v.tiers.length > 0) {
+        for (const t of v.tiers) {
+          if (!volumeTiers.some((vt) => vt.minQuantity === t.minQty)) {
+            volumeTiers.push({
+              minQuantity: t.minQty,
+              discountPercent: t.discountPercent,
+              tierLabel: `${t.minQty} عدد به بالا: ${t.discountPercent}٪ تخفیف`,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  const images: string[] = (backend.images && backend.images.length > 0)
+    ? backend.images.map((img: any) => (typeof img === 'string' ? img : img.url || img.thumbUrl))
+    : ['/images/products/turkey-ham.png'];
+
+  const categoryBreadcrumb = backend.breadcrumb && backend.breadcrumb.length > 0
+    ? backend.breadcrumb[backend.breadcrumb.length - 1]
+    : null;
+
+  return {
+    id: backend.id,
+    slug: backend.slug,
+    nameFa: backend.nameFa,
+    nameEn: backend.nameEn,
+    brandNameFa: backend.brandNameFa || '',
+    brandId: backend.brandId,
+    categoryId: backend.categoryId,
+    categoryNameFa: backend.categoryNameFa || '',
+    categorySlug: categoryBreadcrumb?.slug || backend.categorySlug || 'coldcuts',
+    descriptionHtml: backend.descriptionFa || backend.descriptionEn || '',
+    images,
+    badges: backend.badges || [],
+    isBestseller: backend.featured || false,
+    freshDeliGuarantee: true,
+    variants,
+    volumeTiers,
+    specifications: [
+      { label: 'برند', value: backend.brandNameFa || 'سبد سبز' },
+      { label: 'دسته‌بندی', value: backend.categoryNameFa || 'پروتئینی' },
+    ],
+    inStock: backend.inStock ?? variants.some((v) => v.inStock),
+    totalStock: variants.reduce((sum, v) => sum + (v.stock || 0), 0),
+  };
+}
 
 interface ProductDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
 function ProductDetailPageContent({ slug }: { slug: string }) {
-  const product = useMemo(() => getProductDetailBySlug(slug), [slug]);
+  const initialMock = useMemo(() => getProductDetailBySlug(slug), [slug]);
+  const [product, setProduct] = useState<ProductDetailData | null>(initialMock);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-    () => (product && product.variants.length > 0 ? product.variants[0] : null)
+    () => (initialMock && initialMock.variants.length > 0 ? initialMock.variants[0] : null)
   );
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadProduct() {
+      try {
+        const res = await api.get<any>(`/api/shop/catalog/products/${encodeURIComponent(slug)}`);
+        if (isMounted && res && res.id) {
+          const detail = mapBackendProductToDetail(res);
+          setProduct(detail);
+          if (detail.variants.length > 0) {
+            setSelectedVariant(detail.variants[0]);
+          }
+        }
+      } catch {
+        // Fall back to initial mock if network/request fails
+      }
+    }
+    loadProduct();
+    return () => {
+      isMounted = false;
+    };
+  }, [slug]);
   const [quantity, setQuantity] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<'specs' | 'desc' | 'reviews'>('specs');
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
+
+  // Related products (same category or nearby)
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    return MOCK_CATALOG_PRODUCTS.filter(
+      (p) => p.slug !== product.slug && (p.categoryId === product.categoryId || true)
+    ).slice(0, 4);
+  }, [product]);
 
   if (!product) {
     return (
@@ -75,7 +175,10 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
     );
   }
 
-  const currentVariant = selectedVariant || product.variants[0];
+  const currentVariant = selectedVariant || (product.variants.length > 0 ? product.variants[0] : null);
+  if (!currentVariant) {
+    return null;
+  }
   const isAvailable =
     product.inStock &&
     currentVariant.inStock &&
@@ -93,13 +196,6 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
     : currentVariant.priceToman;
 
   const totalCalculatedPrice = effectiveUnitPrice * quantity;
-
-  // Related products (same category or nearby)
-  const relatedProducts = useMemo(() => {
-    return MOCK_CATALOG_PRODUCTS.filter(
-      (p) => p.slug !== product.slug && (p.categoryId === product.categoryId || true)
-    ).slice(0, 4);
-  }, [product]);
 
   const handleIncrement = () => {
     const max = currentVariant.stock ?? 99;
