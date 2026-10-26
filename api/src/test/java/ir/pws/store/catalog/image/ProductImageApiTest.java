@@ -238,7 +238,7 @@ class ProductImageApiTest extends IntegrationTest {
         // A product that disappears between check and insert is not reachable via HTTP, so exercise the
         // transaction-bound writer directly.
         var storage = new LocalMediaStorage(new ir.pws.store.config.AppProperties(null, null, null,
-                new ir.pws.store.config.AppProperties.Media(mediaDir, "/media", true), null, null));
+                new ir.pws.store.config.AppProperties.Media(mediaDir, "/media", true), null, null, null));
         var tx = new org.springframework.transaction.support.TransactionTemplate(
                 new org.springframework.jdbc.support.JdbcTransactionManager(jdbc.getDataSource()));
         String rel = "products/" + productId + "/rollback-test-400.webp";
@@ -267,7 +267,7 @@ class ProductImageApiTest extends IntegrationTest {
     @Test
     void storage_rejectsPathEscape() {
         var storage = new LocalMediaStorage(new ir.pws.store.config.AppProperties(null, null, null,
-                new ir.pws.store.config.AppProperties.Media(mediaDir, "/media", true), null, null));
+                new ir.pws.store.config.AppProperties.Media(mediaDir, "/media", true), null, null, null));
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> storage.save("../escape.webp", new byte[] {1}))
                 .isInstanceOf(IllegalArgumentException.class);
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> storage.delete("products/../../escape.webp"))

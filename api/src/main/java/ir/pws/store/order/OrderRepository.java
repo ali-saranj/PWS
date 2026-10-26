@@ -1,5 +1,6 @@
 package ir.pws.store.order;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNumber(String orderNumber);
 
     Optional<Order> findByTrackingCode(String trackingCode);
+
+    List<Order> findByStatusAndPlacedAtBefore(OrderStatus status, java.time.Instant before);
+
+    boolean existsByOrderNumber(String orderNumber);
+
+    boolean existsByTrackingCode(String trackingCode);
 
     Page<Order> findByCustomerIdOrderByPlacedAtDesc(Long customerId, Pageable pageable);
 }

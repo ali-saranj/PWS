@@ -31,3 +31,7 @@ app:
       username: ${APP_BOOTSTRAP_OWNER_USERNAME}
       password: ${APP_BOOTSTRAP_OWNER_PASSWORD}
       mobile: ${APP_BOOTSTRAP_OWNER_MOBILE}
+  zarinpal:
+    merchant-id: ${APP_ZARINPAL_MERCHANT_ID}
+    sandbox: ${APP_ZARINPAL_SANDBOX:false}
+    callback-url: ${APP_ZARINPAL_CALLBACK_URL}

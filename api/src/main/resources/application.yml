@@ -45,3 +45,7 @@ app:
       username: owner
       password: dev-owner-password
       mobile: "09120000000"
+  zarinpal:
+    merchant-id: dev-zarinpal-merchant-id-0123456789
+    sandbox: true
+    callback-url: http://localhost:8080/api/shop/payments/zarinpal/callback

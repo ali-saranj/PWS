@@ -18,6 +18,8 @@ public enum ErrorCode {
     SMS_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE),
     ACCOUNT_BLOCKED(HttpStatus.FORBIDDEN),
     PRODUCT_NOT_PUBLISHABLE(HttpStatus.BAD_REQUEST),
+    OUT_OF_STOCK(HttpStatus.CONFLICT),
+    PAYMENT_GATEWAY_ERROR(HttpStatus.BAD_GATEWAY),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final HttpStatus status;

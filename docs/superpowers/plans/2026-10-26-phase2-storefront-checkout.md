@@ -190,14 +190,14 @@ shop/
 **Interfaces:**
 - Produces: Tables for shipping methods, stock reservations with 15-min expiration, orders with tracking code, order items, status history, and payment gateway logs.
 
-- [ ] **Step 1: Write `V9__orders_reservations_payments.sql` migration**
-- [ ] **Step 2: Write failing test in `OrderModelIntegrationTest.java`**
-- [ ] **Step 3: Run test to confirm failure**
+- [x] **Step 1: Write `V9__orders_reservations_payments.sql` migration**
+- [x] **Step 2: Write failing test in `OrderModelIntegrationTest.java`**
+- [x] **Step 3: Run test to confirm failure**
   - `cd api && ./mvnw test -Dtest=OrderModelIntegrationTest`
-- [ ] **Step 4: Implement entity models and Spring Data repositories**
-- [ ] **Step 5: Run test to verify pass**
+- [x] **Step 4: Implement entity models and Spring Data repositories**
+- [x] **Step 5: Run test to verify pass**
   - `cd api && ./mvnw test -Dtest=OrderModelIntegrationTest`
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   - `git commit -m "feat(api): order, stock reservation, and payment database models"`
 
 ---
@@ -220,14 +220,14 @@ shop/
   - `GET /api/shop/orders/track/{trackingCode}`: Public tracking endpoint returning live order progress and masked delivery info.
   - `ReservationExpiryJob`: Background scheduler releasing expired unconsumed reservations.
 
-- [ ] **Step 1: Write failing tests in `CheckoutAndPaymentIntegrationTest.java`**
+- [x] **Step 1: Write failing tests in `CheckoutAndPaymentIntegrationTest.java`**
   - Tests stock reservation hold, successful payment callback with tracking code generation, duplicate callback idempotency, and public tracking lookup.
-- [ ] **Step 2: Run test to confirm failure**
+- [x] **Step 2: Run test to confirm failure**
   - `cd api && ./mvnw test -Dtest=CheckoutAndPaymentIntegrationTest`
-- [ ] **Step 3: Implement `ZarinpalClient`, `CheckoutService`, callback handler, and public tracking controller**
-- [ ] **Step 4: Run test to verify pass**
+- [x] **Step 3: Implement `ZarinpalClient`, `CheckoutService`, callback handler, and public tracking controller**
+- [x] **Step 4: Run test to verify pass**
   - `cd api && ./mvnw test -Dtest=CheckoutAndPaymentIntegrationTest`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   - `git commit -m "feat(api): checkout stock reservation, Zarinpal gateway adapter, and tracking lookup"`
 
 ---

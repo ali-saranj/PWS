@@ -15,7 +15,8 @@ public record AppProperties(
         @Valid @NotNull Otp otp,
         Media media,
         Sms sms,
-        Bootstrap bootstrap) {
+        Bootstrap bootstrap,
+        Zarinpal zarinpal) {
 
     public record Cookies(boolean secure) {}
 
@@ -36,4 +37,10 @@ public record AppProperties(
 
         public record Owner(String username, String password, String mobile) {}
     }
+
+    public record Zarinpal(
+            @NotBlank String merchantId,
+            @DefaultValue("true") boolean sandbox,
+            @NotBlank String callbackUrl,
+            String baseUrl) {}
 }

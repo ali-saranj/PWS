@@ -74,11 +74,20 @@ public class SecurityConfig {
                                 "/api/shop/auth/otp",
                                 "/api/shop/auth/verify",
                                 "/api/shop/auth/refresh",
-                                "/api/shop/auth/logout")
+                                "/api/shop/auth/logout",
+                                "/api/shop/payments/zarinpal/callback")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/shop/catalog/**")
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/shop/catalog/**",
+                                "/api/shop/orders/track/**",
+                                "/api/shop/payments/zarinpal/callback")
                         .permitAll()
-                        .requestMatchers("/api/shop/auth/me", "/api/shop/customer/**")
+                        .requestMatchers(
+                                "/api/shop/auth/me",
+                                "/api/shop/customer/**",
+                                "/api/shop/checkout",
+                                "/api/shop/checkout/**")
                         .authenticated()
                         .anyRequest()
                         .denyAll())

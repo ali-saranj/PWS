@@ -16,6 +16,7 @@ class SecretsGuardTest {
                 new AppProperties.Otp(otp),
                 null,
                 null,
+                null,
                 null));
     }
 
