@@ -1,0 +1,130 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import ProductDetailPage from './[slug]/page';
+import { useCartStore } from '@/lib/cartStore';
+
+describe('ProductDetailPage (PDP)', () => {
+  beforeEach(() => {
+    useCartStore.setState({
+      items: [],
+      isOpen: false,
+    });
+    vi.restoreAllMocks();
+  });
+
+  it('renders PDP with product details, variants, volume tiers, breadcrumbs, and tabs', async () => {
+    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+
+    await waitFor(() => {
+      const breadcrumbNav = screen.getByRole('navigation', { name: /مسیر راهنما/i });
+      expect(within(breadcrumbNav).getByText(/صفحه اصلی/i)).toBeInTheDocument();
+      expect(within(breadcrumbNav).getByText(/کالباس و ژامبون/i)).toBeInTheDocument();
+      expect(within(breadcrumbNav).getByText(/ژامبون بوقلمون ۹۰٪ آندره/i)).toBeInTheDocument();
+    });
+
+    // Product Title & Brand
+    expect(
+      screen.getByRole('heading', { level: 1, name: /ژامبون بوقلمون ۹۰٪ آندره/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/برند:/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/آندره/i).length).toBeGreaterThan(0);
+
+    // Variant options
+    expect(screen.getAllByText(/۲۵۰ گرم اسلایس/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole('radio', { name: /۵۰۰ گرم/i })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /۱ کیلوگرم/i })).toBeInTheDocument();
+
+    // Volume discount tiers table
+    expect(screen.getByText(/تخفیف پلکانی و خرید عمده/i)).toBeInTheDocument();
+    expect(screen.getByText(/۳ عدد به بالا/i)).toBeInTheDocument();
+    expect(screen.getByText(/۶ عدد به بالا/i)).toBeInTheDocument();
+
+    // Badges / Fresh guarantee
+    expect(screen.getByText(/ضمانت تازگی دلی/i)).toBeInTheDocument();
+
+    // Related products
+    expect(screen.getByText(/محصولات مشابه/i)).toBeInTheDocument();
+
+    // Specifications tab / info
+    expect(screen.getByText(/مشخصات محصول/i)).toBeInTheDocument();
+  });
+
+  it('switching variants updates selected price, portion label, and stock status', async () => {
+    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/۲۵۰ گرم اسلایس/i).length).toBeGreaterThan(0);
+    });
+
+    // Check initial variant price (240,000 Toman)
+    expect(screen.getByTestId('active-price')).toHaveTextContent(/۲۴۰[,٬]۰۰۰/);
+
+    // Switch to 500g variant
+    const variant500 = screen.getByRole('radio', { name: /۵۰۰ گرم/i });
+    fireEvent.click(variant500);
+
+    // Price updates to 460,000 Toman
+    await waitFor(() => {
+      expect(screen.getByTestId('active-price')).toHaveTextContent(/۴۶۰[,٬]۰۰۰/);
+    });
+
+    // In stock status
+    expect(screen.getByText(/موجود در انبار/i)).toBeInTheDocument();
+  });
+
+  it('highlights the active qualifying tier when quantity reaches volume threshold', async () => {
+    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/تخفیف پلکانی و خرید عمده/i)).toBeInTheDocument();
+    });
+
+    const tier3Row = screen.getByTestId('volume-tier-3');
+    expect(tier3Row).toHaveAttribute('data-active', 'false');
+
+    // Increase quantity to 3
+    const incrementBtn = screen.getByRole('button', { name: /افزایش تعداد/i });
+    fireEvent.click(incrementBtn); // 2
+    fireEvent.click(incrementBtn); // 3
+
+    expect(screen.getByTestId('quantity-display')).toHaveTextContent(/۳/);
+
+    // Tier 3 should now be highlighted active
+    await waitFor(() => {
+      expect(screen.getByTestId('volume-tier-3')).toHaveAttribute('data-active', 'true');
+    });
+  });
+
+  it('changing quantity and clicking "افزودن به سبد خرید" adds item with correct quantity to useCartStore', async () => {
+    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: /ژامبون بوقلمون ۹۰٪ آندره/i })).toBeInTheDocument();
+    });
+
+    // Set quantity to 2
+    const incrementBtn = screen.getByRole('button', { name: /افزایش تعداد/i });
+    fireEvent.click(incrementBtn);
+
+    const addToCartBtn = screen.getByRole('button', { name: /افزودن به سبد خرید/i });
+    fireEvent.click(addToCartBtn);
+
+    const cartItems = useCartStore.getState().items;
+    expect(cartItems.length).toBe(1);
+    expect(cartItems[0].quantity).toBe(2);
+    expect(cartItems[0].name).toContain('ژامبون بوقلمون ۹۰٪ آندره');
+    expect(cartItems[0].variantName).toContain('۲۵۰ گرم اسلایس');
+  });
+
+  it('handles out-of-stock products gracefully with disabled add to cart', async () => {
+    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-bulgarian-smoked' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: /سوسیس بلغاری دودی/i })).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByText(/ناموجود/i).length).toBeGreaterThan(0);
+    const addToCartBtn = screen.getByRole('button', { name: /ناموجود/i });
+    expect(addToCartBtn).toBeDisabled();
+  });
+});
