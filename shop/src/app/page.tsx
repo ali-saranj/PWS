@@ -1,44 +1,97 @@
-import Link from 'next/link';
-import { ArrowLeft, Sparkles, ShoppingBag } from 'lucide-react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import HeroBanner from '@/components/HeroBanner';
+import CategoryCircles, { DEFAULT_CATEGORIES } from '@/components/CategoryCircles';
+import PromoTiles from '@/components/PromoTiles';
+import SpecialOffersCarousel, {
+  DEFAULT_SPECIAL_OFFERS,
+  type ProductItem,
+} from '@/components/SpecialOffersCarousel';
+import ValueBadges from '@/components/ValueBadges';
+import PopularProductsCarousel, {
+  DEFAULT_POPULAR_PRODUCTS,
+  type PopularProductItem,
+} from '@/components/PopularProductsCarousel';
+
+interface HomeCatalogResponse {
+  categories?: Array<{
+    id: number;
+    title?: string;
+    nameFa: string;
+    nameEn?: string;
+    slug: string;
+    icon?: string;
+  }>;
+  specialOffers?: ProductItem[];
+  popularProducts?: PopularProductItem[];
+}
 
 export default function HomePage() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="bg-gradient-to-br from-emerald-600 via-primary-dark to-emerald-800 rounded-3xl p-8 sm:p-12 text-white shadow-xl shadow-primary/10 relative overflow-hidden">
-        <div className="max-w-2xl relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-emerald-100 text-xs font-semibold backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>سوپرمارکت تخصصی مواد غذایی و پروتئینی سبد سبز</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black leading-tight">
-            تأمین روزانه مواد غذایی و پروتئینی با بهترین کیفیت و قیمت
-          </h1>
-          <p className="text-sm sm:text-base text-emerald-100 leading-relaxed">
-            انواع سوسیس و کالباس درجه یک، فرآورده‌های تازه، چاشنی‌ها و نان ساندویچی
-            با ارسال فوری و بسته‌بندی عایق حرارتی در تهران و سراسر ایران.
-          </p>
-          <div className="pt-4 flex flex-wrap gap-3">
-            <Link
-              href="/products"
-              className="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-sm shadow-md transition-all flex items-center gap-2"
-            >
-              <ShoppingBag className="w-4 h-4 text-primary" />
-              <span>مشاهده و خرید محصولات</span>
-            </Link>
-            <Link
-              href="/discounts"
-              className="px-6 py-3 bg-emerald-700/60 hover:bg-emerald-700 text-white border border-emerald-400/30 rounded-xl font-bold text-sm transition-all flex items-center gap-2"
-            >
-              <span>تخفیف‌های شگفت‌انگیز</span>
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [specialOffers, setSpecialOffers] = useState<ProductItem[]>(DEFAULT_SPECIAL_OFFERS);
+  const [popularProducts, setPopularProducts] = useState<PopularProductItem[]>(
+    DEFAULT_POPULAR_PRODUCTS
+  );
 
-        {/* Decorative background glow */}
-        <div className="absolute -left-16 -bottom-16 w-80 h-80 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute right-1/2 -top-20 w-72 h-72 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
-      </div>
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCatalog() {
+      try {
+        const res = await fetch('/api/shop/catalog/home');
+        if (!res.ok) return;
+        const data: HomeCatalogResponse = await res.json();
+        if (!isMounted) return;
+
+        if (data.categories && data.categories.length > 0) {
+          setCategories(
+            data.categories.map((c) => ({
+              id: c.id,
+              nameFa: c.nameFa || c.title || '',
+              slug: c.slug,
+            }))
+          );
+        }
+
+        if (data.specialOffers && data.specialOffers.length > 0) {
+          setSpecialOffers(data.specialOffers);
+        }
+
+        if (data.popularProducts && data.popularProducts.length > 0) {
+          setPopularProducts(data.popularProducts);
+        }
+      } catch {
+        // Graceful fallback to rich defaults when offline, in tests, or if backend is not yet populated
+      }
+    }
+
+    loadCatalog();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      {/* 1. Hero Banner */}
+      <HeroBanner />
+
+      {/* 2. Category Circles */}
+      <CategoryCircles categories={categories} />
+
+      {/* 3. Promotional Tiles */}
+      <PromoTiles />
+
+      {/* 4. Special Offers Carousel */}
+      <SpecialOffersCarousel products={specialOffers} />
+
+      {/* 5. Value Badges */}
+      <ValueBadges />
+
+      {/* 6. Popular Products Carousel */}
+      <PopularProductsCarousel products={popularProducts} />
     </div>
   );
 }
