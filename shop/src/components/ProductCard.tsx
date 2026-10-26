@@ -27,6 +27,7 @@ export interface ProductData {
   badges?: string[];
   defaultVariantId?: number;
   variantId?: number;
+  rating?: number;
 }
 
 export interface ProductCardProps extends Partial<ProductData> {
