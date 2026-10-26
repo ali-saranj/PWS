@@ -7,6 +7,7 @@ export interface Customer {
   mobile: string;
   firstName?: string | null;
   lastName?: string | null;
+  email?: string | null;
 }
 
 export interface AuthState {
