@@ -5,6 +5,7 @@ import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.security.AuthCookies;
 import ir.pws.store.common.security.JwtService;
 import ir.pws.store.common.text.MobileNumbers;
+import ir.pws.store.customer.dto.UpdateCustomerProfileRequest;
 import ir.pws.store.otp.OtpPurpose;
 import ir.pws.store.otp.OtpService;
 import ir.pws.store.staff.RefreshToken;
@@ -111,6 +112,21 @@ public class CustomerAuthService {
             throw new ApiException(ErrorCode.ACCOUNT_BLOCKED);
         }
         return customer;
+    }
+
+    @Transactional
+    public Customer updateProfile(long customerId, UpdateCustomerProfileRequest req) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHENTICATED));
+        if (customer.isBlocked()) {
+            throw new ApiException(ErrorCode.ACCOUNT_BLOCKED);
+        }
+        if (req != null) {
+            customer.setFirstName(req.firstName());
+            customer.setLastName(req.lastName());
+            customer.setEmail(req.email() != null && req.email().isBlank() ? null : req.email());
+        }
+        return customerRepository.save(customer);
     }
 
     private Session newSession(Customer customer) {

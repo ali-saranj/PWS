@@ -59,10 +59,14 @@ public class JwtService {
         });
     }
 
-    public String customerAccessToken(Customer customer) {
-        return base(String.valueOf(customer.getId()), CUSTOMER_AUDIENCE, CUSTOMER_ACCESS_TTL, customerKey)
-                .claim("mobile", customer.getMobile())
+    public String generateCustomerAccessToken(long customerId, String mobile) {
+        return base(String.valueOf(customerId), CUSTOMER_AUDIENCE, CUSTOMER_ACCESS_TTL, customerKey)
+                .claim("mobile", mobile)
                 .compact();
+    }
+
+    public String customerAccessToken(Customer customer) {
+        return generateCustomerAccessToken(customer.getId(), customer.getMobile());
     }
 
     public Optional<CustomerPrincipal> parseCustomerAccess(String token) {

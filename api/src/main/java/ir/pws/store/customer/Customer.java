@@ -27,6 +27,9 @@ public class Customer {
     @Column(name = "last_name", length = 100)
     private String lastName;
 
+    @Column(name = "email", length = 255)
+    private String email;
+
     @Column(nullable = false)
     private boolean blocked;
 
@@ -50,6 +53,11 @@ public class Customer {
         this(mobile);
         this.firstName = firstName;
         this.lastName = lastName;
+    }
+
+    public Customer(String mobile, String firstName, String lastName, String email) {
+        this(mobile, firstName, lastName);
+        this.email = email;
     }
 
     @PrePersist
@@ -86,6 +94,51 @@ public class Customer {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String mobile;
+        private String firstName;
+        private String lastName;
+        private String email;
+
+        public Builder mobile(String mobile) {
+            this.mobile = mobile;
+            return this;
+        }
+
+        public Builder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public Builder lastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Customer build() {
+            Customer c = new Customer(mobile, firstName, lastName);
+            c.setEmail(email);
+            return c;
+        }
     }
 
     public boolean isBlocked() {
