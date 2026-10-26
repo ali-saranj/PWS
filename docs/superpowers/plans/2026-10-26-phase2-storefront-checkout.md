@@ -253,14 +253,14 @@ shop/
     - `DELIVERED`: Marks completed.
     - `CANCELLED`: Auto-restocks inventory via stock ledger.
 
-- [ ] **Step 1: Write failing tests in `AdminOrderIntegrationTest.java`**
+- [x] **Step 1: Write failing tests in `AdminOrderIntegrationTest.java`**
   - Verifies status transitions, role permissions (`OWNER`, `ORDER_OPERATOR`), SMS outbox logging, and cancellation restocking.
-- [ ] **Step 2: Run test to confirm failure**
+- [x] **Step 2: Run test to confirm failure**
   - `cd api && ./mvnw test -Dtest=AdminOrderIntegrationTest`
-- [ ] **Step 3: Implement `AdminOrderService` and `AdminOrderController`**
-- [ ] **Step 4: Run test to verify pass**
+- [x] **Step 3: Implement `AdminOrderService` and `AdminOrderController`**
+- [x] **Step 4: Run test to verify pass**
   - `cd api && ./mvnw test -Dtest=AdminOrderIntegrationTest`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   - `git commit -m "feat(api): admin order management and multi-stage SMS notifications"`
 
 ---
@@ -280,14 +280,14 @@ shop/
 **Interfaces:**
 - Produces: React Admin interface with order filter tabs, order details modal, and action buttons for "تایید سفارش" (Approve), "آماده‌سازی" (Prepare), "ارسال پیک" (Dispatch with tracking note).
 
-- [ ] **Step 1: Add order translation keys and API client functions**
-- [ ] **Step 2: Write failing test in `OrdersPage.test.tsx`**
-- [ ] **Step 3: Run test to confirm failure**
+- [x] **Step 1: Add order translation keys and API client functions**
+- [x] **Step 2: Write failing test in `OrdersPage.test.tsx`**
+- [x] **Step 3: Run test to confirm failure**
   - `cd admin && npx vitest run src/features/orders/OrdersPage.test.tsx`
-- [ ] **Step 4: Implement `OrdersPage`, `OrderDetailDialog`, `OrderStatusChip`, and update navigation routes**
-- [ ] **Step 5: Run admin tests and build**
+- [x] **Step 4: Implement `OrdersPage`, `OrderDetailDialog`, `OrderStatusChip`, and update navigation routes**
+- [x] **Step 5: Run admin tests and build**
   - `cd admin && npm test && npm run build`
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   - `git commit -m "feat(admin): orders management page with status transition controls"`
 
 ---
@@ -309,12 +309,12 @@ shop/
 **Interfaces:**
 - Produces: Responsive Next.js 15 App Router app with Persian RTL Vazirmatn layout, emerald green header with live search, sticky category navigation, customer auth trigger, and dynamic cart pill with badge count.
 
-- [ ] **Step 1: Initialize `shop/` project with Next.js, Tailwind CSS, Vazirmatn fonts, Lucide icons, and Vitest**
-- [ ] **Step 2: Write failing test for `Header` component**
-- [ ] **Step 3: Implement Root Layout, Tailwind theme configuration, Header, and Footer matching reference design**
-- [ ] **Step 4: Run tests and build**
+- [x] **Step 1: Initialize `shop/` project with Next.js, Tailwind CSS, Vazirmatn fonts, Lucide icons, and Vitest**
+- [x] **Step 2: Write failing test for `Header` component**
+- [x] **Step 3: Implement Root Layout, Tailwind theme configuration, Header, and Footer matching reference design**
+- [x] **Step 4: Run tests and build**
   - `cd shop && npm test && npm run build`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   - `git commit -m "feat(shop): scaffold Next.js storefront with emerald green theme and RTL layout"`
 
 ---

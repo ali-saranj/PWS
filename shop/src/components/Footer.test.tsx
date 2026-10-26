@@ -1,0 +1,31 @@
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Footer } from './Footer';
+
+describe('Footer component', () => {
+  it('renders trust badges', () => {
+    render(<Footer />);
+    expect(screen.getByText(/ضمانت اصالت و تازگی کالا/)).toBeInTheDocument();
+    expect(screen.getByText(/ارسال سریع/)).toBeInTheDocument();
+    expect(screen.getByText(/پرداخت امن/)).toBeInTheDocument();
+  });
+
+  it('renders customer service contact info', () => {
+    render(<Footer />);
+    expect(screen.getByText(/۰۲۱-۸۸۸۸۹۹۹۹/)).toBeInTheDocument();
+    expect(screen.getByText(/support@sabadsabz.ir/)).toBeInTheDocument();
+  });
+
+  it('renders newsletter subscription form', () => {
+    render(<Footer />);
+    expect(screen.getByPlaceholderText(/شماره موبایل یا ایمیل/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /عضویت/ })).toBeInTheDocument();
+  });
+
+  it('renders copyright text', () => {
+    render(<Footer />);
+    expect(
+      screen.getByText(/کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین سبد سبز می‌باشد/)
+    ).toBeInTheDocument();
+  });
+});
