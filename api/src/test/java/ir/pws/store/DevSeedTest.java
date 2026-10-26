@@ -42,11 +42,11 @@ class DevSeedTest extends IntegrationTest {
 
     @Test
     void seedsExpectedCounts() {
-        assertThat(count("category")).isEqualTo(5);
+        assertThat(count("category")).isEqualTo(9);
         assertThat(count("category WHERE parent_id IS NOT NULL")).isEqualTo(2);
-        assertThat(count("brand")).isEqualTo(3);
+        assertThat(count("brand")).isEqualTo(5);
         assertThat(count("product")).isEqualTo(3);
-        assertThat(count("variant")).isEqualTo(5);
+        assertThat(count("variant")).isEqualTo(4);
         assertThat(count("volume_tier")).isGreaterThan(0);
         assertThat(count("product_image")).isZero();
     }
