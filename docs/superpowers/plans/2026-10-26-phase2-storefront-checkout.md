@@ -388,11 +388,11 @@ shop/
 **Interfaces:**
 - Produces: Detailed product page with image gallery, portion/cut selector (e.g. ۲۵۰ گرم اسلایس vs ۵۰۰ گرم), tiered volume discount table, quantity adjustment, and stock availability indicator.
 
-- [ ] **Step 1: Write failing test for `ProductDetailPage.test.tsx`**
-- [ ] **Step 2: Implement PDP components and server-rendered product loader**
-- [ ] **Step 3: Run test and verify pass**
+- [x] **Step 1: Write failing test for `ProductDetailPage.test.tsx`**
+- [x] **Step 2: Implement PDP components and server-rendered product loader**
+- [x] **Step 3: Run test and verify pass**
   - `cd shop && npm test`
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   - `git commit -m "feat(shop): product detail page with variant selector and volume tiers"`
 
 ---
@@ -411,11 +411,11 @@ shop/
   - Slide-out Cart Drawer with item increment/decrement, Toman price calculations, and subtotal.
   - Checkout screen: prompts for mobile number & OTP if not already logged in, address entry/selection, courier shipping method, and "پرداخت آنلاین با زرین‌پال" button that redirects to payment gateway.
 
-- [ ] **Step 1: Write failing test for `CheckoutPage.test.tsx`**
-- [ ] **Step 2: Implement `CartDrawer`, `QuickAuthModal`, and `CheckoutPage` with Zarinpal redirect handling**
-- [ ] **Step 3: Run test and verify pass**
+- [x] **Step 1: Write failing test for `CheckoutPage.test.tsx`**
+- [x] **Step 2: Implement `CartDrawer`, `QuickAuthModal`, and `CheckoutPage` with Zarinpal redirect handling**
+- [x] **Step 3: Run test and verify pass**
   - `cd shop && npm test`
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   - `git commit -m "feat(shop): cart drawer, SMS OTP checkout flow, and Zarinpal payment initiation"`
 
 ---

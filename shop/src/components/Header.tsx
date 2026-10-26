@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '@/lib/cartStore';
 import { formatToman, toPersianDigits } from '@/lib/format';
+import { CartDrawer } from './CartDrawer';
 
 export const Header: React.FC = () => {
   const router = useRouter();
@@ -218,6 +219,8 @@ export const Header: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Slide-out Cart Drawer */}
+      <CartDrawer />
     </header>
   );
 };
