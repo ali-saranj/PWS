@@ -10,12 +10,14 @@ import DashboardPage from './features/dashboard/DashboardPage'
 import ProductEditorPage from './features/products/ProductEditorPage'
 import ProductListPage from './features/products/ProductListPage'
 import InventoryPage from './features/inventory/InventoryPage'
+import OrdersPage from './features/orders/OrdersPage'
 import AuditPage from './features/audit/AuditPage'
 import StaffPage from './features/staff/StaffPage'
 import AppLayout from './layout/AppLayout'
 
 const ALL: StaffRole[] = ['OWNER', 'PRODUCT_MANAGER', 'ORDER_OPERATOR']
 const CATALOG: StaffRole[] = ['OWNER', 'PRODUCT_MANAGER']
+const ORDERS: StaffRole[] = ['OWNER', 'ORDER_OPERATOR']
 const OWNER: StaffRole[] = ['OWNER']
 
 function guarded(roles: StaffRole[], element: ReactNode) {
@@ -37,6 +39,7 @@ export const routes: RouteObject[] = [
           { path: 'products/new', element: guarded(CATALOG, <ProductEditorPage />) },
           { path: 'products/:id', element: guarded(CATALOG, <ProductEditorPage />) },
           { path: 'inventory', element: guarded(CATALOG, <InventoryPage />) },
+          { path: 'orders', element: guarded(ORDERS, <OrdersPage />) },
           { path: 'staff', element: guarded(OWNER, <StaffPage />) },
           { path: 'audit', element: guarded(OWNER, <AuditPage />) },
         ],

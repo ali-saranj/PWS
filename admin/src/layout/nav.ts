@@ -5,10 +5,11 @@ import GroupIcon from '@mui/icons-material/Group'
 import InventoryIcon from '@mui/icons-material/Inventory'
 import LabelIcon from '@mui/icons-material/Label'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import type { ElementType } from 'react'
 import type { StaffRole } from '../api/types'
 
-export type NavKey = 'dashboard' | 'categories' | 'brands' | 'products' | 'inventory' | 'staff' | 'audit'
+export type NavKey = 'dashboard' | 'categories' | 'brands' | 'products' | 'inventory' | 'orders' | 'staff' | 'audit'
 
 export interface NavItem {
   key: NavKey
@@ -19,6 +20,7 @@ export interface NavItem {
 
 const ALL: StaffRole[] = ['OWNER', 'PRODUCT_MANAGER', 'ORDER_OPERATOR']
 const CATALOG: StaffRole[] = ['OWNER', 'PRODUCT_MANAGER']
+const ORDERS: StaffRole[] = ['OWNER', 'ORDER_OPERATOR']
 const OWNER: StaffRole[] = ['OWNER']
 
 export const navItems: NavItem[] = [
@@ -27,6 +29,7 @@ export const navItems: NavItem[] = [
   { key: 'brands', path: '/brands', roles: CATALOG, icon: LabelIcon },
   { key: 'products', path: '/products', roles: CATALOG, icon: ShoppingBagIcon },
   { key: 'inventory', path: '/inventory', roles: CATALOG, icon: InventoryIcon },
+  { key: 'orders', path: '/orders', roles: ORDERS, icon: ShoppingCartIcon },
   { key: 'staff', path: '/staff', roles: OWNER, icon: GroupIcon },
   { key: 'audit', path: '/audit', roles: OWNER, icon: AssessmentIcon },
 ]
