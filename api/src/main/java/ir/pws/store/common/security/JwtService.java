@@ -1,14 +1,15 @@
 package ir.pws.store.common.security;
 
-import ir.pws.store.config.AppProperties;
-import ir.pws.store.staff.StaffRole;
-import ir.pws.store.staff.StaffUser;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import ir.pws.store.config.AppProperties;
+import ir.pws.store.customer.Customer;
+import ir.pws.store.staff.StaffRole;
+import ir.pws.store.staff.StaffUser;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
@@ -23,26 +24,30 @@ public class JwtService {
 
     public static final String STAFF_AUDIENCE = "pws-staff";
     public static final String STAFF_CHALLENGE_AUDIENCE = "pws-staff-challenge";
+    public static final String CUSTOMER_AUDIENCE = "pws-customer";
     public static final Duration STAFF_ACCESS_TTL = Duration.ofMinutes(15);
     public static final Duration STAFF_CHALLENGE_TTL = Duration.ofMinutes(5);
+    public static final Duration CUSTOMER_ACCESS_TTL = Duration.ofMinutes(15);
 
     private final Clock clock;
     private final SecretKey staffKey;
+    private final SecretKey customerKey;
 
     public JwtService(AppProperties props, Clock clock) {
         this.clock = clock;
         this.staffKey = Keys.hmacShaKeyFor(props.jwt().staffSecret().getBytes(StandardCharsets.UTF_8));
+        this.customerKey = Keys.hmacShaKeyFor(props.jwt().customerSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     public String staffAccessToken(StaffUser user) {
-        return base(String.valueOf(user.getId()), STAFF_AUDIENCE, STAFF_ACCESS_TTL)
+        return base(String.valueOf(user.getId()), STAFF_AUDIENCE, STAFF_ACCESS_TTL, staffKey)
                 .claim("username", user.getUsername())
                 .claim("role", user.getRole().name())
                 .compact();
     }
 
     public Optional<StaffPrincipal> parseStaffAccess(String token) {
-        return parse(token, STAFF_AUDIENCE).flatMap(c -> {
+        return parse(token, STAFF_AUDIENCE, staffKey).flatMap(c -> {
             try {
                 return Optional.of(new StaffPrincipal(
                         Long.parseLong(c.getSubject()),
@@ -54,13 +59,31 @@ public class JwtService {
         });
     }
 
+    public String customerAccessToken(Customer customer) {
+        return base(String.valueOf(customer.getId()), CUSTOMER_AUDIENCE, CUSTOMER_ACCESS_TTL, customerKey)
+                .claim("mobile", customer.getMobile())
+                .compact();
+    }
+
+    public Optional<CustomerPrincipal> parseCustomerAccess(String token) {
+        return parse(token, CUSTOMER_AUDIENCE, customerKey).flatMap(c -> {
+            try {
+                return Optional.of(new CustomerPrincipal(
+                        Long.parseLong(c.getSubject()),
+                        c.get("mobile", String.class)));
+            } catch (RuntimeException e) {
+                return Optional.empty();
+            }
+        });
+    }
+
     public String staffChallenge(long staffId) {
-        return base(String.valueOf(staffId), STAFF_CHALLENGE_AUDIENCE, STAFF_CHALLENGE_TTL)
+        return base(String.valueOf(staffId), STAFF_CHALLENGE_AUDIENCE, STAFF_CHALLENGE_TTL, staffKey)
                 .compact();
     }
 
     public Optional<Long> parseStaffChallenge(String token) {
-        return parse(token, STAFF_CHALLENGE_AUDIENCE).flatMap(c -> {
+        return parse(token, STAFF_CHALLENGE_AUDIENCE, staffKey).flatMap(c -> {
             try {
                 return Optional.of(Long.parseLong(c.getSubject()));
             } catch (NumberFormatException e) {
@@ -69,7 +92,7 @@ public class JwtService {
         });
     }
 
-    private io.jsonwebtoken.JwtBuilder base(String subject, String audience, Duration ttl) {
+    private io.jsonwebtoken.JwtBuilder base(String subject, String audience, Duration ttl, SecretKey key) {
         Instant now = clock.instant();
         return Jwts.builder()
                 .subject(subject)
@@ -78,16 +101,16 @@ public class JwtService {
                 .and()
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(ttl)))
-                .signWith(staffKey, Jwts.SIG.HS256);
+                .signWith(key, Jwts.SIG.HS256);
     }
 
-    private Optional<Claims> parse(String token, String audience) {
+    private Optional<Claims> parse(String token, String audience, SecretKey key) {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
         try {
             JwtParser parser = Jwts.parser()
-                    .verifyWith(staffKey)
+                    .verifyWith(key)
                     .requireAudience(audience)
                     .clock(() -> Date.from(clock.instant()))
                     .build();

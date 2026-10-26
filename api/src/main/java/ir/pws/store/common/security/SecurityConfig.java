@@ -43,13 +43,15 @@ public class SecurityConfig {
         csrfRepository.setCookieCustomizer(c -> c.sameSite("Lax").secure(secureCookies));
         return http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(c -> c.csrfTokenRepository(csrfRepository)
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/api/shop/**"))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .requestCache(AbstractHttpConfigurer::disable)
                 .exceptionHandling(e -> e.authenticationEntryPoint(handlers).accessDeniedHandler(handlers))
                 .addFilterBefore(new StaffJwtCookieFilter(jwt), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new CustomerJwtCookieFilter(jwt), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(a -> a.dispatcherTypeMatchers(DispatcherType.ERROR)
                         .permitAll() // container-level errors keep their real status instead of becoming 401
                         .requestMatchers("/actuator/health", "/actuator/health/**")
@@ -66,6 +68,15 @@ public class SecurityConfig {
                                 "/api/admin/auth/logout")
                         .permitAll()
                         .requestMatchers("/api/admin/**")
+                        .authenticated()
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/shop/auth/otp",
+                                "/api/shop/auth/verify",
+                                "/api/shop/auth/refresh",
+                                "/api/shop/auth/logout")
+                        .permitAll()
+                        .requestMatchers("/api/shop/auth/me", "/api/shop/customer/**")
                         .authenticated()
                         .anyRequest()
                         .denyAll())

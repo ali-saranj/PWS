@@ -5,7 +5,7 @@ import java.time.Duration;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
-/** Builds the staff auth cookies: HttpOnly, SameSite=Lax, host-only, Secure per configuration. */
+/** Builds staff and customer auth cookies: HttpOnly, SameSite=Lax, host-only, Secure per configuration. */
 @Component
 public class AuthCookies {
 
@@ -14,6 +14,12 @@ public class AuthCookies {
     public static final String ACCESS_PATH = "/api/admin";
     public static final String REFRESH_PATH = "/api/admin/auth";
     public static final Duration REFRESH_TTL = Duration.ofHours(12);
+
+    public static final String CUSTOMER_ACCESS = "pws_shop_at";
+    public static final String CUSTOMER_REFRESH = "pws_shop_rt";
+    public static final String SHOP_ACCESS_PATH = "/api/shop";
+    public static final String SHOP_AUTH_PATH = "/api/shop/auth";
+    public static final Duration CUSTOMER_REFRESH_TTL = Duration.ofDays(30);
 
     private final boolean secure;
 
@@ -35,6 +41,22 @@ public class AuthCookies {
 
     public ResponseCookie clearStaffRefresh() {
         return build(STAFF_REFRESH, "", REFRESH_PATH, Duration.ZERO);
+    }
+
+    public ResponseCookie customerAccess(String token) {
+        return build(CUSTOMER_ACCESS, token, SHOP_ACCESS_PATH, JwtService.CUSTOMER_ACCESS_TTL);
+    }
+
+    public ResponseCookie customerRefresh(String token) {
+        return build(CUSTOMER_REFRESH, token, SHOP_AUTH_PATH, CUSTOMER_REFRESH_TTL);
+    }
+
+    public ResponseCookie clearCustomerAccess() {
+        return build(CUSTOMER_ACCESS, "", SHOP_ACCESS_PATH, Duration.ZERO);
+    }
+
+    public ResponseCookie clearCustomerRefresh() {
+        return build(CUSTOMER_REFRESH, "", SHOP_AUTH_PATH, Duration.ZERO);
     }
 
     private ResponseCookie build(String name, String value, String path, Duration maxAge) {

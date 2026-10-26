@@ -5,6 +5,7 @@ public final class Roles {
 
     public static final String CATALOG = "hasAnyRole('OWNER','PRODUCT_MANAGER')";
     public static final String OWNER = "hasRole('OWNER')";
+    public static final String CUSTOMER = "hasRole('CUSTOMER')";
 
     private Roles() {}
 }
