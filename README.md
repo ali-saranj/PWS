@@ -1,7 +1,7 @@
-# PWS — protein store
+# PWS — deli & grocery store (فروشگاه پروتئینی و سوپرمارکتی)
 
 Spring Boot API (`api/`) and React admin (`admin/`). Phase 1: staff auth, audit log, catalog (categories, brands,
-products, variants, volume tiers, images) and inventory.
+products, variants, volume tiers, images) and inventory for sausages, cold cuts, pickles, sauces, breads, chips, and canned goods.
 
 ## Prerequisites
 
@@ -45,5 +45,5 @@ you must also point the API's datasource at it (`spring.datasource.*`).
     api/      Spring Boot 3 service (package ir.pws.store); Flyway migrations in src/main/resources/db/migration
     admin/    Vite + React + TypeScript + MUI admin (Persian RTL default, English LTR)
     deploy/   docker-compose.dev.yml
-    docs/superpowers/specs/2026-10-25-protein-store-design.md          design spec
-    docs/superpowers/plans/2026-10-25-phase1-foundation-catalog.md     Phase 1 plan
+    docs/superpowers/specs/2026-10-25-grocery-deli-store-design.md     deli & grocery store design spec
+    docs/superpowers/plans/2026-10-26-grocery-deli-alignment.md        catalog alignment plan
