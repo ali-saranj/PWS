@@ -20,4 +20,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
     boolean existsByTrackingCode(String trackingCode);
 
     Page<Order> findByCustomerIdOrderByPlacedAtDesc(Long customerId, Pageable pageable);
+
+    List<Order> findByCustomerIdAndStatusNotOrderByCreatedAtDesc(Long customerId, OrderStatus status);
 }

@@ -12,6 +12,7 @@ class TextUtilsTest {
     @Test
     void digitsConvertPersianAndArabicIndic() {
         assertThat(Digits.toLatin("۰۹۱۲٣٤٥")).isEqualTo("0912345");
+        assertThat(Digits.toPersian("0912345")).isEqualTo("۰۹۱۲۳۴۵");
     }
 
     @Test

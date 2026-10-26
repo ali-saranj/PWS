@@ -22,4 +22,20 @@ public final class Digits {
         }
         return sb.toString();
     }
+
+    /** Converts ASCII digits (0-9) to Persian digits (۰-۹). */
+    public static String toPersian(String input) {
+        if (input == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder(input.length());
+        for (char c : input.toCharArray()) {
+            if (c >= '0' && c <= '9') {
+                sb.append((char) ('۰' + (c - '0')));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
 }
