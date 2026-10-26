@@ -18,8 +18,6 @@ import {
 import { ProductCard } from '@/components/ProductCard';
 import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
 import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { api } from '@/lib/api';
 import { DEFAULT_CATEGORIES, CategoryItem } from '@/components/home/CategoryCircles';
@@ -167,11 +165,8 @@ function CategoryPageContent({ slug }: { slug: string }) {
   }, [products, filters, sort]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 font-vazirmatn dir-rtl">
-      <Header />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Category Header with Icon and Title */}
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Category Header with Icon and Title */}
         <div className="bg-white rounded-2xl border border-gray-200/80 p-5 sm:p-6 mb-6 shadow-sm">
           <div className="text-xs text-gray-400 mb-3 flex items-center gap-1.5">
             <Link href="/" className="hover:text-primary transition-colors">
@@ -256,10 +251,7 @@ function CategoryPageContent({ slug }: { slug: string }) {
             )}
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
   );
 }
 

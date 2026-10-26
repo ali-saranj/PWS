@@ -6,8 +6,6 @@ import { Search, SearchX, SlidersHorizontal, PackageOpen } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
 import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
 import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { api } from '@/lib/api';
 import { MOCK_CATALOG_PRODUCTS, CatalogProduct } from '@/lib/mockProducts';
@@ -170,11 +168,8 @@ function SearchPageContent({
   }, [products, filters, sort]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 font-vazirmatn dir-rtl">
-      <Header />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Breadcrumb & Search Heading */}
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Breadcrumb & Search Heading */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200">
             <div>
@@ -256,10 +251,7 @@ function SearchPageContent({
             )}
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
   );
 }
 

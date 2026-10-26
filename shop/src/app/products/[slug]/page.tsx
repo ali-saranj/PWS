@@ -20,8 +20,6 @@ import {
   Share2,
   Heart,
 } from 'lucide-react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductImageGallery } from '@/components/product/ProductImageGallery';
 import { VariantSelector } from '@/components/product/VariantSelector';
@@ -151,26 +149,22 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50 font-vazirmatn" dir="rtl">
-        <Header />
-        <main className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center">
-          <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4">
-            <Info className="w-8 h-8" />
-          </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">
-            محصول مورد نظر یافت نشد
-          </h1>
-          <p className="text-sm text-gray-500 mb-6">
-            ممکن است این محصول حذف شده باشد یا آدرس وارد شده نادرست است.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm"
-          >
-            بازگشت به صفحه اصلی
-          </Link>
-        </main>
-        <Footer />
+      <div className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4">
+          <Info className="w-8 h-8" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">
+          محصول مورد نظر یافت نشد
+        </h1>
+        <p className="text-sm text-gray-500 mb-6">
+          ممکن است این محصول حذف شده باشد یا آدرس وارد شده نادرست است.
+        </p>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm"
+        >
+          بازگشت به صفحه اصلی
+        </Link>
       </div>
     );
   }
@@ -233,11 +227,8 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50/60 font-vazirmatn" dir="rtl">
-      <Header />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Breadcrumbs Navigation */}
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Breadcrumbs Navigation */}
         <nav
           className="flex items-center gap-1.5 text-xs text-gray-500 mb-6 overflow-x-auto pb-1"
           aria-label="مسیر راهنما"
@@ -653,10 +644,7 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
             </div>
           </section>
         ) : null}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
   );
 }
 
