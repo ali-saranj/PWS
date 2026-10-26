@@ -1,4 +1,6 @@
 spring:
+  flyway:
+    out-of-order: true
   jpa:
     open-in-view: false
     hibernate:
