@@ -438,9 +438,9 @@ shop/
     - ارسال با پیک (Dispatched with Courier notes)
     - تحویل داده شده (Delivered)
 
-- [ ] **Step 1: Write failing test for `OrderTrackingPage.test.tsx`**
-- [ ] **Step 2: Implement payment callback page and public tracking timeline view**
-- [ ] **Step 3: Run test and verify pass**
+- [x] **Step 1: Write failing test for `OrderTrackingPage.test.tsx`**
+- [x] **Step 2: Implement payment callback page and public tracking timeline view**
+- [x] **Step 3: Run test and verify pass**
   - `cd shop && npm test`
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   - `git commit -m "feat(shop): payment result page and real-time public order tracking"`
