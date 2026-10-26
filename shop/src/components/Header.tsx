@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useCartStore } from '@/lib/cartStore';
+import { useAuthStore } from '@/lib/authStore';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { CartDrawer } from './CartDrawer';
 
@@ -25,10 +26,14 @@ export const Header: React.FC = () => {
 
   const items = useCartStore((state) => state.items);
   const toggleCart = useCartStore((state) => state.toggleCart);
+  const customer = useAuthStore((state) => state.customer);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    checkAuth();
+  }, [checkAuth]);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalToman = items.reduce(
@@ -105,11 +110,15 @@ export const Header: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* Customer Auth Button */}
             <Link
-              href="/auth"
+              href="/profile"
               className="flex items-center gap-2 py-2 px-3.5 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 text-gray-700 hover:text-primary transition-colors text-sm font-medium"
             >
               <User className="w-4 h-4 text-gray-500" />
-              <span>ورود / ثبت نام</span>
+              <span>
+                {mounted && isAuthenticated && customer
+                  ? customer.firstName || 'حساب کاربری'
+                  : 'ورود / ثبت نام'}
+              </span>
             </Link>
 
             {/* Cart Pill Button */}

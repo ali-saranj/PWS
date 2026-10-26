@@ -2,12 +2,19 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Header } from './Header';
 import { useCartStore } from '@/lib/cartStore';
+import { useAuthStore } from '@/lib/authStore';
 
 describe('Header component', () => {
   beforeEach(() => {
     useCartStore.setState({
       items: [],
       isOpen: false,
+    });
+    useAuthStore.setState({
+      customer: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
     });
   });
 
@@ -27,9 +34,29 @@ describe('Header component', () => {
     expect(searchButtons[0]).toBeInTheDocument();
   });
 
-  it('renders customer login/register button', () => {
+  it('renders customer login/register button linking to /profile', () => {
     render(<Header />);
-    expect(screen.getByText('ورود / ثبت نام')).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /ورود \/ ثبت نام/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/profile');
+  });
+
+  it('renders user first name linking to /profile when authenticated', () => {
+    useAuthStore.setState({
+      customer: {
+        id: 10,
+        mobile: '09121112233',
+        firstName: 'سارا',
+        lastName: 'بهرامی',
+      },
+      isAuthenticated: true,
+      isLoading: false,
+    });
+
+    render(<Header />);
+    const link = screen.getByRole('link', { name: /سارا/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', '/profile');
   });
 
   it('renders cart button with item count and price in Toman', () => {
