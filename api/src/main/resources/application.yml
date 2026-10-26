@@ -39,6 +39,7 @@ app:
       templates:
         otp: pws-otp
         order-paid: pws-order-paid
+        order-approved: pws-order-approved
         order-shipped: pws-order-shipped
   bootstrap:
     owner:

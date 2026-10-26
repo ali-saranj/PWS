@@ -82,6 +82,7 @@ public class KavenegarSmsSender implements SmsSender {
         return switch (template) {
             case OTP -> t.otp();
             case ORDER_PAID -> t.orderPaid();
+            case ORDER_APPROVED -> t.orderApproved();
             case ORDER_SHIPPED -> t.orderShipped();
         };
     }

@@ -32,7 +32,7 @@ class KavenegarSmsSenderTest {
 
     private KavenegarSmsSender sender(Duration timeout) {
         var kav = new AppProperties.Sms.Kavenegar("KEY", "http://localhost:" + server.port(),
-                new AppProperties.Sms.Templates("otp-tpl", "paid-tpl", "shipped-tpl"));
+                new AppProperties.Sms.Templates("otp-tpl", "paid-tpl", "approved-tpl", "shipped-tpl"));
         var props = new AppProperties(null, null, null, null, new AppProperties.Sms("kavenegar", kav), null, null);
         return new KavenegarSmsSender(props, timeout);
     }

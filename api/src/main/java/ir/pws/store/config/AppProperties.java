@@ -30,7 +30,11 @@ public record AppProperties(
 
         public record Kavenegar(String apiKey, String baseUrl, Templates templates) {}
 
-        public record Templates(String otp, String orderPaid, String orderShipped) {}
+        public record Templates(
+                String otp,
+                String orderPaid,
+                @DefaultValue("pws-order-approved") String orderApproved,
+                String orderShipped) {}
     }
 
     public record Bootstrap(Owner owner) {
