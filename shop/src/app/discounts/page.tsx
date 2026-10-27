@@ -33,6 +33,12 @@ export default async function DiscountsPage({ searchParams }: DiscountsPageProps
     return `/discounts${qs ? `?${qs}` : ''}`;
   };
 
+  const products = catalogData?.content ?? [];
+  const totalElements = catalogData?.totalElements ?? 0;
+  const totalPages = catalogData?.totalPages ?? 0;
+  const currentPage = catalogData?.page ?? 0;
+  const size = catalogData?.size ?? pageSize;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-vazirmatn" dir="rtl">
       {/* Breadcrumb */}
@@ -65,23 +71,23 @@ export default async function DiscountsPage({ searchParams }: DiscountsPageProps
         </div>
       </div>
 
-      {catalogData.content.length === 0 ? (
+      {products.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
           <p className="text-gray-500 text-lg">در حال حاضر کالای تخفیف‌داری ثبت نشده است.</p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {catalogData.content.map((p) => (
+            {products.map((p) => (
               <ProductCard key={p.id} product={p as any} />
             ))}
           </div>
 
           <Pagination
-            currentPage={catalogData.page}
-            totalPages={catalogData.totalPages}
-            totalElements={catalogData.totalElements}
-            pageSize={catalogData.size}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            pageSize={size}
             createPageUrl={createPageUrl}
             className="mt-8"
           />

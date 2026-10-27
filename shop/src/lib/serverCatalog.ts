@@ -93,6 +93,29 @@ export interface CategoryItem {
 const API_BASE_URL =
   process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+function normalizePageResult<T>(data: any, fallbackPage = 0, fallbackSize = 24): PageResult<T> {
+  if (!data) {
+    return { content: [], totalElements: 0, totalPages: 0, page: fallbackPage, size: fallbackSize };
+  }
+  const content: T[] = Array.isArray(data.items)
+    ? data.items
+    : Array.isArray(data.content)
+    ? data.content
+    : [];
+  const total = Number(data.total ?? data.totalElements ?? content.length);
+  const size = Number(data.size || fallbackSize);
+  const page = Number(data.page ?? fallbackPage);
+  const totalPages = Number(data.totalPages ?? (size > 0 ? Math.ceil(total / size) : 1));
+
+  return {
+    content,
+    totalElements: total,
+    totalPages,
+    page,
+    size,
+  };
+}
+
 export async function fetchCatalogProducts(params: {
   categoryId?: number;
   brandId?: number;
@@ -131,17 +154,20 @@ export async function fetchCatalogProducts(params: {
 
   const qs = query.toString();
   const url = `${API_BASE_URL}/api/shop/catalog/products${qs ? `?${qs}` : ''}`;
+  const targetPage = params.page || 0;
+  const targetSize = params.size || 24;
 
   try {
     const res = await fetch(url, {
       next: { revalidate: 60 },
     });
     if (!res.ok) {
-      return { content: [], totalElements: 0, totalPages: 0, page: 0, size: params.size || 24 };
+      return { content: [], totalElements: 0, totalPages: 0, page: targetPage, size: targetSize };
     }
-    return await res.json();
+    const data = await res.json();
+    return normalizePageResult<ProductSummary>(data, targetPage, targetSize);
   } catch (err) {
-    return { content: [], totalElements: 0, totalPages: 0, page: 0, size: params.size || 24 };
+    return { content: [], totalElements: 0, totalPages: 0, page: targetPage, size: targetSize };
   }
 }
 
@@ -181,7 +207,8 @@ export async function fetchCatalogSearch(
     if (!res.ok) {
       return { content: [], totalElements: 0, totalPages: 0, page, size };
     }
-    return await res.json();
+    const data = await res.json();
+    return normalizePageResult<ProductSummary>(data, page, size);
   } catch (err) {
     return { content: [], totalElements: 0, totalPages: 0, page, size };
   }

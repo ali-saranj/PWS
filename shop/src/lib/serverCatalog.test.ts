@@ -64,6 +64,35 @@ describe('serverCatalog API client', () => {
     expect(result.totalElements).toBe(1);
   });
 
+  it('fetchCatalogProducts normalizes Spring Boot PageResponse with items and total', async () => {
+    const springBootResponse = {
+      items: [
+        {
+          id: 4,
+          slug: 'test',
+          nameFa: 'تست',
+          priceToman: 332,
+          inStock: true,
+        },
+      ],
+      page: 0,
+      size: 20,
+      total: 4,
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => springBootResponse,
+    } as Response);
+
+    const result = await fetchCatalogProducts({});
+    expect(result.content).toBeDefined();
+    expect(result.content[0].slug).toBe('test');
+    expect(result.totalElements).toBe(4);
+    expect(result.totalPages).toBe(1);
+  });
+
   it('fetchProductBySlug returns product detail on 200', async () => {
     const mockDetail = {
       id: 1,
