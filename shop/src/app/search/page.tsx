@@ -3,12 +3,65 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, SearchX, SlidersHorizontal, PackageOpen } from 'lucide-react';
-import { ProductCard } from '@/components/ProductCard';
+import { ProductCard, ProductData as CatalogProduct } from '@/components/ProductCard';
 import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
 import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { api } from '@/lib/api';
-import { MOCK_CATALOG_PRODUCTS, CatalogProduct } from '@/lib/mockProducts';
+
+const FALLBACK_SEARCH_PRODUCTS: CatalogProduct[] = [
+  {
+    id: 101,
+    slug: 'andre-turkey-ham-90',
+    nameFa: 'ژامبون بوقلمون ۹۰٪ آندره',
+    nameEn: 'Andre Turkey Ham 90%',
+    brandNameFa: 'آندره',
+    portionLabel: '۲۵۰ گرم اسلایس',
+    weightLabel: '۲۵۰ گرم',
+    priceToman: 240000,
+    compareAtPriceToman: 320000,
+    discountPercent: 25,
+    thumbnailUrl: '/images/products/turkey-ham.png',
+    categoryId: 2,
+    categoryNameFa: 'کالباس و ژامبون',
+    inStock: true,
+    totalStock: 45,
+  },
+  {
+    id: 102,
+    slug: 'frankfurter-sausage-202',
+    nameFa: 'سوسیس فرانکفورتر ۲۰۲',
+    nameEn: '202 Frankfurter Sausage',
+    brandNameFa: '۲۰۲',
+    portionLabel: '۵۰۰ گرم',
+    weightLabel: '۵۰۰ گرم',
+    priceToman: 180000,
+    compareAtPriceToman: 225000,
+    discountPercent: 20,
+    thumbnailUrl: '/images/products/sausage-202.png',
+    categoryId: 1,
+    categoryNameFa: 'سوسیس و هات‌داگ',
+    inStock: true,
+    totalStock: 30,
+  },
+  {
+    id: 201,
+    slug: 'andre-cocktail-cheese-sausage',
+    nameFa: 'سوسیس کوکتل پنیر آندره',
+    nameEn: 'Andre Cheese Cocktail Sausage',
+    brandNameFa: 'آندره',
+    portionLabel: '۵۰۰ گرم',
+    weightLabel: '۵۰۰ گرم',
+    priceToman: 210000,
+    compareAtPriceToman: 235000,
+    discountPercent: 11,
+    thumbnailUrl: '/images/products/cocktail-cheese.png',
+    categoryId: 1,
+    categoryNameFa: 'سوسیس و هات‌داگ',
+    inStock: true,
+    totalStock: 25,
+  },
+];
 
 interface SearchPageProps {
   searchParams?: Promise<{ q?: string; sort?: string; [key: string]: string | string[] | undefined }>;
@@ -21,7 +74,7 @@ function SearchPageContent({
 }) {
   const nextSearchParams = useSearchParams();
   const [resolvedQuery, setResolvedQuery] = useState<string>('');
-  const [products, setProducts] = useState<CatalogProduct[]>(MOCK_CATALOG_PRODUCTS);
+  const [products, setProducts] = useState<CatalogProduct[]>(FALLBACK_SEARCH_PRODUCTS);
   const [loading, setLoading] = useState(false);
   const [sort, setSort] = useState<SortOptionKey>('newest');
   const [filters, setFilters] = useState<FilterState>({
@@ -82,10 +135,10 @@ function SearchPageContent({
 
       if (!isCancelled) {
         if (!query) {
-          setProducts(MOCK_CATALOG_PRODUCTS);
+          setProducts(FALLBACK_SEARCH_PRODUCTS);
         } else {
           const lowerQ = query.toLowerCase();
-          const matches = MOCK_CATALOG_PRODUCTS.filter((p) => {
+          const matches = FALLBACK_SEARCH_PRODUCTS.filter((p) => {
             return (
               p.nameFa?.toLowerCase().includes(lowerQ) ||
               p.nameEn?.toLowerCase().includes(lowerQ) ||

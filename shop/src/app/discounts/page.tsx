@@ -1,20 +1,42 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { Flame } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
-import { MOCK_CATALOG_PRODUCTS } from '@/lib/mockProducts';
+import { Pagination } from '@/components/Pagination';
+import { fetchCatalogProducts } from '@/lib/serverCatalog';
 
-export default function DiscountsPage() {
-  const saleProducts = MOCK_CATALOG_PRODUCTS.filter(
-    (p) => (p.discountPercent ?? 0) > 0
-  );
+interface DiscountsPageProps {
+  searchParams?: Promise<{
+    page?: string;
+    sort?: string;
+  }>;
+}
+
+export default async function DiscountsPage({ searchParams }: DiscountsPageProps) {
+  const params = (await searchParams) || {};
+  const page = params.page ? Math.max(0, Number(params.page)) : 0;
+  const sort = params.sort || 'newest';
+  const pageSize = 24;
+
+  const catalogData = await fetchCatalogProducts({
+    onSale: true,
+    sort,
+    page,
+    size: pageSize,
+  });
+
+  const createPageUrl = (targetPage: number) => {
+    const q = new URLSearchParams();
+    if (sort && sort !== 'newest') q.set('sort', sort);
+    if (targetPage > 0) q.set('page', String(targetPage));
+    const qs = q.toString();
+    return `/discounts${qs ? `?${qs}` : ''}`;
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-vazirmatn">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-vazirmatn" dir="rtl">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link href="/" className="hover:text-primary transition-colors">
           صفحه اصلی
         </Link>
@@ -29,23 +51,42 @@ export default function DiscountsPage() {
             <Flame className="w-9 h-9" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold mb-2">پیشنهادهای شگفت‌انگیز و تخفیف‌های ویژه</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold mb-2">
+              پیشنهادهای شگفت‌انگیز و تخفیف‌های ویژه
+            </h1>
             <p className="text-rose-100 text-sm">
               بهترین فرآورده‌های پروتئینی، سوسیس، کالباس و اقلام سوپرمارکتی با تخفیف‌های استثنایی
             </p>
           </div>
         </div>
         <div className="bg-white/10 px-5 py-3 rounded-2xl border border-white/20 text-center">
-          <span className="text-xs text-rose-100 block">تا ۵۰٪ تخفیف</span>
+          <span className="text-xs text-rose-100 block">تخفیف‌های ویژه روز</span>
           <span className="text-xl font-bold">تأمین روزانه تازه</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {saleProducts.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
-      </div>
+      {catalogData.content.length === 0 ? (
+        <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
+          <p className="text-gray-500 text-lg">در حال حاضر کالای تخفیف‌داری ثبت نشده است.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {catalogData.content.map((p) => (
+              <ProductCard key={p.id} product={p as any} />
+            ))}
+          </div>
+
+          <Pagination
+            currentPage={catalogData.page}
+            totalPages={catalogData.totalPages}
+            totalElements={catalogData.totalElements}
+            pageSize={catalogData.size}
+            createPageUrl={createPageUrl}
+            className="mt-8"
+          />
+        </>
+      )}
     </div>
   );
 }
