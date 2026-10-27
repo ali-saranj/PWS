@@ -180,7 +180,7 @@ function SearchPageContent({
     // Filter: Brands
     if (filters.brands && filters.brands.length > 0) {
       result = result.filter(
-        (p) => p.brandNameFa && filters.brands.includes(p.brandNameFa)
+        (p) => p.brandNameFa && filters.brands?.includes(p.brandNameFa)
       );
     }
 

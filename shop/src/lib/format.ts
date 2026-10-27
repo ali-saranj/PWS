@@ -13,6 +13,13 @@ export function toEnglishDigits(str: string): string {
   return result;
 }
 
+export function toLatinDigits(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 1632));
+}
+
 export function formatToman(amount: number | bigint): string {
   const formatted = Number(amount).toLocaleString('en-US');
   return toPersianDigits(formatted);

@@ -4,12 +4,13 @@ import React, { useTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
 import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
-import { CategoryItem } from '@/lib/serverCatalog';
+import { CategoryItem, BrandItem } from '@/lib/serverCatalog';
 import { toPersianDigits } from '@/lib/format';
 
 interface CatalogFiltersProps {
   categories?: CategoryItem[];
-  availableBrands?: string[];
+  availableBrands?: (string | BrandItem)[];
+  brands?: BrandItem[];
   initialFilters: FilterState;
   initialSort: SortOptionKey;
   totalElements?: number;
@@ -21,6 +22,7 @@ interface CatalogFiltersProps {
 export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
   categories,
   availableBrands,
+  brands,
   initialFilters,
   initialSort,
   totalElements,
@@ -39,10 +41,16 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
     // Reset to page 0 on filter change
     params.delete('page');
 
-    if (newFilters.categoryId) {
+    if (newFilters.categoryId !== undefined && newFilters.categoryId !== null && newFilters.categoryId !== '') {
       params.set('categoryId', String(newFilters.categoryId));
     } else {
       params.delete('categoryId');
+    }
+
+    if (newFilters.brandId !== undefined && newFilters.brandId !== null && !Number.isNaN(Number(newFilters.brandId))) {
+      params.set('brandId', String(newFilters.brandId));
+    } else {
+      params.delete('brandId');
     }
 
     if (newFilters.brands && newFilters.brands.length > 0) {
@@ -64,13 +72,13 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
       params.delete('onSale');
     }
 
-    if (newFilters.minPrice !== undefined && newFilters.minPrice !== null) {
+    if (newFilters.minPrice !== undefined && newFilters.minPrice !== null && !Number.isNaN(Number(newFilters.minPrice))) {
       params.set('minPrice', String(newFilters.minPrice));
     } else {
       params.delete('minPrice');
     }
 
-    if (newFilters.maxPrice !== undefined && newFilters.maxPrice !== null) {
+    if (newFilters.maxPrice !== undefined && newFilters.maxPrice !== null && !Number.isNaN(Number(newFilters.maxPrice))) {
       params.set('maxPrice', String(newFilters.maxPrice));
     } else {
       params.delete('maxPrice');
@@ -124,7 +132,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
     <aside className="w-full">
       <FilterSidebar
         categories={categories as any}
-        availableBrands={availableBrands}
+        availableBrands={brands || availableBrands}
         values={initialFilters}
         onChange={handleFilterChange}
         onReset={handleReset}

@@ -2,19 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { Filter, X, ChevronDown, Check, SlidersHorizontal, RotateCcw } from 'lucide-react';
-import { formatToman, toPersianDigits } from '@/lib/format';
+import { formatToman, toPersianDigits, toLatinDigits } from '@/lib/format';
 import { DEFAULT_CATEGORIES, CategoryItem } from './home/CategoryCircles';
 
 export interface FilterState {
   categoryId?: number | string | null;
-  brands: string[];
+  brandId?: number | null;
+  brands?: string[];
   inStockOnly: boolean;
   onSaleOnly: boolean;
   minPrice?: number | null;
   maxPrice?: number | null;
 }
 
-export const DEFAULT_BRANDS = [
+export interface BrandFilterItem {
+  id: number;
+  nameFa: string;
+  nameEn?: string;
+  slug?: string;
+}
+
+export const DEFAULT_BRANDS: string[] = [
   'آندره',
   'سولیکو',
   'کاله',
@@ -28,7 +36,8 @@ export const DEFAULT_BRANDS = [
 
 export interface FilterSidebarProps {
   categories?: CategoryItem[];
-  availableBrands?: string[];
+  availableBrands?: (string | BrandFilterItem)[];
+  brands?: (string | BrandFilterItem)[];
   values: FilterState;
   onChange: (newValues: FilterState) => void;
   onReset?: () => void;
@@ -37,12 +46,15 @@ export interface FilterSidebarProps {
 
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   categories = DEFAULT_CATEGORIES,
-  availableBrands = DEFAULT_BRANDS,
+  availableBrands,
+  brands,
   values,
   onChange,
   onReset,
   className = '',
 }) => {
+  const brandList: (string | BrandFilterItem)[] = brands || availableBrands || DEFAULT_BRANDS;
+
   const [minPriceInput, setMinPriceInput] = useState(
     values.minPrice !== null && values.minPrice !== undefined ? String(values.minPrice) : ''
   );
@@ -59,22 +71,51 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     );
   }, [values.minPrice, values.maxPrice]);
 
-  const handleCategorySelect = (catSlugOrId: string | number | null) => {
-    const isCurrent = values.categoryId === catSlugOrId;
+  const handleCategorySelect = (catTarget: string | number | null) => {
+    const isCurrent =
+      values.categoryId !== null &&
+      values.categoryId !== undefined &&
+      (values.categoryId === catTarget || String(values.categoryId) === String(catTarget));
     onChange({
       ...values,
-      categoryId: isCurrent ? null : catSlugOrId,
+      categoryId: isCurrent ? null : catTarget,
     });
   };
 
-  const handleBrandToggle = (brand: string) => {
-    const nextBrands = values.brands.includes(brand)
-      ? values.brands.filter((b) => b !== brand)
-      : [...values.brands, brand];
-    onChange({
-      ...values,
-      brands: nextBrands,
-    });
+  const isBrandSelected = (b: string | BrandFilterItem): boolean => {
+    if (typeof b === 'object' && b !== null) {
+      if (values.brandId !== undefined && values.brandId !== null) {
+        return values.brandId === b.id;
+      }
+      if (values.brands && values.brands.length > 0) {
+        return (
+          values.brands.includes(b.nameFa) || (b.slug ? values.brands.includes(b.slug) : false)
+        );
+      }
+      return false;
+    }
+    const currentBrands = values.brands || [];
+    return currentBrands.includes(b);
+  };
+
+  const handleBrandToggle = (b: string | BrandFilterItem) => {
+    if (typeof b === 'object' && b !== null) {
+      const isCurrent = values.brandId === b.id;
+      onChange({
+        ...values,
+        brandId: isCurrent ? null : b.id,
+        brands: isCurrent ? [] : [b.nameFa],
+      });
+    } else {
+      const currentBrands = values.brands || [];
+      const nextBrands = currentBrands.includes(b)
+        ? currentBrands.filter((item) => item !== b)
+        : [...currentBrands, b];
+      onChange({
+        ...values,
+        brands: nextBrands,
+      });
+    }
   };
 
   const handleInStockToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,14 +132,22 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     });
   };
 
+  const parsePrice = (valStr: string): number | null => {
+    if (!valStr || !valStr.trim()) return null;
+    const latin = toLatinDigits(valStr).replace(/\D/g, '');
+    if (!latin) return null;
+    const n = parseInt(latin, 10);
+    return Number.isFinite(n) ? n : null;
+  };
+
   const handleApplyPrice = (e: React.FormEvent) => {
     e.preventDefault();
-    const minVal = minPriceInput ? parseInt(minPriceInput.replace(/\D/g, ''), 10) : null;
-    const maxVal = maxPriceInput ? parseInt(maxPriceInput.replace(/\D/g, ''), 10) : null;
+    const minVal = parsePrice(minPriceInput);
+    const maxVal = parsePrice(maxPriceInput);
     onChange({
       ...values,
-      minPrice: Number.isFinite(minVal) ? minVal : null,
-      maxPrice: Number.isFinite(maxVal) ? maxVal : null,
+      minPrice: minVal,
+      maxPrice: maxVal,
     });
   };
 
@@ -110,6 +159,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     } else {
       onChange({
         categoryId: null,
+        brandId: null,
         brands: [],
         inStockOnly: false,
         onSaleOnly: false,
@@ -119,9 +169,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
     }
   };
 
+  const hasBrandFilter = Boolean(values.brandId || (values.brands && values.brands.length > 0));
   const activeFiltersCount =
     (values.categoryId ? 1 : 0) +
-    values.brands.length +
+    (hasBrandFilter ? (values.brandId ? 1 : values.brands?.length || 0) : 0) +
     (values.inStockOnly ? 1 : 0) +
     (values.onSaleOnly ? 1 : 0) +
     (values.minPrice ? 1 : 0) +
@@ -204,16 +255,22 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <h3 className="font-bold text-sm text-gray-900">دسته‌بندی</h3>
           <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
             {categories.map((cat) => {
+              const catTarget =
+                cat.id !== undefined && cat.id !== null ? cat.id : cat.slug || String(cat.id);
               const catKey = cat.slug || String(cat.id);
               const isSelected =
-                values.categoryId === catKey ||
-                (cat.id !== undefined && values.categoryId === cat.id);
+                values.categoryId !== null &&
+                values.categoryId !== undefined &&
+                (values.categoryId === catTarget ||
+                  String(values.categoryId) === String(catTarget) ||
+                  (cat.id !== undefined && values.categoryId === cat.id) ||
+                  (cat.slug && values.categoryId === cat.slug));
 
               return (
                 <li key={catKey}>
                   <button
                     type="button"
-                    onClick={() => handleCategorySelect(catKey)}
+                    onClick={() => handleCategorySelect(catTarget)}
                     className={`w-full text-right text-xs sm:text-sm py-1.5 px-2.5 rounded-lg transition-colors flex items-center justify-between ${
                       isSelected
                         ? 'bg-primary text-white font-bold'
@@ -231,24 +288,28 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
       )}
 
       {/* Brands */}
-      {availableBrands && availableBrands.length > 0 && (
+      {brandList && brandList.length > 0 && (
         <div className="space-y-3 pb-4 border-b border-gray-100">
           <h3 className="font-bold text-sm text-gray-900">برندها</h3>
           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-            {availableBrands.map((brand) => {
-              const checked = values.brands.includes(brand);
+            {brandList.map((brandItem, idx) => {
+              const isObj = typeof brandItem === 'object' && brandItem !== null;
+              const key = isObj ? `brand-${brandItem.id}` : `brand-${brandItem}-${idx}`;
+              const label = isObj ? brandItem.nameFa : brandItem;
+              const checked = isBrandSelected(brandItem);
+
               return (
                 <label
-                  key={brand}
+                  key={key}
                   className="flex items-center gap-2.5 text-xs sm:text-sm text-gray-700 hover:text-gray-900 cursor-pointer select-none"
                 >
                   <input
                     type="checkbox"
                     checked={checked}
-                    onChange={() => handleBrandToggle(brand)}
+                    onChange={() => handleBrandToggle(brandItem)}
                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 accent-primary"
                   />
-                  <span>{brand}</span>
+                  <span>{label}</span>
                 </label>
               );
             })}
