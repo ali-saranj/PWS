@@ -90,6 +90,13 @@ export interface CategoryItem {
   sortOrder?: number;
 }
 
+export interface BrandItem {
+  id: number;
+  nameFa: string;
+  nameEn?: string;
+  slug: string;
+}
+
 const API_BASE_URL =
   process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -118,7 +125,11 @@ function normalizePageResult<T>(data: any, fallbackPage = 0, fallbackSize = 24):
 
 export async function fetchCatalogProducts(params: {
   categoryId?: number;
+  categorySlug?: string;
   brandId?: number;
+  brandSlug?: string;
+  brandIds?: number[];
+  inStock?: boolean;
   onSale?: boolean;
   minPriceRials?: number;
   maxPriceRials?: number;
@@ -127,35 +138,52 @@ export async function fetchCatalogProducts(params: {
   size?: number;
 }): Promise<PageResult<ProductSummary>> {
   const query = new URLSearchParams();
-  if (params.categoryId !== undefined && params.categoryId !== null) {
+  if (params.categoryId !== undefined && params.categoryId !== null && !Number.isNaN(params.categoryId)) {
     query.set('categoryId', String(params.categoryId));
   }
-  if (params.brandId !== undefined && params.brandId !== null) {
+  if (params.categorySlug) {
+    query.set('categorySlug', params.categorySlug);
+  }
+  if (params.brandId !== undefined && params.brandId !== null && !Number.isNaN(params.brandId)) {
     query.set('brandId', String(params.brandId));
+  }
+  if (params.brandSlug) {
+    query.set('brandSlug', params.brandSlug);
+  }
+  if (Array.isArray(params.brandIds) && params.brandIds.length > 0) {
+    const safeBrandIds = params.brandIds.filter(
+      (id) => id !== undefined && id !== null && !Number.isNaN(id)
+    );
+    if (safeBrandIds.length > 0) {
+      query.set('brandIds', safeBrandIds.join(','));
+    }
+  }
+  if (params.inStock) {
+    query.set('inStock', 'true');
   }
   if (params.onSale) {
     query.set('onSale', 'true');
   }
-  if (params.minPriceRials !== undefined && params.minPriceRials !== null) {
+  if (params.minPriceRials !== undefined && params.minPriceRials !== null && !Number.isNaN(params.minPriceRials)) {
     query.set('minPrice', String(params.minPriceRials));
   }
-  if (params.maxPriceRials !== undefined && params.maxPriceRials !== null) {
+  if (params.maxPriceRials !== undefined && params.maxPriceRials !== null && !Number.isNaN(params.maxPriceRials)) {
     query.set('maxPrice', String(params.maxPriceRials));
   }
   if (params.sort) {
     query.set('sort', params.sort);
   }
-  if (params.page !== undefined && params.page !== null) {
+  if (params.page !== undefined && params.page !== null && !Number.isNaN(params.page)) {
     query.set('page', String(params.page));
   }
-  if (params.size !== undefined && params.size !== null) {
+  if (params.size !== undefined && params.size !== null && !Number.isNaN(params.size)) {
     query.set('size', String(params.size));
   }
 
   const qs = query.toString();
   const url = `${API_BASE_URL}/api/shop/catalog/products${qs ? `?${qs}` : ''}`;
-  const targetPage = params.page || 0;
-  const targetSize = params.size || 24;
+  const targetPage = params.page !== undefined && !Number.isNaN(params.page) ? params.page : 0;
+  const targetSize = params.size !== undefined && !Number.isNaN(params.size) ? params.size : 24;
 
   try {
     const res = await fetch(url, {
@@ -221,6 +249,24 @@ export async function fetchCategories(): Promise<CategoryItem[]> {
     if (!res.ok) return [];
     const data = await res.json();
     return data.categories || [];
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function fetchBrands(): Promise<BrandItem[]> {
+  const url = `${API_BASE_URL}/api/shop/catalog/brands`;
+  try {
+    const res = await fetch(url, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && Array.isArray(data.items)) {
+      return data.items;
+    }
+    return [];
   } catch (err) {
     return [];
   }
