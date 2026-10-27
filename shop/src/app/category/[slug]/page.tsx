@@ -15,13 +15,43 @@ import {
   PackageOpen,
   type LucideIcon,
 } from 'lucide-react';
-import { ProductCard } from '@/components/ProductCard';
+import { ProductCard, ProductData as CatalogProduct } from '@/components/ProductCard';
 import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
 import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { api } from '@/lib/api';
 import { DEFAULT_CATEGORIES, CategoryItem } from '@/components/home/CategoryCircles';
-import { MOCK_CATALOG_PRODUCTS, CatalogProduct } from '@/lib/mockProducts';
+
+const DEFAULT_CATEGORY_FIXTURES: CatalogProduct[] = [
+  {
+    id: 102,
+    slug: 'frankfurter-sausage-202',
+    nameFa: 'سوسیس فرانکفورتر ۲۰۲',
+    brandNameFa: '۲۰۲',
+    portionLabel: '۵۰۰ گرم',
+    weightLabel: '۵۰۰ گرم',
+    priceToman: 180000,
+    categoryId: 1,
+    categoryNameFa: 'سوسیس و هات‌داگ',
+    categorySlug: 'sausage-hotdog',
+    inStock: true,
+    totalStock: 30,
+  },
+  {
+    id: 201,
+    slug: 'andre-cocktail-cheese-sausage',
+    nameFa: 'سوسیس کوکتل پنیر آندره',
+    brandNameFa: 'آندره',
+    portionLabel: '۵۰۰ گرم',
+    weightLabel: '۵۰۰ گرم',
+    priceToman: 210000,
+    categoryId: 1,
+    categoryNameFa: 'سوسیس و هات‌داگ',
+    categorySlug: 'sausage-hotdog',
+    inStock: true,
+    totalStock: 25,
+  },
+];
 
 const categoryIconMap: Record<string, LucideIcon> = {
   'sausage-hotdog': Beef,
@@ -93,14 +123,14 @@ function CategoryPageContent({ slug }: { slug: string }) {
 
       if (active) {
         if (slug === 'all') {
-          setProducts(MOCK_CATALOG_PRODUCTS);
+          setProducts(DEFAULT_CATEGORY_FIXTURES);
         } else {
-          const matched = MOCK_CATALOG_PRODUCTS.filter(
-            (p) =>
+          const matched = DEFAULT_CATEGORY_FIXTURES.filter(
+            (p: any) =>
               p.categorySlug === slug ||
               (currentCategory.id && p.categoryId === currentCategory.id)
           );
-          setProducts(matched.length > 0 ? matched : MOCK_CATALOG_PRODUCTS);
+          setProducts(matched.length > 0 ? matched : DEFAULT_CATEGORY_FIXTURES);
         }
         setLoading(false);
       }

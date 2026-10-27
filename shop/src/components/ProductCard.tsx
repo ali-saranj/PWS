@@ -15,6 +15,7 @@ export interface ProductData {
   brandId?: number;
   categoryNameFa?: string;
   categoryId?: number;
+  categorySlug?: string;
   thumbnailUrl?: string;
   priceToman: number;
   compareAtPriceToman?: number | null;
