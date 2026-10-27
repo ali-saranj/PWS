@@ -94,10 +94,23 @@ public class PublicCatalogService {
         return new HomeCatalogResponse(catDtos, specialOffers, popularProducts);
     }
 
+    public record PublicBrandDto(long id, String nameFa, String nameEn, String slug) {}
+
+    @Transactional(readOnly = true)
+    public List<PublicBrandDto> listBrands() {
+        return brands.findByActiveTrueOrderByNameFaAsc().stream()
+                .map(b -> new PublicBrandDto(b.getId(), b.getNameFa(), b.getNameEn(), b.getSlug()))
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public PageResponse<ProductSummaryResponse> listProducts(
             Long categoryId,
+            String categorySlug,
             Long brandId,
+            String brandSlug,
+            List<Long> brandIds,
+            Boolean inStock,
             Boolean onSale,
             Long minPrice,
             Long maxPrice,
@@ -108,13 +121,42 @@ public class PublicCatalogService {
         int pageSize = Math.min(Math.max(size, 1), 100);
         Pageable pageable = PageRequest.of(pageIndex, pageSize);
 
-        Set<Long> categoryIds = categoryId != null ? getCategoryAndDescendantIds(categoryId) : null;
-        Specification<Product> spec = buildFilterSpec(categoryIds, brandId, onSale, minPrice, maxPrice, sort);
+        Set<Long> categoryIds = null;
+        if (categoryId != null) {
+            categoryIds = getCategoryAndDescendantIds(categoryId);
+        } else if (categorySlug != null && !categorySlug.isBlank()) {
+            Category cat = categories.findBySlug(categorySlug.trim()).orElse(null);
+            if (cat != null) {
+                categoryIds = getCategoryAndDescendantIds(cat.getId());
+            } else {
+                categoryIds = Collections.emptySet();
+            }
+        }
+
+        Long effectiveBrandId = brandId;
+        if (effectiveBrandId == null && brandSlug != null && !brandSlug.isBlank()) {
+            effectiveBrandId = brands.findBySlug(brandSlug.trim()).map(Brand::getId).orElse(-1L);
+        }
+
+        Specification<Product> spec = buildFilterSpec(categoryIds, effectiveBrandId, brandIds, inStock, onSale, minPrice, maxPrice, sort);
 
         Page<Product> productPage = products.findAll(spec, pageable);
         List<ProductSummaryResponse> items = mapToSummaries(productPage.getContent());
 
         return PageResponse.of(productPage, items);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<ProductSummaryResponse> listProducts(
+            Long categoryId,
+            Long brandId,
+            Boolean onSale,
+            Long minPrice,
+            Long maxPrice,
+            String sort,
+            int page,
+            int size) {
+        return listProducts(categoryId, null, brandId, null, null, null, onSale, minPrice, maxPrice, sort, page, size);
     }
 
     @Transactional(readOnly = true)
@@ -365,6 +407,8 @@ public class PublicCatalogService {
     private Specification<Product> buildFilterSpec(
             Set<Long> categoryIds,
             Long brandId,
+            List<Long> brandIds,
+            Boolean inStock,
             Boolean onSale,
             Long minPrice,
             Long maxPrice,
@@ -383,14 +427,35 @@ public class PublicCatalogService {
                     cb.isTrue(v1.get("active")));
             ps.add(cb.exists(hasActiveVariant));
 
+            // In-stock filter
+            if (Boolean.TRUE.equals(inStock)) {
+                Subquery<Long> inStockSub = query.subquery(Long.class);
+                Root<Variant> vs = inStockSub.from(Variant.class);
+                inStockSub.select(vs.get("id")).where(
+                        cb.equal(vs.get("productId"), root.get("id")),
+                        cb.isTrue(vs.get("active")),
+                        cb.greaterThan(vs.get("stockOnHand"), 0));
+                ps.add(cb.exists(inStockSub));
+            }
+
             // 3. Category filter
-            if (categoryIds != null && !categoryIds.isEmpty()) {
-                ps.add(root.get("categoryId").in(categoryIds));
+            if (categoryIds != null) {
+                if (categoryIds.isEmpty()) {
+                    ps.add(cb.disjunction());
+                } else {
+                    ps.add(root.get("categoryId").in(categoryIds));
+                }
             }
 
             // 4. Brand filter
             if (brandId != null) {
                 ps.add(cb.equal(root.get("brandId"), brandId));
+            }
+            if (brandIds != null && !brandIds.isEmpty()) {
+                List<Long> safeBrandIds = brandIds.stream().filter(Objects::nonNull).toList();
+                if (!safeBrandIds.isEmpty()) {
+                    ps.add(root.get("brandId").in(safeBrandIds));
+                }
             }
 
             // 5. On sale filter (compareAtPrice > basePrice OR has volume tiers)

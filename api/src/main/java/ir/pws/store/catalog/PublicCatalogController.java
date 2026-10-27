@@ -1,9 +1,11 @@
 package ir.pws.store.catalog;
 
+import ir.pws.store.catalog.PublicCatalogService.PublicBrandDto;
 import ir.pws.store.catalog.dto.HomeCatalogResponse;
 import ir.pws.store.catalog.dto.ProductDetailResponse;
 import ir.pws.store.catalog.dto.ProductSummaryResponse;
 import ir.pws.store.common.web.PageResponse;
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,17 +27,38 @@ public class PublicCatalogController {
         return service.getHome();
     }
 
+    @GetMapping("/brands")
+    public List<PublicBrandDto> listBrands() {
+        return service.listBrands();
+    }
+
     @GetMapping("/products")
     public PageResponse<ProductSummaryResponse> list(
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String categorySlug,
             @RequestParam(required = false) Long brandId,
+            @RequestParam(required = false) String brandSlug,
+            @RequestParam(required = false) List<Long> brandIds,
+            @RequestParam(required = false) Boolean inStock,
             @RequestParam(required = false) Boolean onSale,
             @RequestParam(required = false) Long minPrice,
             @RequestParam(required = false) Long maxPrice,
             @RequestParam(defaultValue = "newest") String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return service.listProducts(categoryId, brandId, onSale, minPrice, maxPrice, sort, page, size);
+        return service.listProducts(
+                categoryId,
+                categorySlug,
+                brandId,
+                brandSlug,
+                brandIds,
+                inStock,
+                onSale,
+                minPrice,
+                maxPrice,
+                sort,
+                page,
+                size);
     }
 
     @GetMapping("/search")

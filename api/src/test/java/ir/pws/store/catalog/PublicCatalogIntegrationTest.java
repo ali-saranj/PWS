@@ -312,4 +312,93 @@ class PublicCatalogIntegrationTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(2));
     }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/products filters by inStock")
+    void productsFilterByInStockOnly() throws Exception {
+        // Product A: active variant with stock 5
+        long pA = createProduct("product-in-stock", "محصول موجود", "In Stock Product", "متن", childCategoryId, "ACTIVE", false);
+        createVariant(pA, "SKU-IN-STOCK", 1_000_000L, null, 5, true, 0);
+
+        // Product B: active variant with stock 0
+        long pB = createProduct("product-out-of-stock", "محصول ناموجود", "Out of Stock Product", "متن", childCategoryId, "ACTIVE", false);
+        createVariant(pB, "SKU-OUT-OF-STOCK", 1_000_000L, null, 0, true, 0);
+
+        // Query inStock=true
+        mvc.perform(get("/api/shop/catalog/products").param("inStock", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value("product-in-stock"));
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/brands returns active brands")
+    void publicBrandsEndpointReturnsActiveBrands() throws Exception {
+        // Inactive brand
+        jdbc.execute("insert into brand (name_fa, name_en, slug, active) values ('برند غیرفعال', 'Inactive Brand', 'inactive-brand', false)");
+
+        // Another active brand
+        jdbc.execute("insert into brand (name_fa, name_en, slug, active) values ('دامداران', 'Damdaran', 'damdaran', true)");
+
+        mvc.perform(get("/api/shop/catalog/brands"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[?(@.slug == 'kalleh')]").exists())
+                .andExpect(jsonPath("$[?(@.slug == 'damdaran')]").exists())
+                .andExpect(jsonPath("$[?(@.slug == 'inactive-brand')]").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/products filters by categorySlug")
+    void productsFilterByCategorySlug() throws Exception {
+        long otherCatId = jdbc.queryForObject(
+                "insert into category (name_fa, name_en, slug, sort_order, active) values ('ویتامین', 'Vitamins', 'vitamins', 3, true) returning id",
+                Long.class);
+
+        long p1 = createProduct("p-protein", "پروتئین", "Protein", "متن", childCategoryId, "ACTIVE", false);
+        createVariant(p1, "SKU-PROT", 1_000_000L, null, 10, true, 0);
+
+        long p2 = createProduct("p-vit", "ویتامین", "Vitamin", "متن", otherCatId, "ACTIVE", false);
+        createVariant(p2, "SKU-VIT", 1_000_000L, null, 10, true, 0);
+
+        mvc.perform(get("/api/shop/catalog/products").param("categorySlug", "protein"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value("p-protein"));
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/products filters by brandSlug and brandIds")
+    void productsFilterByBrandSlugAndBrandIds() throws Exception {
+        long brand2 = jdbc.queryForObject(
+                "insert into brand (name_fa, name_en, slug) values ('پگاه', 'Pegah', 'pegah') returning id",
+                Long.class);
+        long brand3 = jdbc.queryForObject(
+                "insert into brand (name_fa, name_en, slug) values ('میهن', 'Mihan', 'mihan') returning id",
+                Long.class);
+
+        long p1 = createProduct(brandId, "p-kalleh", "کاله", "Kalleh", "متن", childCategoryId, "ACTIVE", false);
+        createVariant(p1, "SKU-K", 1_000_000L, null, 10, true, 0);
+
+        long p2 = createProduct(brand2, "p-pegah", "پگاه", "Pegah", "متن", childCategoryId, "ACTIVE", false);
+        createVariant(p2, "SKU-P", 1_000_000L, null, 10, true, 0);
+
+        long p3 = createProduct(brand3, "p-mihan", "میهن", "Mihan", "متن", childCategoryId, "ACTIVE", false);
+        createVariant(p3, "SKU-M", 1_000_000L, null, 10, true, 0);
+
+        // Test brandSlug
+        mvc.perform(get("/api/shop/catalog/products").param("brandSlug", "pegah"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value("p-pegah"));
+
+        // Test brandIds
+        mvc.perform(get("/api/shop/catalog/products")
+                        .param("brandIds", String.valueOf(brandId) + "," + String.valueOf(brand3)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.items[?(@.slug == 'p-kalleh')]").exists())
+                .andExpect(jsonPath("$.items[?(@.slug == 'p-mihan')]").exists());
+    }
 }
