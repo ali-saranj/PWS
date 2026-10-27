@@ -48,7 +48,9 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/shop/**", "/swagger-ui/**", "/v3/api-docs/**")
                         .ignoringRequestMatchers(request -> {
                             String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
-                            return auth != null && auth.startsWith("Bearer ");
+                            return auth != null
+                                    && auth.regionMatches(true, 0, "Bearer ", 0, 7)
+                                    && !auth.substring(7).trim().isEmpty();
                         }))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)

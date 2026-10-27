@@ -49,7 +49,7 @@ public class CustomerJwtCookieFilter extends OncePerRequestFilter {
 
     private String resolveToken(HttpServletRequest request, String cookieName) {
         String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (auth != null && auth.startsWith("Bearer ")) {
+        if (auth != null && auth.regionMatches(true, 0, "Bearer ", 0, 7)) {
             String bearer = auth.substring(7).trim();
             if (!bearer.isEmpty()) {
                 return bearer;
