@@ -1,49 +1,199 @@
-# PWS — deli & grocery store (فروشگاه پروتئینی و سوپرمارکتی)
+# PWS — Persian Web Store (فروشگاه پروتئینی و سوپرمارکتی)
 
-Spring Boot API (`api/`) and React admin (`admin/`). Phase 1: staff auth, audit log, catalog (categories, brands,
-products, variants, volume tiers, images) and inventory for sausages, cold cuts, pickles, sauces, breads, chips, and canned goods.
+Modern, production-grade e-commerce monorepo tailored for deli, protein, and grocery retail (سوسیس، کالباس، ترشیجات، سس، نان، چیپس، و کنسرو).
+
+The platform features a **Next.js customer storefront**, a **Vite + React staff back-office**, and a **Spring Boot 3 REST API** powered by PostgreSQL.
+
+---
+
+## Architecture Overview
+
+```
+                                      ┌─────────────────────────────────────────┐
+                                      │       Customer Storefront (shop/)       │
+                                      │       Next.js 15 App Router (port 3000) │
+                                      └────────────────────┬────────────────────┘
+                                                           │ /api/*
+                                                           ▼
+┌─────────────────────────────────┐   /api/*  ┌─────────────────────────────────┐
+│     Staff Back-Office (admin/)  │──────────▶│         Core API (api/)         │
+│     Vite + React (port 5173)    │           │    Spring Boot 3.4 (port 8080)   │
+└─────────────────────────────────┘           └────────────────┬────────────────┘
+                                                               │ JDBC
+                                                               ▼
+                                              ┌─────────────────────────────────┐
+                                              │      PostgreSQL 16 Database     │
+                                              │      (Embedded on port 5433     │
+                                              │       or Docker on port 5432)   │
+                                              └─────────────────────────────────┘
+```
+
+### Components
+
+1. **`api/` — Core Backend Service**
+   - **Framework**: Spring Boot 3 with Java 17.
+   - **Database**: PostgreSQL 16 (embedded via test-run or Docker) with Flyway migrations.
+   - **Security**: Dual cookie-based JWT authentication (isolated contexts for staff and customers), Argon2 password hashing, SMS OTP verification.
+   - **E-Commerce Engine**: Tier-based wholesale/volume pricing, stock ledger with optimistic concurrency, reservation expiry background jobs, and Zarinpal payment integration.
+
+2. **`shop/` — Customer Storefront**
+   - **Framework**: Next.js 15 (App Router), React 19, Tailwind CSS, Lucide icons, Zustand state management.
+   - **Localization & UX**: RTL-first layout using Vazirmatn font, mobile-optimized navigation, and responsive touch-friendly shopping cart.
+   - **Capabilities**: Category & brand browsing, tiered volume pricing calculators, customer OTP login/registration modal, address book management, checkout flow, Zarinpal gateway redirect, and tracking code lookup with one-click re-ordering.
+
+3. **`admin/` — Staff Back-Office Portal**
+   - **Framework**: Vite, React 19, TypeScript, Material UI (MUI 9).
+   - **Features**: Bilingual RTL (Persian) / LTR (English) switching, staff authentication with 2FA OTP, catalog management (categories, brands, products, variants, volume tiers, image gallery with WebP processing), inventory adjustments with stock ledger history, order management with status transitions, and audit logs.
+
+---
+
+## Tech Stack
+
+| Domain | Technologies |
+|---|---|
+| **Backend** | Spring Boot 3.4, Java 17, Spring Security 6, Spring Data JPA, Flyway, Maven Wrapper |
+| **Storefront** | Next.js 15, React 19, TypeScript, Tailwind CSS, Zustand, Lucide React, Vazirmatn |
+| **Admin** | Vite, React 19, TypeScript, Material-UI (MUI), TanStack React Query, React Hook Form, Zod |
+| **Database** | PostgreSQL 16 (Embedded Zonky for zero-install local dev, or Docker Compose) |
+| **Testing** | JUnit 5, Vitest, Testing Library, MSW (Mock Service Worker), Playwright E2E |
+
+---
 
 ## Prerequisites
 
-- Java 17 (Maven wrapper included, no system Maven needed)
-- Node 22+ with npm. On some machines `node` on PATH is a symlink into another app's bundle (for example
-  `/opt/homebrew/bin/node` pointing into ChatGPT.app) and cannot load Vite's native binding
-  ("Cannot find native binding"). Install a standard Node (nodejs.org, nvm or Homebrew `node`) and put it first on PATH.
+- **Java 17+**: Maven wrapper (`./mvnw`) is included; no standalone Maven installation is required.
+- **Node.js 22+ & npm**: Make sure standard Node is first on your `$PATH`.
+  > *Note on macOS*: If `node` points to an application bundle (e.g. ChatGPT.app), Vite native bindings may fail. Use `nvm` or Homebrew Node.
 
-## Run (development)
+---
 
-API (port 8080), with an embedded PostgreSQL 16 on port 5433 (data in `api/.devdb`, no Docker needed):
+## Local Development Setup
 
-    cd api && ./mvnw -q spring-boot:test-run
+### 1. Start the API (Backend)
 
-The `dev` profile applies the dev seed (`api/src/main/resources/db/dev`: categories, brands, 3 products with variants,
-tiers and stock) and creates the owner account `owner` / `ChangeMe12345` (mobile `09120000000`).
-To reset the dev data, stop the API and delete `api/.devdb`.
+The API ships with an embedded PostgreSQL 16 server running on port `5433` (storing data in `api/.devdb`). No Docker is needed to get started:
 
-Admin (port 5173, proxies `/api` and `/media` to the API):
+```bash
+cd api
+./mvnw -q spring-boot:test-run
+```
 
-    cd admin && npm install && npm run dev
+- **Port**: `http://localhost:8080`
+- **Database**: Embedded PostgreSQL on `localhost:5433`
+- **Default Seed Data**: Applies automatically (`api/src/main/resources/db/dev`) with categories, brands, variants, volume tiers, and initial stock.
+- **Default Staff Account**:
+  - **Username**: `owner`
+  - **Password**: `ChangeMe12345`
+  - **Mobile**: `09120000000`
+- **SMS OTP in Dev**: The `LoggingSmsSender` prints SMS verification codes directly to the API terminal log. Copy the OTP code from the console.
 
-Open http://localhost:5173 and log in. Login is two-step: after the password, the SMS code is printed in the **API log**
-(`LoggingSmsSender`), not sent anywhere. Copy it from the terminal running the API.
+> **Resetting Dev Data**: Stop the API process and run `rm -rf api/.devdb`.
 
-### Alternative: PostgreSQL in Docker
+*(Alternative: Docker PostgreSQL)*
+If you prefer running standard PostgreSQL via Docker:
+```bash
+docker compose -f deploy/docker-compose.dev.yml up -d
+```
+Then configure `spring.datasource.*` in `api/src/main/resources/application.properties` to target port `5432`.
 
-`deploy/docker-compose.dev.yml` starts `postgres:16` on 5432 (db/user/password `pws`, volume `pgdata`) for machines
-with Docker. It is an alternative to the embedded database and is not verified in this repository's dev environment;
-you must also point the API's datasource at it (`spring.datasource.*`).
+---
 
-    docker compose -f deploy/docker-compose.dev.yml up -d
+### 2. Start the Staff Admin Portal
 
-## Tests
+In a new terminal window:
 
-    cd api && ./mvnw -q verify                              # API (embedded Postgres, no Docker)
-    cd admin && npx vitest run && npx tsc -b && npx vite build
+```bash
+cd admin
+npm install
+npm run dev
+```
 
-## Layout
+- **URL**: `http://localhost:5173`
+- Proxies `/api` and `/media` requests directly to `http://localhost:8080`.
+- Log in with `owner` / `ChangeMe12345`, then check the API console for the 6-digit OTP code.
 
-    api/      Spring Boot 3 service (package ir.pws.store); Flyway migrations in src/main/resources/db/migration
-    admin/    Vite + React + TypeScript + MUI admin (Persian RTL default, English LTR)
-    deploy/   docker-compose.dev.yml
-    docs/superpowers/specs/2026-10-25-grocery-deli-store-design.md     deli & grocery store design spec
-    docs/superpowers/plans/2026-10-26-grocery-deli-alignment.md        catalog alignment plan
+---
+
+### 3. Start the Customer Storefront
+
+In a new terminal window:
+
+```bash
+cd shop
+npm install
+npm run dev
+```
+
+- **URL**: `http://localhost:3000`
+- Proxies `/api` calls directly to `http://localhost:8080`.
+- Browse products, add items to cart, test OTP login with any Iranian mobile number (e.g. `09121112233`), and inspect the checkout flow.
+
+---
+
+## Testing & Quality Assurance
+
+### Backend Tests
+```bash
+cd api
+./mvnw -q verify
+```
+Runs unit tests and integration slice tests with embedded PostgreSQL.
+
+### Admin Tests
+```bash
+cd admin
+npm test                  # Run Vitest test suite
+npx tsc -b                # Type check
+npm run build             # Verify production bundle
+```
+
+### Storefront Tests
+```bash
+cd shop
+npm test                  # Run Vitest test suite
+npm run build             # Verify Next.js production build
+```
+
+### End-to-End (E2E) Browser Verification
+Automated browser test with Chrome verifying the full flow (Storefront browsing, customer OTP login, address addition, order placement, order tracking, and admin order fulfillment):
+
+```bash
+node run-browser-e2e.mjs
+```
+Screenshots from the E2E run are saved to `docs/screenshots/e2e/`.
+
+---
+
+## Repository Layout
+
+```
+.
+├── admin/                    # Vite + React 19 + MUI staff back-office portal
+│   ├── src/                  # App components, pages, RTL theme, and i18n
+│   └── vite.config.ts        # Dev server & reverse proxy configuration
+├── api/                      # Spring Boot 3 REST service
+│   ├── src/main/java/        # ir.pws.store packages (catalog, inventory, customer, order, staff)
+│   ├── src/main/resources/   # Flyway migrations, dev seeds, application config
+│   └── pom.xml               # Maven configuration
+├── shop/                     # Next.js 15 customer storefront (App Router)
+│   ├── src/app/              # Next.js routes (catalog, cart, checkout, orders)
+│   ├── src/components/       # Reusable UI widgets, header, footer, modals
+│   └── tailwind.config.ts    # Tailwind styling & Vazirmatn typography
+├── deploy/                   # Deployment assets (Docker Compose dev database)
+├── docs/                     # Specifications, alignment plans, and screenshots
+│   ├── screenshots/          # E2E test run screenshots
+│   └── superpowers/
+│       ├── specs/            # Architecture and product design specifications
+│       └── plans/            # Implementation milestone plans
+└── run-browser-e2e.mjs       # Automated end-to-end browser test script
+```
+
+---
+
+## Specifications & Documentation
+
+- [Grocery & Deli Store Design Spec](file:///Users/ali/Documents/PWS/docs/superpowers/specs/2026-10-25-grocery-deli-store-design.md)
+- [Customer Portal Design Spec](file:///Users/ali/Documents/PWS/docs/superpowers/specs/2026-10-26-customer-portal-design.md)
+- [Phase 1 Foundation & Catalog Plan](file:///Users/ali/Documents/PWS/docs/superpowers/plans/2026-10-25-phase1-foundation-catalog.md)
+- [Phase 2 Storefront & Checkout Plan](file:///Users/ali/Documents/PWS/docs/superpowers/plans/2026-10-26-phase2-storefront-checkout.md)
+- [Customer Portal & Tracking Plan](file:///Users/ali/Documents/PWS/docs/superpowers/plans/2026-10-26-customer-portal.md)
