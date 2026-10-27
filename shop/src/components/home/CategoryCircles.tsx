@@ -9,6 +9,8 @@ import {
   Cookie,
   Package,
   Milk,
+  Flame,
+  Drumstick,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -72,14 +74,43 @@ export const DEFAULT_CATEGORIES: CategoryItem[] = [
 ];
 
 const categoryIconMap: Record<string, LucideIcon> = {
-  'sausage-hotdog': Beef,
+  'sausages-hotdogs': Flame,
+  'sausage-hotdog': Flame,
+  'turkey-ham': Drumstick,
+  'cold-cuts-deli': UtensilsCrossed,
   'ham-coldcuts': UtensilsCrossed,
+  'beef-ham': Beef,
+  'pickles-condiments': Apple,
   'pickles': Apple,
+  'sauces': Salad,
   'sauces-condiments': Salad,
+  'sandwich-bread': Sandwich,
   'bread': Sandwich,
+  'chips-snacks': Cookie,
   'snacks-chips': Cookie,
+  'canned-goods': Package,
   'canned-food': Package,
   'dairy-cheese': Milk,
+};
+
+const categoryColorMap: Record<string, string> = {
+  'sausages-hotdogs': 'bg-rose-50 text-rose-600 border-rose-200/60 group-hover:bg-rose-500 group-hover:text-white',
+  'sausage-hotdog': 'bg-rose-50 text-rose-600 border-rose-200/60 group-hover:bg-rose-500 group-hover:text-white',
+  'turkey-ham': 'bg-amber-50 text-amber-600 border-amber-200/60 group-hover:bg-amber-500 group-hover:text-white',
+  'cold-cuts-deli': 'bg-red-50 text-red-600 border-red-200/60 group-hover:bg-red-500 group-hover:text-white',
+  'ham-coldcuts': 'bg-red-50 text-red-600 border-red-200/60 group-hover:bg-red-500 group-hover:text-white',
+  'beef-ham': 'bg-purple-50 text-purple-600 border-purple-200/60 group-hover:bg-purple-500 group-hover:text-white',
+  'pickles-condiments': 'bg-emerald-50 text-emerald-600 border-emerald-200/60 group-hover:bg-emerald-500 group-hover:text-white',
+  'pickles': 'bg-emerald-50 text-emerald-600 border-emerald-200/60 group-hover:bg-emerald-500 group-hover:text-white',
+  'sauces': 'bg-orange-50 text-orange-600 border-orange-200/60 group-hover:bg-orange-500 group-hover:text-white',
+  'sauces-condiments': 'bg-orange-50 text-orange-600 border-orange-200/60 group-hover:bg-orange-500 group-hover:text-white',
+  'sandwich-bread': 'bg-yellow-50 text-yellow-600 border-yellow-200/60 group-hover:bg-yellow-500 group-hover:text-white',
+  'bread': 'bg-yellow-50 text-yellow-600 border-yellow-200/60 group-hover:bg-yellow-500 group-hover:text-white',
+  'chips-snacks': 'bg-pink-50 text-pink-600 border-pink-200/60 group-hover:bg-pink-500 group-hover:text-white',
+  'snacks-chips': 'bg-pink-50 text-pink-600 border-pink-200/60 group-hover:bg-pink-500 group-hover:text-white',
+  'canned-goods': 'bg-blue-50 text-blue-600 border-blue-200/60 group-hover:bg-blue-500 group-hover:text-white',
+  'canned-food': 'bg-blue-50 text-blue-600 border-blue-200/60 group-hover:bg-blue-500 group-hover:text-white',
+  'dairy-cheese': 'bg-cyan-50 text-cyan-600 border-cyan-200/60 group-hover:bg-cyan-500 group-hover:text-white',
 };
 
 export interface CategoryCirclesProps {
@@ -90,6 +121,10 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
   categories = DEFAULT_CATEGORIES,
 }) => {
   const items = categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES;
+  const gridClass =
+    items.length >= 9
+      ? 'grid-cols-3 sm:grid-cols-5 lg:grid-cols-9'
+      : 'grid-cols-4 sm:grid-cols-4 md:grid-cols-8';
 
   return (
     <section className="py-4" aria-label="دسته‌بندی‌های اصلی">
@@ -106,11 +141,12 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
         </Link>
       </div>
 
-      <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-3 sm:gap-4">
+      <div className={`grid ${gridClass} gap-3 sm:gap-4`}>
         {items.map((cat, idx) => {
           const IconComponent = categoryIconMap[cat.slug] || UtensilsCrossed;
           const colorClass =
             cat.color ||
+            categoryColorMap[cat.slug] ||
             DEFAULT_CATEGORIES[idx % DEFAULT_CATEGORIES.length].color ||
             'bg-emerald-50 text-emerald-600 border-emerald-200/60 group-hover:bg-emerald-500 group-hover:text-white';
 
@@ -123,7 +159,7 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
               <div
                 className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:-translate-y-1.5 transition-all duration-300 ${colorClass}`}
               >
-                <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-110" />
+                <IconComponent className="w-7 h-7 sm:w-9 sm:h-9 transition-transform duration-300 group-hover:scale-110" />
               </div>
               <span className="mt-2.5 text-xs sm:text-sm font-semibold text-gray-700 group-hover:text-primary transition-colors line-clamp-1">
                 {cat.nameFa}

@@ -11,6 +11,8 @@ import {
   Cookie,
   Package,
   Milk,
+  Flame,
+  Drumstick,
   SlidersHorizontal,
   PackageOpen,
   type LucideIcon,
@@ -54,12 +56,21 @@ const DEFAULT_CATEGORY_FIXTURES: CatalogProduct[] = [
 ];
 
 const categoryIconMap: Record<string, LucideIcon> = {
-  'sausage-hotdog': Beef,
+  'sausages-hotdogs': Flame,
+  'sausage-hotdog': Flame,
+  'turkey-ham': Drumstick,
+  'cold-cuts-deli': UtensilsCrossed,
   'ham-coldcuts': UtensilsCrossed,
+  'beef-ham': Beef,
+  'pickles-condiments': Apple,
   'pickles': Apple,
+  'sauces': Salad,
   'sauces-condiments': Salad,
+  'sandwich-bread': Sandwich,
   'bread': Sandwich,
+  'chips-snacks': Cookie,
   'snacks-chips': Cookie,
+  'canned-goods': Package,
   'canned-food': Package,
   'dairy-cheese': Milk,
 };

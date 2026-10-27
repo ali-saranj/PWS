@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
 import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
 import { CategoryItem } from '@/lib/serverCatalog';
+import { toPersianDigits } from '@/lib/format';
 
 interface CatalogFiltersProps {
   categories?: CategoryItem[];
@@ -13,6 +14,8 @@ interface CatalogFiltersProps {
   initialSort: SortOptionKey;
   totalElements?: number;
   hideSidebar?: boolean;
+  title?: string;
+  children?: React.ReactNode;
 }
 
 export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
@@ -22,6 +25,8 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
   initialSort,
   totalElements,
   hideSidebar = false,
+  title = 'محصولات پروتئینی و سوپرمارکتی',
+  children,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -98,32 +103,53 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
     });
   };
 
+  // Full-width Header Bar
+  const headerContent = (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-6 border-b border-gray-200">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-black text-gray-900">
+          {title}
+        </h1>
+        {totalElements !== undefined && (
+          <span className="text-xs sm:text-sm text-gray-500 font-medium">
+            نمایش {toPersianDigits(totalElements)} کالا {isPending && '...'}
+          </span>
+        )}
+      </div>
+      <SortDropdown value={initialSort} onChange={handleSortChange} />
+    </div>
+  );
+
+  const sidebarContent = !hideSidebar && (
+    <aside className="w-full">
+      <FilterSidebar
+        categories={categories as any}
+        availableBrands={availableBrands}
+        values={initialFilters}
+        onChange={handleFilterChange}
+        onReset={handleReset}
+      />
+    </aside>
+  );
+
+  // If children are passed, render complete structured grid layout
+  if (children) {
+    return (
+      <div className="w-full">
+        {headerContent}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+          <div className="lg:col-span-1">{sidebarContent}</div>
+          <div className="lg:col-span-3">{children}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback layout if used without children
   return (
     <>
-      {!hideSidebar && (
-        <aside className="w-full md:w-64 flex-shrink-0">
-          <FilterSidebar
-            categories={categories as any}
-            availableBrands={availableBrands}
-            values={initialFilters}
-            onChange={handleFilterChange}
-            onReset={handleReset}
-          />
-        </aside>
-      )}
-      <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-200">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            محصولات پروتئینی و سوپرمارکتی
-          </h1>
-          {totalElements !== undefined && (
-            <span className="text-xs sm:text-sm text-gray-500">
-              نمایش {totalElements} کالا {isPending && '...'}
-            </span>
-          )}
-        </div>
-        <SortDropdown value={initialSort} onChange={handleSortChange} />
-      </div>
+      {headerContent}
+      {sidebarContent}
     </>
   );
 };

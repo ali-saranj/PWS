@@ -409,19 +409,8 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
                 )}
               </div>
 
-              {/* Volume Discount Tiers */}
-              {product.volumeTiers.length > 0 ? (
-                <div className="mb-6">
-                  <VolumeTierTable
-                    basePriceToman={currentVariant.priceToman}
-                    volumeTiers={product.volumeTiers}
-                    quantity={quantity}
-                  />
-                </div>
-              ) : null}
-
               {/* Quantity Counter & Add to Cart Action */}
-              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <div className="pt-2 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 {/* Quantity Controls */}
                 <div
                   className="inline-flex items-center justify-between bg-gray-100/90 rounded-2xl p-1.5 border border-gray-200/80 w-full sm:w-auto sm:min-w-[140px]"
@@ -489,6 +478,17 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
                   )}
                 </button>
               </div>
+
+              {/* Volume Discount Tiers */}
+              {product.volumeTiers.length > 0 ? (
+                <div className="mb-6">
+                  <VolumeTierTable
+                    basePriceToman={currentVariant.priceToman}
+                    volumeTiers={product.volumeTiers}
+                    quantity={quantity}
+                  />
+                </div>
+              ) : null}
 
               {/* Service Badges */}
               <div className="grid grid-cols-3 gap-2 mt-6 pt-6 border-t border-gray-100 text-[11px] text-gray-600">

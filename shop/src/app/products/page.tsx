@@ -86,42 +86,37 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <span className="text-gray-900 font-medium">همه محصولات</span>
       </nav>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar filters and sorting controls */}
-        <CatalogFilters
-          categories={categories}
-          initialFilters={initialFilters}
-          initialSort={sort}
-          totalElements={totalElements}
-        />
-
-        {/* Product listing grid */}
-        <div className="flex-1">
-          {products.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
-              <p className="text-gray-500 text-lg">کالایی با این فیلترها یافت نشد.</p>
+      {/* Catalog Layout with Filters, Sort and Products */}
+      <CatalogFilters
+        categories={categories}
+        initialFilters={initialFilters}
+        initialSort={sort}
+        totalElements={totalElements}
+      >
+        {products.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
+            <p className="text-gray-500 text-lg">کالایی با این فیلترها یافت نشد.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              {products.map((p) => (
+                <ProductCard key={p.id} product={p as any} />
+              ))}
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                {products.map((p) => (
-                  <ProductCard key={p.id} product={p as any} />
-                ))}
-              </div>
 
-              {/* Server-driven Pagination */}
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalElements={totalElements}
-                pageSize={size}
-                pageUrlPattern={pageUrlPattern}
-                className="mt-8"
-              />
-            </>
-          )}
-        </div>
-      </div>
+            {/* Server-driven Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              pageSize={size}
+              pageUrlPattern={pageUrlPattern}
+              className="mt-8"
+            />
+          </>
+        )}
+      </CatalogFilters>
     </div>
   );
 }
