@@ -76,6 +76,6 @@ public class ShopAuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookies.customerAccess(session.accessToken()).toString())
                 .header(HttpHeaders.SET_COOKIE, cookies.customerRefresh(session.refreshToken()).toString())
-                .body(CustomerDto.from(session.customer()));
+                .body(CustomerDto.from(session.customer(), session.accessToken()));
     }
 }

@@ -56,6 +56,6 @@ public class StaffAuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookies.staffAccess(session.accessToken()).toString())
                 .header(HttpHeaders.SET_COOKIE, cookies.staffRefresh(session.refreshToken()).toString())
-                .body(StaffMe.from(session.user()));
+                .body(StaffMe.from(session.user(), session.accessToken()));
     }
 }
