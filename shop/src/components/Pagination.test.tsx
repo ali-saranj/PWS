@@ -65,4 +65,19 @@ describe('Pagination Component', () => {
     const nextButton = screen.getByRole('button', { name: /بعدی/i });
     expect(nextButton).toHaveProperty('disabled', true);
   });
+
+  it('renders page links using pageUrlPattern string', () => {
+    render(
+      <Pagination
+        currentPage={0}
+        totalPages={2}
+        totalElements={40}
+        pageSize={24}
+        pageUrlPattern="/products?page=__PAGE__"
+      />
+    );
+
+    const page2Link = screen.getByRole('link', { name: '۲' });
+    expect(page2Link).toHaveAttribute('href', '/products?page=1');
+  });
 });

@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
@@ -10,6 +8,7 @@ export interface PaginationProps {
   totalPages: number;
   totalElements?: number;
   pageSize?: number;
+  pageUrlPattern?: string; // e.g. "/products?page=__PAGE__"
   createPageUrl?: (page: number) => string;
   onPageChange?: (page: number) => void;
   className?: string;
@@ -20,6 +19,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   totalElements,
   pageSize = 24,
+  pageUrlPattern,
   createPageUrl,
   onPageChange,
   className = '',
@@ -51,6 +51,16 @@ export const Pagination: React.FC<PaginationProps> = ({
     pages.push(i);
   }
 
+  const getPageUrl = (pageNum: number): string | undefined => {
+    if (pageUrlPattern) {
+      return pageUrlPattern.replace('__PAGE__', String(pageNum));
+    }
+    if (createPageUrl) {
+      return createPageUrl(pageNum);
+    }
+    return undefined;
+  };
+
   const renderButtonOrLink = (
     pageNum: number,
     label: string,
@@ -67,11 +77,13 @@ export const Pagination: React.FC<PaginationProps> = ({
 
     const baseClasses = `min-w-[40px] h-10 px-3 inline-flex items-center justify-center rounded-xl border text-sm font-medium transition-colors ${activeClasses} ${disabledClasses}`;
 
-    if (createPageUrl && !isDisabled) {
+    const url = getPageUrl(pageNum);
+
+    if (url && !isDisabled) {
       return (
         <Link
           key={`page-${pageNum}-${label}`}
-          href={createPageUrl(pageNum)}
+          href={url}
           className={baseClasses}
           aria-label={ariaLabel || label}
           aria-current={isActive ? 'page' : undefined}

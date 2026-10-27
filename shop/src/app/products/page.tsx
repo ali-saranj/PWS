@@ -56,7 +56,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     maxPrice: maxPriceToman ?? null,
   };
 
-  const createPageUrl = (targetPage: number) => {
+  const pageUrlPattern = (() => {
     const q = new URLSearchParams();
     if (categoryId) q.set('categoryId', String(categoryId));
     if (brandId) q.set('brandId', String(brandId));
@@ -64,10 +64,10 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     if (minPriceToman) q.set('minPrice', String(minPriceToman));
     if (maxPriceToman) q.set('maxPrice', String(maxPriceToman));
     if (sort && sort !== 'newest') q.set('sort', sort);
-    if (targetPage > 0) q.set('page', String(targetPage));
+    q.set('page', '__PAGE__');
     const qs = q.toString();
-    return `/products${qs ? `?${qs}` : ''}`;
-  };
+    return `/products?${qs}`;
+  })();
 
   const products = catalogData?.content ?? [];
   const totalElements = catalogData?.totalElements ?? 0;
@@ -115,7 +115,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 totalPages={totalPages}
                 totalElements={totalElements}
                 pageSize={size}
-                createPageUrl={createPageUrl}
+                pageUrlPattern={pageUrlPattern}
                 className="mt-8"
               />
             </>

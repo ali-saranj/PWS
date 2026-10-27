@@ -25,13 +25,13 @@ export default async function DiscountsPage({ searchParams }: DiscountsPageProps
     size: pageSize,
   });
 
-  const createPageUrl = (targetPage: number) => {
+  const pageUrlPattern = (() => {
     const q = new URLSearchParams();
     if (sort && sort !== 'newest') q.set('sort', sort);
-    if (targetPage > 0) q.set('page', String(targetPage));
+    q.set('page', '__PAGE__');
     const qs = q.toString();
-    return `/discounts${qs ? `?${qs}` : ''}`;
-  };
+    return `/discounts?${qs}`;
+  })();
 
   const products = catalogData?.content ?? [];
   const totalElements = catalogData?.totalElements ?? 0;
@@ -88,7 +88,7 @@ export default async function DiscountsPage({ searchParams }: DiscountsPageProps
             totalPages={totalPages}
             totalElements={totalElements}
             pageSize={size}
-            createPageUrl={createPageUrl}
+            pageUrlPattern={pageUrlPattern}
             className="mt-8"
           />
         </>
