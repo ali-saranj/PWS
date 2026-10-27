@@ -30,7 +30,6 @@ import {
   ProductVariant,
   VolumeTier,
 } from '@/lib/productDetail';
-import { MOCK_CATALOG_PRODUCTS } from '@/lib/mockProducts';
 import { useCartStore } from '@/lib/cartStore';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { api } from '@/lib/api';
@@ -139,13 +138,54 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  // Related products (same category or nearby)
-  const relatedProducts = useMemo(() => {
+  const defaultRelated = useMemo(() => {
     if (!product) return [];
-    return MOCK_CATALOG_PRODUCTS.filter(
-      (p) => p.slug !== product.slug && (p.categoryId === product.categoryId || true)
-    ).slice(0, 4);
+    return [
+      {
+        id: 991,
+        slug: 'related-1',
+        nameFa: 'سوسیس کراکف پنیری',
+        brandNameFa: '۲۰۲',
+        priceToman: 260000,
+        inStock: true,
+      },
+      {
+        id: 992,
+        slug: 'related-2',
+        nameFa: 'بیکن بوقلمون دودی',
+        brandNameFa: 'آندره',
+        priceToman: 290000,
+        inStock: true,
+      },
+    ];
   }, [product]);
+
+  const [relatedProducts, setRelatedProducts] = useState<any[]>(defaultRelated);
+
+  useEffect(() => {
+    setRelatedProducts(defaultRelated);
+  }, [defaultRelated]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadRelated() {
+      if (!product?.categoryId) return;
+      try {
+        const res = await api.get<any>(
+          `/api/shop/catalog/products?categoryId=${product.categoryId}&size=4`
+        );
+        if (isMounted && res?.content && res.content.length > 0) {
+          setRelatedProducts(res.content.filter((p: any) => p.slug !== product.slug).slice(0, 4));
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadRelated();
+    return () => {
+      isMounted = false;
+    };
+  }, [product?.categoryId, product?.slug]);
 
   if (!product) {
     return (
