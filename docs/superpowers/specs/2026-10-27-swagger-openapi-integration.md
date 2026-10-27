@@ -43,15 +43,23 @@ Add `org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5` to `api/pom.xml`.
   - Description: `Enter JWT access token. Applies to staff (/api/admin/**) and customer (/api/shop/**) protected endpoints.`
 - Global Security Requirement: Add `BearerAuth` to OpenAPI specification so secured endpoints display the lock icon.
 
-### 3. Spring Security Updates (`SecurityConfig.java`)
+### 3. Spring Security & CSRF Updates (`SecurityConfig.java`)
 
 - Permit unauthenticated access to Swagger UI and OpenAPI paths:
   - `/swagger-ui.html`
   - `/swagger-ui/**`
   - `/v3/api-docs/**`
 - Exempt `/swagger-ui/**` and `/v3/api-docs/**` from CSRF protection in `CookieCsrfTokenRepository` configuration.
+- **CSRF Exemption for Bearer Requests (Builder Call):** Requests carrying a valid `Authorization: Bearer <token>` header are exempted from CSRF validation across all endpoints (including `/api/admin/**`). CSRF protection exists solely to prevent ambient credential (cookie) exploitation; custom headers like `Authorization` cannot be injected in cross-origin simple requests. Cookie-based browser sessions without a Bearer header continue to strictly enforce CSRF token checks.
 
-### 4. Dual Authentication in Filters
+### 4. Token Exposure in Verification Responses
+
+- In both `StaffAuthController` (`/api/admin/auth/verify`, `/refresh`) and `ShopAuthController` (`/api/shop/auth/verify`, `/refresh`):
+  - In addition to setting the `HttpOnly` cookie, include the JWT `token` in the returned JSON body (`StaffMe` and `CustomerDto`).
+  - Maintain backward compatibility by keeping existing constructors and defaulting `token` to `null` on `/me` endpoints.
+  - This allows developers and testers using Swagger UI to immediately copy the token from the response payload and paste it into the "Authorize" modal.
+
+### 5. Dual Authentication in Filters
 
 - **`StaffJwtCookieFilter` (`/api/admin/**`):**
   - First check the `Authorization` header for `Bearer <token>`.
