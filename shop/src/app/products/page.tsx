@@ -1,52 +1,78 @@
-'use client';
-
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
-import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
-import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
-import { MOCK_CATALOG_PRODUCTS } from '@/lib/mockProducts';
+import { Pagination } from '@/components/Pagination';
+import { CatalogFilters } from '@/components/catalog/CatalogFilters';
+import { fetchCatalogProducts, fetchCategories } from '@/lib/serverCatalog';
+import { FilterState } from '@/components/FilterSidebar';
+import { SortOptionKey } from '@/components/SortDropdown';
 
-export default function ProductsPage() {
-  const [filters, setFilters] = useState<FilterState>({
-    categoryId: null,
+interface ProductsPageProps {
+  searchParams: Promise<{
+    categoryId?: string;
+    brandId?: string;
+    onSale?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    sort?: string;
+    page?: string;
+  }>;
+}
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const params = await searchParams;
+
+  const categoryId = params.categoryId ? Number(params.categoryId) : undefined;
+  const brandId = params.brandId ? Number(params.brandId) : undefined;
+  const onSale = params.onSale === 'true';
+  const minPriceToman = params.minPrice ? Number(params.minPrice) : undefined;
+  const maxPriceToman = params.maxPrice ? Number(params.maxPrice) : undefined;
+  const minPriceRials = minPriceToman !== undefined ? minPriceToman * 10 : undefined;
+  const maxPriceRials = maxPriceToman !== undefined ? maxPriceToman * 10 : undefined;
+  const sort = (params.sort as SortOptionKey) || 'newest';
+  const page = params.page ? Math.max(0, Number(params.page)) : 0;
+  const pageSize = 24;
+
+  const [catalogData, categories] = await Promise.all([
+    fetchCatalogProducts({
+      categoryId,
+      brandId,
+      onSale: onSale || undefined,
+      minPriceRials,
+      maxPriceRials,
+      sort,
+      page,
+      size: pageSize,
+    }),
+    fetchCategories(),
+  ]);
+
+  const initialFilters: FilterState = {
+    categoryId: categoryId ?? null,
     brands: [],
     inStockOnly: false,
-    onSaleOnly: false,
-    minPrice: null,
-    maxPrice: null,
-  });
-  const [sortOption, setSortOption] = useState<SortOptionKey>('newest');
+    onSaleOnly: onSale,
+    minPrice: minPriceToman ?? null,
+    maxPrice: maxPriceToman ?? null,
+  };
 
-  let list = [...MOCK_CATALOG_PRODUCTS];
-
-  if (filters.brands.length > 0) {
-    list = list.filter((p) => p.brandNameFa && filters.brands.includes(p.brandNameFa));
-  }
-  if (filters.inStockOnly) {
-    list = list.filter((p) => p.inStock);
-  }
-  if (filters.onSaleOnly) {
-    list = list.filter((p) => (p.discountPercent ?? 0) > 0);
-  }
-  if (filters.minPrice !== null && filters.minPrice !== undefined) {
-    list = list.filter((p) => p.priceToman >= filters.minPrice!);
-  }
-  if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
-    list = list.filter((p) => p.priceToman <= filters.maxPrice!);
-  }
-
-  const sortedProducts = list.sort((a, b) => {
-    if (sortOption === 'price_asc') return a.priceToman - b.priceToman;
-    if (sortOption === 'price_desc') return b.priceToman - a.priceToman;
-    if (sortOption === 'popular') return (b.rating ?? 0) - (a.rating ?? 0);
-    return 0;
-  });
+  const createPageUrl = (targetPage: number) => {
+    const q = new URLSearchParams();
+    if (categoryId) q.set('categoryId', String(categoryId));
+    if (brandId) q.set('brandId', String(brandId));
+    if (onSale) q.set('onSale', 'true');
+    if (minPriceToman) q.set('minPrice', String(minPriceToman));
+    if (maxPriceToman) q.set('maxPrice', String(maxPriceToman));
+    if (sort && sort !== 'newest') q.set('sort', sort);
+    if (targetPage > 0) q.set('page', String(targetPage));
+    const qs = q.toString();
+    return `/products${qs ? `?${qs}` : ''}`;
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-vazirmatn">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-vazirmatn" dir="rtl">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link href="/" className="hover:text-primary transition-colors">
           صفحه اصلی
         </Link>
@@ -55,33 +81,38 @@ export default function ProductsPage() {
       </nav>
 
       <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar filters */}
-        <aside className="w-full md:w-64 flex-shrink-0">
-          <FilterSidebar values={filters} onChange={setFilters} />
-        </aside>
+        {/* Sidebar filters and sorting controls */}
+        <CatalogFilters
+          categories={categories}
+          initialFilters={initialFilters}
+          initialSort={sort}
+          totalElements={catalogData.totalElements}
+        />
 
-        {/* Product listing */}
+        {/* Product listing grid */}
         <div className="flex-1">
-          <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-200">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">محصولات پروتئینی و سوپرمارکتی</h1>
-              <span className="text-sm text-gray-500">
-                نمایش {sortedProducts.length} کالا
-              </span>
-            </div>
-            <SortDropdown value={sortOption} onChange={setSortOption} />
-          </div>
-
-          {sortedProducts.length === 0 ? (
+          {catalogData.content.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
               <p className="text-gray-500 text-lg">کالایی با این فیلترها یافت نشد.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {sortedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {catalogData.content.map((p) => (
+                  <ProductCard key={p.id} product={p as any} />
+                ))}
+              </div>
+
+              {/* Server-driven Pagination */}
+              <Pagination
+                currentPage={catalogData.page}
+                totalPages={catalogData.totalPages}
+                totalElements={catalogData.totalElements}
+                pageSize={catalogData.size}
+                createPageUrl={createPageUrl}
+                className="mt-8"
+              />
+            </>
           )}
         </div>
       </div>
