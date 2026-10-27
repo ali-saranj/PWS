@@ -4,6 +4,7 @@ import ir.pws.store.config.AppProperties;
 import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,7 +45,11 @@ public class SecurityConfig {
         return http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(c -> c.csrfTokenRepository(csrfRepository)
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        .ignoringRequestMatchers("/api/shop/**"))
+                        .ignoringRequestMatchers("/api/shop/**", "/swagger-ui/**", "/v3/api-docs/**")
+                        .ignoringRequestMatchers(request -> {
+                            String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+                            return auth != null && auth.startsWith("Bearer ");
+                        }))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
@@ -55,6 +60,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(a -> a.dispatcherTypeMatchers(DispatcherType.ERROR)
                         .permitAll() // container-level errors keep their real status instead of becoming 401
                         .requestMatchers("/actuator/health", "/actuator/health/**")
+                        .permitAll()
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/media/**")
                         .permitAll()
