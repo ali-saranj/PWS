@@ -13,8 +13,8 @@
 
 ## 3. Storefront Dynamic Brand Directory (/brands)
 
-- [ ] 3.1 Transform `shop/src/app/brands/page.tsx` into a dynamic directory fetching active brands, displaying logos with initials fallback, and providing interactive search filtering.
-- [ ] 3.2 Add test in `shop/src/app/brands/BrandsDirectory.test.tsx` verifying brand rendering and search filtering. Verify with `cd shop && npx vitest run src/app/brands/BrandsDirectory.test.tsx`.
+- [x] 3.1 Transform `shop/src/app/brands/page.tsx` into a dynamic directory fetching active brands, displaying logos with initials fallback, and providing interactive search filtering.
+- [x] 3.2 Add test in `shop/src/app/brands/BrandsDirectory.test.tsx` verifying brand rendering and search filtering. Verify with `cd shop && npx vitest run src/app/brands/BrandsDirectory.test.tsx`.
 
 ## 4. Storefront Brand Showcase Page (/brands/[slug])
 
