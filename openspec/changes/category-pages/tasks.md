@@ -36,17 +36,17 @@
 
 ## 3. Storefront Category Showcase Page (`/category/[slug]`)
 
-- [ ] 3.1 Migrate `shop/src/app/category/[slug]/page.tsx` to an async Server Component.
+- [x] 3.1 Migrate `shop/src/app/category/[slug]/page.tsx` to an async Server Component.
   - **Files to Touch**: `shop/src/app/category/[slug]/page.tsx`
   - **Instructions**: Receive `{ params, searchParams }`. Fetch category details from `/api/shop/catalog/categories/{slug}` and products from `/api/shop/catalog/products?categorySlug={slug}&...` concurrently. If category is not found, call `notFound()`.
   - **Verification Command**: `(cd shop && npm run build)`
 
-- [ ] 3.2 Wire interactive category filters and subcategory navigation pills.
+- [x] 3.2 Wire interactive category filters and subcategory navigation pills.
   - **Files to Touch**: `shop/src/app/category/[slug]/page.tsx`, `shop/src/app/category/[slug]/CategoryFilterClient.tsx`
   - **Instructions**: Extract interactive filter sidebar, subcategory chips, and sort dropdown into client controls that push query parameter changes to URL search params.
   - **Verification Command**: `(cd shop && npm run build)`
 
-- [ ] 3.3 Update test suite `shop/src/app/category/[slug]/CategoryPage.test.tsx`.
+- [x] 3.3 Update test suite `shop/src/app/category/[slug]/CategoryPage.test.tsx`.
   - **Files to Touch**: `shop/src/app/category/[slug]/CategoryPage.test.tsx`
   - **Instructions**: Assert that category header, breadcrumbs, subcategory pills, and products render correctly, and invalid category calls `notFound()`.
   - **Verification Command**: `(cd shop && npx vitest run src/app/category/[slug]/CategoryPage.test.tsx)`
