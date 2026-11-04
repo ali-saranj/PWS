@@ -90,6 +90,11 @@ export interface CategoryItem {
   sortOrder?: number;
 }
 
+export interface CategoryDetail extends CategoryItem {
+  breadcrumbs: CategoryBreadcrumb[];
+  subcategories: CategoryItem[];
+}
+
 export interface BrandItem {
   id: number;
   nameFa: string;
@@ -244,14 +249,25 @@ export async function fetchCatalogSearch(
 }
 
 export async function fetchCategories(): Promise<CategoryItem[]> {
-  const url = `${API_BASE_URL}/api/shop/catalog/home`;
+  const url = `${API_BASE_URL}/api/shop/catalog/categories`;
   try {
     const res = await fetch(url, { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = await res.json();
-    return data.categories || [];
+    return Array.isArray(data) ? data : [];
   } catch (err) {
     return [];
+  }
+}
+
+export async function fetchCategoryBySlug(slug: string): Promise<CategoryDetail | null> {
+  const url = `${API_BASE_URL}/api/shop/catalog/categories/${encodeURIComponent(slug)}`;
+  try {
+    const res = await fetch(url, { next: { revalidate: 300 } });
+    if (res.status === 404 || !res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    return null;
   }
 }
 

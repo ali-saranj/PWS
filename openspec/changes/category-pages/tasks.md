@@ -24,12 +24,12 @@
 
 ## 2. Storefront All Categories Directory (`/categories`)
 
-- [ ] 2.1 Update `shop/src/app/categories/page.tsx` to fetch dynamic categories.
+- [x] 2.1 Update `shop/src/app/categories/page.tsx` to fetch dynamic categories.
   - **Files to Touch**: `shop/src/app/categories/page.tsx`
   - **Instructions**: Convert page into an async Server Component fetching `/api/shop/catalog/categories`. Group into root categories and their immediate children. Render category cards with Persian typography, Lucide icon lookup, and subcategory links.
   - **Verification Command**: `(cd shop && npm run build)`
 
-- [ ] 2.2 Add unit test for Categories page in `shop/src/app/categories/CategoriesPage.test.tsx`.
+- [x] 2.2 Add unit test for Categories page in `shop/src/app/categories/CategoriesPage.test.tsx`.
   - **Files to Touch**: `shop/src/app/categories/CategoriesPage.test.tsx`
   - **Instructions**: Verify that `CategoriesPage` renders root categories and links to subcategories with mocked fetch response.
   - **Verification Command**: `(cd shop && npx vitest run src/app/categories/CategoriesPage.test.tsx)`

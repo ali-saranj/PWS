@@ -5,7 +5,11 @@ import {
   fetchCatalogSearch,
   fetchBrands,
   fetchBrandBySlug,
+  fetchCategories,
+  fetchCategoryBySlug,
   BrandItem,
+  CategoryItem,
+  CategoryDetail,
 } from './serverCatalog';
 
 describe('serverCatalog API client', () => {
@@ -281,5 +285,60 @@ describe('serverCatalog API client', () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
     const brandError = await fetchBrandBySlug('kalleh');
     expect(brandError).toBeNull();
+  });
+
+  it('fetchCategories calls /api/shop/catalog/categories and returns categories', async () => {
+    const mockCategories: CategoryItem[] = [
+      { id: 1, nameFa: 'سوسیس', nameEn: 'Sausage', slug: 'sausages' },
+      { id: 2, nameFa: 'کالباس', nameEn: 'Cold Cuts', slug: 'cold-cuts', parentId: 1 },
+    ];
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockCategories,
+    } as Response);
+
+    const result = await fetchCategories();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const calledUrl = (global.fetch as any).mock.calls[0][0];
+    expect(calledUrl).toContain('/api/shop/catalog/categories');
+    expect(result).toHaveLength(2);
+    expect(result[0].slug).toBe('sausages');
+  });
+
+  it('fetchCategoryBySlug calls /api/shop/catalog/categories/:slug and returns detail or null', async () => {
+    const mockDetail: CategoryDetail = {
+      id: 2,
+      nameFa: 'کالباس',
+      nameEn: 'Cold Cuts',
+      slug: 'cold-cuts',
+      parentId: 1,
+      breadcrumbs: [
+        { id: 1, nameFa: 'سوسیس', slug: 'sausages' },
+        { id: 2, nameFa: 'کالباس', slug: 'cold-cuts' },
+      ],
+      subcategories: [],
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockDetail,
+    } as Response);
+
+    const detail = await fetchCategoryBySlug('cold-cuts');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const calledUrl = (global.fetch as any).mock.calls[0][0];
+    expect(calledUrl).toContain('/api/shop/catalog/categories/cold-cuts');
+    expect(detail?.breadcrumbs).toHaveLength(2);
+
+    // 404 test
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+    } as Response);
+    const notFound = await fetchCategoryBySlug('invalid');
+    expect(notFound).toBeNull();
   });
 });
