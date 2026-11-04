@@ -69,7 +69,7 @@ public class SecurityConfig {
                                 "/v3/api-docs",
                                 "/v3/api-docs/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/media/**")
+                        .requestMatchers("/media/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/admin/auth/csrf")
                         .permitAll()
