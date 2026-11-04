@@ -18,8 +18,8 @@
 
 ## 4. Storefront Brand Showcase Page (/brands/[slug])
 
-- [ ] 4.1 Implement `shop/src/app/brands/[slug]/page.tsx` featuring breadcrumb navigation, brand identity header (logo, Persian name, English badge), category filters, price filter, in-stock toggle, sort options, and responsive product cards with pagination.
-- [ ] 4.2 Add test in `shop/src/app/brands/[slug]/BrandShowcase.test.tsx` verifying brand showcase rendering, product filtering, and empty state. Verify with `cd shop && npx vitest run src/app/brands/[slug]/BrandShowcase.test.tsx`.
+- [x] 4.1 Implement `shop/src/app/brands/[slug]/page.tsx` featuring breadcrumb navigation, brand identity header (logo, Persian name, English badge), category filters, price filter, in-stock toggle, sort options, and responsive product cards with pagination.
+- [x] 4.2 Add test in `shop/src/app/brands/[slug]/BrandShowcase.test.tsx` verifying brand showcase rendering, product filtering, and empty state. Verify with `cd shop && npx vitest run src/app/brands/[slug]/BrandShowcase.test.tsx`.
 
 ## 5. Verification & Build Integrity
 
