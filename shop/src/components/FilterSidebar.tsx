@@ -263,8 +263,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 values.categoryId !== undefined &&
                 (values.categoryId === catTarget ||
                   String(values.categoryId) === String(catTarget) ||
-                  (cat.id !== undefined && values.categoryId === cat.id) ||
-                  (cat.slug && values.categoryId === cat.slug));
+                  (cat.id !== undefined && String(values.categoryId) === String(cat.id)) ||
+                  (cat.slug && String(values.categoryId) === cat.slug));
 
               return (
                 <li key={catKey}>

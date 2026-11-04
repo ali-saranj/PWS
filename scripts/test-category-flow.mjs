@@ -112,6 +112,44 @@ async function run() {
     });
 
     // -------------------------------------------------------------
+    // Flow 4.5: Category Selection in Filter Sidebar
+    // -------------------------------------------------------------
+    console.log('👉 Step 4.5: Selecting another category in the Filter Sidebar...');
+    await page.goto('http://localhost:3000/category/cold-cuts-deli', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+
+    // Look for category button in sidebar (e.g. "سوسیس و هات‌داگ")
+    const sidebarCatBtn = page.locator('aside button:has-text("سوسیس و هات‌داگ")').first();
+    if (await sidebarCatBtn.isVisible()) {
+      await sidebarCatBtn.click();
+      await page.waitForURL('**/category/sausages-hotdogs');
+      await page.waitForTimeout(1200);
+
+      const newHeading = await page.locator('h1:has-text("سوسیس و هات‌داگ")').isVisible();
+      await page.screenshot({ path: path.join(SCREENSHOT_DIR, '06_filter_sidebar_category_selected.png'), fullPage: false });
+
+      if (newHeading) {
+        report.push({
+          step: '4.5. Category Selection in Filter Sidebar',
+          status: 'PASS',
+          detail: 'Selecting category in filter sidebar successfully updated products and navigated to /category/sausages-hotdogs.',
+        });
+      } else {
+        report.push({
+          step: '4.5. Category Selection in Filter Sidebar',
+          status: 'FAIL',
+          detail: 'Navigated but heading was not updated to "سوسیس و هات‌داگ".',
+        });
+      }
+    } else {
+      report.push({
+        step: '4.5. Category Selection in Filter Sidebar',
+        status: 'FAIL',
+        detail: 'Category button "سوسیس و هات‌داگ" not found in sidebar.',
+      });
+    }
+
+    // -------------------------------------------------------------
     // Flow 5: Non-existent category returns 404
     // -------------------------------------------------------------
     console.log('👉 Step 5: Testing 404 for non-existent category slug...');

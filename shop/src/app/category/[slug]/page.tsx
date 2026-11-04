@@ -5,6 +5,7 @@ import {
   fetchCategoryBySlug,
   fetchCatalogProducts,
   fetchBrands,
+  fetchCategories,
 } from '@/lib/serverCatalog';
 import CategoryShowcaseContent from './CategoryShowcaseContent';
 
@@ -37,9 +38,10 @@ export async function generateMetadata({
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params;
 
-  const [category, brands] = await Promise.all([
+  const [category, brands, categories] = await Promise.all([
     fetchCategoryBySlug(slug),
     fetchBrands(),
+    fetchCategories(),
   ]);
 
   if (!category) {
@@ -57,6 +59,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       category={category}
       initialProducts={initialProducts.content}
       brands={brands}
+      categories={categories}
     />
   );
 }

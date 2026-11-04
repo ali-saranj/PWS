@@ -9,6 +9,7 @@ export interface ProductSummary {
   categoryId: number;
   categoryNameFa: string;
   categoryNameEn?: string;
+  categorySlug?: string;
   thumbnailUrl?: string;
   basePriceRials: number;
   priceToman: number;

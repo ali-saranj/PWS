@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   UtensilsCrossed,
   Flame,
@@ -24,7 +25,7 @@ import { ProductCard, ProductData as CatalogProduct } from '@/components/Product
 import { FilterSidebar, FilterState } from '@/components/FilterSidebar';
 import { SortDropdown, SortOptionKey } from '@/components/SortDropdown';
 import { toPersianDigits } from '@/lib/format';
-import type { CategoryDetail, BrandItem, ProductSummary } from '@/lib/serverCatalog';
+import type { CategoryDetail, CategoryItem, BrandItem, ProductSummary } from '@/lib/serverCatalog';
 import { api } from '@/lib/api';
 
 const categoryIconMap: Record<string, LucideIcon> = {
@@ -53,13 +54,16 @@ interface CategoryShowcaseContentProps {
   category: CategoryDetail;
   initialProducts?: ProductSummary[];
   brands?: BrandItem[];
+  categories?: CategoryItem[];
 }
 
 export default function CategoryShowcaseContent({
   category,
   initialProducts = [],
   brands = [],
+  categories = [],
 }: CategoryShowcaseContentProps) {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductSummary[]>(initialProducts);
   const [sort, setSort] = useState<SortOptionKey>('newest');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -113,6 +117,47 @@ export default function CategoryShowcaseContent({
     return Array.from(set);
   }, [brands, products]);
 
+  const sidebarCategories = useMemo(() => {
+    if (categories && categories.length > 0) {
+      return categories;
+    }
+    if (category.subcategories && category.subcategories.length > 0) {
+      return [category, ...category.subcategories];
+    }
+    return [category];
+  }, [categories, category]);
+
+  const handleFilterChange = (newFilters: FilterState) => {
+    if (newFilters.categoryId !== filters.categoryId) {
+      if (newFilters.categoryId) {
+        const target = sidebarCategories.find(
+          (c) =>
+            c.id === newFilters.categoryId ||
+            String(c.id) === String(newFilters.categoryId) ||
+            c.slug === newFilters.categoryId
+        );
+        if (target && target.slug !== category.slug) {
+          setIsMobileFilterOpen(false);
+          router.push(`/category/${target.slug}`);
+          return;
+        }
+      } else {
+        setIsMobileFilterOpen(false);
+        if (category.parentId) {
+          const parent = sidebarCategories.find((c) => c.id === category.parentId);
+          if (parent) {
+            router.push(`/category/${parent.slug}`);
+            return;
+          }
+        }
+        router.push('/categories');
+        return;
+      }
+    }
+
+    setFilters(newFilters);
+  };
+
   // Filtering and sorting
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products];
@@ -128,6 +173,22 @@ export default function CategoryShowcaseContent({
         (p) =>
           (p.discountPercent && p.discountPercent > 0) ||
           (p.compareAtPriceToman && p.compareAtPriceToman > p.priceToman)
+      );
+    }
+
+    // Filter: Category / Subcategory
+    if (
+      filters.categoryId !== null &&
+      filters.categoryId !== undefined &&
+      filters.categoryId !== category.id &&
+      String(filters.categoryId) !== String(category.id) &&
+      filters.categoryId !== category.slug
+    ) {
+      result = result.filter(
+        (p) =>
+          p.categoryId === filters.categoryId ||
+          String(p.categoryId) === String(filters.categoryId) ||
+          p.categorySlug === String(filters.categoryId)
       );
     }
 
@@ -162,7 +223,7 @@ export default function CategoryShowcaseContent({
     });
 
     return result;
-  }, [products, filters, sort]);
+  }, [products, filters, sort, category.id, category.slug]);
 
   const handleResetFilters = () => {
     setFilters({
@@ -179,6 +240,14 @@ export default function CategoryShowcaseContent({
   const hasActiveFilters =
     filters.inStockOnly ||
     filters.onSaleOnly ||
+    (filters.brands && filters.brands.length > 0) ||
+    (filters.categoryId !== null &&
+      filters.categoryId !== undefined &&
+      filters.categoryId !== category.id &&
+      String(filters.categoryId) !== String(category.id) &&
+      filters.categoryId !== category.slug) ||
+    filters.minPrice !== null ||
+    filters.maxPrice !== null;
     (filters.brands && filters.brands.length > 0) ||
     filters.minPrice !== null ||
     filters.maxPrice !== null;
@@ -280,9 +349,10 @@ export default function CategoryShowcaseContent({
         {/* Desktop Filter Sidebar */}
         <aside className="hidden lg:block w-72 shrink-0 sticky top-24">
           <FilterSidebar
+            categories={sidebarCategories}
             availableBrands={availableBrands}
             values={filters}
-            onChange={setFilters}
+            onChange={handleFilterChange}
             onReset={handleResetFilters}
           />
         </aside>
@@ -363,9 +433,10 @@ export default function CategoryShowcaseContent({
           />
           <div className="relative mr-auto w-full max-w-xs bg-white h-full shadow-2xl p-6 overflow-y-auto z-10 flex flex-col justify-between">
             <FilterSidebar
+              categories={sidebarCategories}
               availableBrands={availableBrands}
               values={filters}
-              onChange={setFilters}
+              onChange={handleFilterChange}
               onReset={handleResetFilters}
             />
             <button

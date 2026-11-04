@@ -6,9 +6,11 @@ import { useCartStore } from '@/lib/cartStore';
 import * as serverCatalog from '@/lib/serverCatalog';
 import * as navigation from 'next/navigation';
 
+const mockPush = vi.fn();
+
 vi.mock('next/navigation', () => ({
   notFound: vi.fn(),
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push: mockPush, replace: vi.fn() }),
   usePathname: () => '/category/sausage-hotdog',
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -17,6 +19,7 @@ vi.mock('@/lib/serverCatalog', () => ({
   fetchCategoryBySlug: vi.fn(),
   fetchCatalogProducts: vi.fn(),
   fetchBrands: vi.fn(),
+  fetchCategories: vi.fn(),
 }));
 
 describe('CategoryPage', () => {
@@ -94,7 +97,7 @@ describe('CategoryPage', () => {
     expect(screen.getByText(/تضمین تازگی و کیفیت درجه یک سبد سبز/i)).toBeInTheDocument();
 
     // Check subcategory pill
-    expect(screen.getByText('هات‌داگ پنیری')).toBeInTheDocument();
+    expect(screen.getAllByText('هات‌داگ پنیری').length).toBeGreaterThan(0);
 
     // Check products
     expect(screen.getByText('سوسیس کوکتل پنیر آندره')).toBeInTheDocument();
@@ -156,5 +159,32 @@ describe('CategoryPage', () => {
     });
 
     expect(navigation.notFound).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates when selecting another category in filter sidebar', async () => {
+    vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue(mockCategory);
+    vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
+    vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([
+      { id: 1, nameFa: 'سوسیس و هات‌داگ', slug: 'sausage-hotdog' },
+      { id: 2, nameFa: 'کالباس و ژامبون', slug: 'cold-cuts-deli' },
+    ]);
+    vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
+      content: mockProducts,
+      totalElements: 2,
+      totalPages: 1,
+      page: 0,
+      size: 48,
+    });
+
+    const jsx = await CategoryPage({
+      params: Promise.resolve({ slug: 'sausage-hotdog' }),
+    });
+    render(jsx!);
+
+    const coldCutsBtn = screen.getByRole('button', { name: /کالباس و ژامبون/i });
+    expect(coldCutsBtn).toBeInTheDocument();
+
+    fireEvent.click(coldCutsBtn);
+    expect(mockPush).toHaveBeenCalledWith('/category/cold-cuts-deli');
   });
 });
