@@ -100,9 +100,72 @@ public class PublicCatalogService {
 
     public record PublicBrandDto(long id, String nameFa, String nameEn, String slug, String logoUrl) {}
 
+    public record PublicCategoryDto(
+            long id,
+            String nameFa,
+            String nameEn,
+            String slug,
+            Long parentId,
+            int sortOrder
+    ) {}
+
+    public record PublicCategoryDetailDto(
+            long id,
+            String nameFa,
+            String nameEn,
+            String slug,
+            Long parentId,
+            int sortOrder,
+            List<CategoryBreadcrumb> breadcrumbs,
+            List<PublicCategoryDto> subcategories
+    ) {}
+
     private PublicBrandDto toPublicBrandDto(Brand b) {
         String logoUrl = b.getLogoPath() == null ? null : mediaBaseUrl + "/" + b.getLogoPath();
         return new PublicBrandDto(b.getId(), b.getNameFa(), b.getNameEn(), b.getSlug(), logoUrl);
+    }
+
+    private PublicCategoryDto toPublicCategoryDto(Category c) {
+        return new PublicCategoryDto(
+                c.getId(),
+                c.getNameFa(),
+                c.getNameEn(),
+                c.getSlug(),
+                c.getParentId(),
+                c.getSortOrder()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublicCategoryDto> listCategories() {
+        return categories.findByActiveTrueOrderBySortOrderAscIdAsc().stream()
+                .map(this::toPublicCategoryDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PublicCategoryDetailDto getCategoryBySlug(String slug) {
+        Category cat = categories.findBySlug(slug)
+                .filter(Category::isActive)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+
+        List<CategoryBreadcrumb> breadcrumbs = buildBreadcrumbs(cat.getId());
+
+        List<PublicCategoryDto> subcategories = categories.findByActiveTrueOrderBySortOrderAscIdAsc().stream()
+                .filter(c -> Objects.equals(c.getParentId(), cat.getId()))
+                .map(this::toPublicCategoryDto)
+                .toList();
+
+        return new PublicCategoryDetailDto(
+                cat.getId(),
+                cat.getNameFa(),
+                cat.getNameEn(),
+                cat.getSlug(),
+                cat.getParentId(),
+                cat.getSortOrder(),
+                breadcrumbs,
+                subcategories
+        );
     }
 
     @Transactional(readOnly = true)

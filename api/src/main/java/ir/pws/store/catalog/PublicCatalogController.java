@@ -1,6 +1,8 @@
 package ir.pws.store.catalog;
 
 import ir.pws.store.catalog.PublicCatalogService.PublicBrandDto;
+import ir.pws.store.catalog.PublicCatalogService.PublicCategoryDetailDto;
+import ir.pws.store.catalog.PublicCatalogService.PublicCategoryDto;
 import ir.pws.store.catalog.dto.HomeCatalogResponse;
 import ir.pws.store.catalog.dto.ProductDetailResponse;
 import ir.pws.store.catalog.dto.ProductSummaryResponse;
@@ -25,6 +27,16 @@ public class PublicCatalogController {
     @GetMapping("/home")
     public HomeCatalogResponse getHome() {
         return service.getHome();
+    }
+
+    @GetMapping("/categories")
+    public List<PublicCategoryDto> listCategories() {
+        return service.listCategories();
+    }
+
+    @GetMapping("/categories/{slug}")
+    public PublicCategoryDetailDto getCategory(@PathVariable String slug) {
+        return service.getCategoryBySlug(slug);
     }
 
     @GetMapping("/brands")

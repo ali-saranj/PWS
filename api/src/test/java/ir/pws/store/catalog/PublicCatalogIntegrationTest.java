@@ -439,4 +439,52 @@ class PublicCatalogIntegrationTest extends IntegrationTest {
         mvc.perform(get("/api/shop/catalog/brands/inactive-slug"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/categories returns active categories sorted by sortOrder and id")
+    void listCategoriesReturnsActiveCategories() throws Exception {
+        mvc.perform(get("/api/shop/catalog/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].slug").value("supplements"))
+                .andExpect(jsonPath("$[0].nameFa").value("مکمل ورزشی"))
+                .andExpect(jsonPath("$[0].parentId").doesNotExist())
+                .andExpect(jsonPath("$[1].slug").value("protein"))
+                .andExpect(jsonPath("$[1].parentId").value(parentCategoryId))
+                .andExpect(jsonPath("$[?(@.slug == 'inactive')]").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/categories/{slug} returns category detail, breadcrumbs, and subcategories")
+    void getCategoryBySlugReturnsDetailsAndHierarchy() throws Exception {
+        // Test parent category (has subcategories)
+        mvc.perform(get("/api/shop/catalog/categories/supplements"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(parentCategoryId))
+                .andExpect(jsonPath("$.slug").value("supplements"))
+                .andExpect(jsonPath("$.nameFa").value("مکمل ورزشی"))
+                .andExpect(jsonPath("$.breadcrumbs").isArray())
+                .andExpect(jsonPath("$.breadcrumbs[0].slug").value("supplements"))
+                .andExpect(jsonPath("$.subcategories").isArray())
+                .andExpect(jsonPath("$.subcategories[0].slug").value("protein"));
+
+        // Test child category (has ancestor breadcrumbs)
+        mvc.perform(get("/api/shop/catalog/categories/protein"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(childCategoryId))
+                .andExpect(jsonPath("$.slug").value("protein"))
+                .andExpect(jsonPath("$.nameFa").value("پروتئین"))
+                .andExpect(jsonPath("$.breadcrumbs").isArray())
+                .andExpect(jsonPath("$.breadcrumbs[0].slug").value("supplements"))
+                .andExpect(jsonPath("$.breadcrumbs[1].slug").value("protein"))
+                .andExpect(jsonPath("$.subcategories").isEmpty());
+
+        // Non-existent slug -> 404
+        mvc.perform(get("/api/shop/catalog/categories/non-existent-category"))
+                .andExpect(status().isNotFound());
+
+        // Inactive slug -> 404
+        mvc.perform(get("/api/shop/catalog/categories/inactive"))
+                .andExpect(status().isNotFound());
+    }
 }
