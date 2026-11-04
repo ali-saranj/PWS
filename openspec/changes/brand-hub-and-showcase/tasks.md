@@ -8,8 +8,8 @@
 
 ## 2. Storefront Catalog Client & Types
 
-- [ ] 2.1 Update `BrandItem` in `shop/src/lib/serverCatalog.ts` with `logoUrl?: string | null` and implement `fetchBrandBySlug(slug: string): Promise<BrandItem | null>`.
-- [ ] 2.2 Add unit tests in `shop/src/lib/serverCatalog.test.ts` for `fetchBrandBySlug` (success and 404 handling) and updated `fetchBrands`. Verify with `cd shop && npx vitest run src/lib/serverCatalog.test.ts`.
+- [x] 2.1 Update `BrandItem` in `shop/src/lib/serverCatalog.ts` with `logoUrl?: string | null` and implement `fetchBrandBySlug(slug: string): Promise<BrandItem | null>`.
+- [x] 2.2 Add unit tests in `shop/src/lib/serverCatalog.test.ts` for `fetchBrandBySlug` (success and 404 handling) and updated `fetchBrands`. Verify with `cd shop && npx vitest run src/lib/serverCatalog.test.ts`.
 
 ## 3. Storefront Dynamic Brand Directory (/brands)
 

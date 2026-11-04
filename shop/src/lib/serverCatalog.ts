@@ -95,6 +95,7 @@ export interface BrandItem {
   nameFa: string;
   nameEn?: string;
   slug: string;
+  logoUrl?: string | null;
 }
 
 const API_BASE_URL =
@@ -269,5 +270,16 @@ export async function fetchBrands(): Promise<BrandItem[]> {
     return [];
   } catch (err) {
     return [];
+  }
+}
+
+export async function fetchBrandBySlug(slug: string): Promise<BrandItem | null> {
+  const url = `${API_BASE_URL}/api/shop/catalog/brands/${encodeURIComponent(slug)}`;
+  try {
+    const res = await fetch(url, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    return null;
   }
 }

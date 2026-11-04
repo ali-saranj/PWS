@@ -4,6 +4,7 @@ import {
   fetchProductBySlug,
   fetchCatalogSearch,
   fetchBrands,
+  fetchBrandBySlug,
   BrandItem,
 } from './serverCatalog';
 
@@ -243,5 +244,42 @@ describe('serverCatalog API client', () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
     const brands = await fetchBrands();
     expect(brands).toEqual([]);
+  });
+
+  it('fetchBrandBySlug fetches single brand from /api/shop/catalog/brands/:slug', async () => {
+    const mockBrand: BrandItem = {
+      id: 1,
+      nameFa: 'کاله',
+      nameEn: 'Kalleh',
+      slug: 'kalleh',
+      logoUrl: '/media/brands/kalleh.webp',
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockBrand,
+    } as Response);
+
+    const brand = await fetchBrandBySlug('kalleh');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const calledUrl = (global.fetch as any).mock.calls[0][0];
+    expect(calledUrl).toContain('/api/shop/catalog/brands/kalleh');
+    expect(brand).toEqual(mockBrand);
+    expect(brand?.logoUrl).toBe('/media/brands/kalleh.webp');
+  });
+
+  it('fetchBrandBySlug returns null on 404 or failure', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+    } as Response);
+
+    const brand = await fetchBrandBySlug('non-existent');
+    expect(brand).toBeNull();
+
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+    const brandError = await fetchBrandBySlug('kalleh');
+    expect(brandError).toBeNull();
   });
 });
