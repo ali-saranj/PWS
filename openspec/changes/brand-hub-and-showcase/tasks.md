@@ -23,8 +23,8 @@
 
 ## 5. Verification & Build Integrity
 
-- [ ] 5.1 Run API test suite: `cd api && ./mvnw -q test -Dtest=PublicCatalogIntegrationTest,ProductApiTest`.
-- [ ] 5.2 Run Shop test suite and typecheck: `cd shop && npm test && npm run build`.
+- [x] 5.1 Run API test suite: `cd api && ./mvnw -q test -Dtest=PublicCatalogIntegrationTest,ProductApiTest`.
+- [x] 5.2 Run Shop test suite and typecheck: `cd shop && npm test && npm run build`.
 
 ## Workflow follow-up
 
