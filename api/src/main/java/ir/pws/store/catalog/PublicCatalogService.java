@@ -24,6 +24,7 @@ import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.text.Digits;
 import ir.pws.store.common.web.PageResponse;
+import ir.pws.store.config.AppProperties;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -57,6 +58,7 @@ public class PublicCatalogService {
     private final VariantRepository variants;
     private final VolumeTierRepository volumeTiers;
     private final ProductImageService imageService;
+    private final String mediaBaseUrl;
 
     public PublicCatalogService(
             ProductRepository products,
@@ -64,13 +66,15 @@ public class PublicCatalogService {
             CategoryRepository categories,
             VariantRepository variants,
             VolumeTierRepository volumeTiers,
-            ProductImageService imageService) {
+            ProductImageService imageService,
+            AppProperties props) {
         this.products = products;
         this.brands = brands;
         this.categories = categories;
         this.variants = variants;
         this.volumeTiers = volumeTiers;
         this.imageService = imageService;
+        this.mediaBaseUrl = props.media() == null ? "/media" : props.media().baseUrl();
     }
 
     @Transactional(readOnly = true)
@@ -94,13 +98,26 @@ public class PublicCatalogService {
         return new HomeCatalogResponse(catDtos, specialOffers, popularProducts);
     }
 
-    public record PublicBrandDto(long id, String nameFa, String nameEn, String slug) {}
+    public record PublicBrandDto(long id, String nameFa, String nameEn, String slug, String logoUrl) {}
+
+    private PublicBrandDto toPublicBrandDto(Brand b) {
+        String logoUrl = b.getLogoPath() == null ? null : mediaBaseUrl + "/" + b.getLogoPath();
+        return new PublicBrandDto(b.getId(), b.getNameFa(), b.getNameEn(), b.getSlug(), logoUrl);
+    }
 
     @Transactional(readOnly = true)
     public List<PublicBrandDto> listBrands() {
         return brands.findByActiveTrueOrderByNameFaAsc().stream()
-                .map(b -> new PublicBrandDto(b.getId(), b.getNameFa(), b.getNameEn(), b.getSlug()))
+                .map(this::toPublicBrandDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PublicBrandDto getBrandBySlug(String slug) {
+        Brand b = brands.findBySlug(slug)
+                .filter(Brand::isActive)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        return toPublicBrandDto(b);
     }
 
     @Transactional(readOnly = true)

@@ -32,6 +32,11 @@ public class PublicCatalogController {
         return service.listBrands();
     }
 
+    @GetMapping("/brands/{slug}")
+    public PublicBrandDto getBrand(@PathVariable String slug) {
+        return service.getBrandBySlug(slug);
+    }
+
     @GetMapping("/products")
     public PageResponse<ProductSummaryResponse> list(
             @RequestParam(required = false) Long categoryId,

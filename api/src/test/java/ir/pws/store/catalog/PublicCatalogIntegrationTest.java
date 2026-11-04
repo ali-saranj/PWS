@@ -401,4 +401,42 @@ class PublicCatalogIntegrationTest extends IntegrationTest {
                 .andExpect(jsonPath("$.items[?(@.slug == 'p-kalleh')]").exists())
                 .andExpect(jsonPath("$.items[?(@.slug == 'p-mihan')]").exists());
     }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/brands includes logoUrl and excludes inactive brands")
+    void listBrandsIncludesLogoUrl() throws Exception {
+        jdbc.update("update brand set logo_path = 'brands/kalleh.webp' where id = ?", brandId);
+        long inactiveBrandId = jdbc.queryForObject(
+                "insert into brand (name_fa, name_en, slug, active) values ('غیرفعال', 'Inactive', 'inactive-brand', false) returning id",
+                Long.class);
+
+        mvc.perform(get("/api/shop/catalog/brands"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.slug == 'kalleh')].logoUrl").value("/media/brands/kalleh.webp"))
+                .andExpect(jsonPath("$[?(@.slug == 'inactive-brand')]").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/brands/{slug} returns brand detail or 404")
+    void getBrandBySlugReturnsBrandDetailOr404() throws Exception {
+        jdbc.update("update brand set logo_path = 'brands/kalleh.webp' where id = ?", brandId);
+
+        // Success case
+        mvc.perform(get("/api/shop/catalog/brands/kalleh"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(brandId))
+                .andExpect(jsonPath("$.slug").value("kalleh"))
+                .andExpect(jsonPath("$.nameFa").value("کاله"))
+                .andExpect(jsonPath("$.nameEn").value("Kalleh"))
+                .andExpect(jsonPath("$.logoUrl").value("/media/brands/kalleh.webp"));
+
+        // Non-existent slug -> 404
+        mvc.perform(get("/api/shop/catalog/brands/non-existent-brand"))
+                .andExpect(status().isNotFound());
+
+        // Inactive slug -> 404
+        jdbc.execute("insert into brand (name_fa, name_en, slug, active) values ('غیرفعال', 'Inactive', 'inactive-slug', false)");
+        mvc.perform(get("/api/shop/catalog/brands/inactive-slug"))
+                .andExpect(status().isNotFound());
+    }
 }
