@@ -53,11 +53,11 @@
 
 ## 4. Full Monorepo Verification
 
-- [ ] 4.1 Run full API test suite for public catalog.
+- [x] 4.1 Run full API test suite for public catalog.
   - **Verification Command**: `(cd api && ./mvnw -q test -Dtest=PublicCatalogIntegrationTest)`
 
-- [ ] 4.2 Run full Shop Vitest suite.
+- [x] 4.2 Run full Shop Vitest suite.
   - **Verification Command**: `(cd shop && npm test)`
 
-- [ ] 4.3 Verify full Shop production build and type checking.
+- [x] 4.3 Verify full Shop production build and type checking.
   - **Verification Command**: `(cd shop && npm run build)`
