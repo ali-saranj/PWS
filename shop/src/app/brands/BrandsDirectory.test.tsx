@@ -40,14 +40,14 @@ describe('BrandsDirectory Component', () => {
     expect(screen.getByText('202')).toBeInTheDocument();
   });
 
-  it('renders links to /brands/[slug] for each brand', () => {
+  it('renders links to /products?brandId=[id] for each brand', () => {
     render(<BrandsDirectory initialBrands={mockBrands} />);
 
     const kallehLink = screen.getByRole('link', { name: /کاله/i });
-    expect(kallehLink).toHaveAttribute('href', '/brands/kalleh');
+    expect(kallehLink).toHaveAttribute('href', '/products?brandId=1');
 
     const andreLink = screen.getByRole('link', { name: /آندره/i });
-    expect(andreLink).toHaveAttribute('href', '/brands/andre');
+    expect(andreLink).toHaveAttribute('href', '/products?brandId=2');
   });
 
   it('renders logo image when logoUrl is present and monogram badge when null', () => {

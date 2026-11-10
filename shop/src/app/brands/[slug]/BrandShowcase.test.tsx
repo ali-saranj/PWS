@@ -8,11 +8,13 @@ import type { BrandItem } from '@/lib/serverCatalog';
 import type { ProductData as CatalogProduct } from '@/components/ProductCard';
 
 const mockNotFound = vi.fn();
+const mockPermanentRedirect = vi.fn();
 vi.mock('next/navigation', async () => {
   const actual = await vi.importActual<any>('next/navigation');
   return {
     ...actual,
     notFound: () => mockNotFound(),
+    permanentRedirect: (url: string) => mockPermanentRedirect(url),
     useRouter: () => ({
       push: vi.fn(),
       replace: vi.fn(),
@@ -162,23 +164,15 @@ describe('BrandShowcaseContent Component', () => {
       expect(mockNotFound).toHaveBeenCalled();
     });
 
-    it('BrandPage renders BrandShowcaseContent when brand is found', async () => {
+    it('BrandPage redirects with HTTP 308 to /products?brandSlug={slug} when brand is found', async () => {
       vi.spyOn(serverCatalog, 'fetchBrandBySlug').mockResolvedValue(mockBrand);
-      vi.spyOn(serverCatalog, 'fetchCategories').mockResolvedValue([]);
-      vi.spyOn(serverCatalog, 'fetchCatalogProducts').mockResolvedValue({
-        content: mockProducts,
-        totalElements: 2,
-        totalPages: 1,
-        page: 0,
-        size: 48,
-      });
 
-      const element = await BrandPage({
+      await BrandPage({
         params: Promise.resolve({ slug: 'kalleh' }),
       });
 
-      render(element);
-      expect(screen.getByText('پنیر موزارلا کاله')).toBeInTheDocument();
+      expect(serverCatalog.fetchBrandBySlug).toHaveBeenCalledWith('kalleh');
+      expect(mockPermanentRedirect).toHaveBeenCalledWith('/products?brandSlug=kalleh');
     });
   });
 });

@@ -1,12 +1,6 @@
-import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { fetchBrandBySlug } from '@/lib/serverCatalog';
 import type { Metadata } from 'next';
-import {
-  fetchBrandBySlug,
-  fetchCatalogProducts,
-  fetchCategories,
-} from '@/lib/serverCatalog';
-import BrandShowcaseContent from './BrandShowcaseContent';
 
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
@@ -36,26 +30,12 @@ export async function generateMetadata({
 
 export default async function BrandPage({ params }: BrandPageProps) {
   const { slug } = await params;
-  const [brand, categories] = await Promise.all([
-    fetchBrandBySlug(slug),
-    fetchCategories(),
-  ]);
+  const brand = await fetchBrandBySlug(slug);
 
   if (!brand) {
     notFound();
     return null;
   }
 
-  const initialProducts = await fetchCatalogProducts({
-    brandSlug: brand.slug,
-    size: 48,
-  });
-
-  return (
-    <BrandShowcaseContent
-      brand={brand}
-      initialProducts={initialProducts.content as any}
-      categories={categories}
-    />
-  );
+  permanentRedirect(`/products?brandSlug=${encodeURIComponent(brand.slug)}`);
 }

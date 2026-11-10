@@ -1,15 +1,16 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import CategoryPage from './page';
-import { useCartStore } from '@/lib/cartStore';
 import * as serverCatalog from '@/lib/serverCatalog';
 import * as navigation from 'next/navigation';
 
 const mockPush = vi.fn();
+const mockPermanentRedirect = vi.fn();
+const mockNotFound = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  notFound: vi.fn(),
+  notFound: () => mockNotFound(),
+  permanentRedirect: (url: string) => mockPermanentRedirect(url),
   useRouter: () => ({ push: mockPush, replace: vi.fn() }),
   usePathname: () => '/category/sausage-hotdog',
   useSearchParams: () => new URLSearchParams(),
@@ -22,7 +23,7 @@ vi.mock('@/lib/serverCatalog', () => ({
   fetchCategories: vi.fn(),
 }));
 
-describe('CategoryPage', () => {
+describe('CategoryPage Redirect', () => {
   const mockCategory: serverCatalog.CategoryDetail = {
     id: 1,
     nameFa: 'سوسیس و هات‌داگ',
@@ -36,155 +37,32 @@ describe('CategoryPage', () => {
     ],
   };
 
-  const mockProducts: serverCatalog.ProductSummary[] = [
-    {
-      id: 101,
-      slug: 'andre-cocktail-cheese-sausage',
-      nameFa: 'سوسیس کوکتل پنیر آندره',
-      brandId: 1,
-      brandNameFa: 'آندره',
-      categoryId: 1,
-      categoryNameFa: 'سوسیس و هات‌داگ',
-      priceToman: 210000,
-      basePriceRials: 2100000,
-      inStock: true,
-      totalStock: 25,
-      badges: [],
-    },
-    {
-      id: 102,
-      slug: 'frankfurter-sausage-202',
-      nameFa: 'سوسیس فرانکفورتر ۲۰۲',
-      brandId: 2,
-      brandNameFa: '۲۰۲',
-      categoryId: 1,
-      categoryNameFa: 'سوسیس و هات‌داگ',
-      priceToman: 180000,
-      basePriceRials: 1800000,
-      inStock: true,
-      totalStock: 30,
-      badges: [],
-    },
-  ];
-
   beforeEach(() => {
-    useCartStore.setState({
-      items: [],
-      isOpen: false,
-    });
     vi.restoreAllMocks();
+    mockPermanentRedirect.mockClear();
+    mockNotFound.mockClear();
   });
 
-  it('renders category header with title, subcategories and products', async () => {
+  it('redirects with HTTP 308 to /products?categorySlug={slug} when category exists', async () => {
     vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue(mockCategory);
-    vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
-    vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
-      content: mockProducts,
-      totalElements: 2,
-      totalPages: 1,
-      page: 0,
-      size: 48,
-    });
 
-    const jsx = await CategoryPage({
+    await CategoryPage({
       params: Promise.resolve({ slug: 'sausage-hotdog' }),
     });
-    render(jsx!);
 
-    expect(
-      screen.getByRole('heading', { name: /سوسیس و هات‌داگ/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText(/تضمین تازگی و کیفیت درجه یک سبد سبز/i)).toBeInTheDocument();
-
-    // Check subcategory pill
-    expect(screen.getAllByText('هات‌داگ پنیری').length).toBeGreaterThan(0);
-
-    // Check products
-    expect(screen.getByText('سوسیس کوکتل پنیر آندره')).toBeInTheDocument();
-    expect(screen.getByText('سوسیس فرانکفورتر ۲۰۲')).toBeInTheDocument();
-  });
-
-  it('allows sorting products on category page', async () => {
-    vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue(mockCategory);
-    vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
-    vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
-      content: mockProducts,
-      totalElements: 2,
-      totalPages: 1,
-      page: 0,
-      size: 48,
-    });
-
-    const jsx = await CategoryPage({
-      params: Promise.resolve({ slug: 'sausage-hotdog' }),
-    });
-    render(jsx!);
-
-    const sortSelect = screen.getByRole('combobox', { name: /مرتب‌سازی/i });
-    expect(sortSelect).toBeInTheDocument();
-
-    fireEvent.change(sortSelect, { target: { value: 'price_desc' } });
-    expect(sortSelect).toHaveValue('price_desc');
-  });
-
-  it('adds category product to cart', async () => {
-    vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue(mockCategory);
-    vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
-    vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
-      content: mockProducts,
-      totalElements: 2,
-      totalPages: 1,
-      page: 0,
-      size: 48,
-    });
-
-    const jsx = await CategoryPage({
-      params: Promise.resolve({ slug: 'sausage-hotdog' }),
-    });
-    render(jsx!);
-
-    const addButtons = screen.getAllByRole('button', { name: /افزودن به سبد/i });
-    expect(addButtons.length).toBeGreaterThan(0);
-
-    fireEvent.click(addButtons[0]);
-    expect(useCartStore.getState().getTotalItems()).toBeGreaterThan(0);
+    expect(serverCatalog.fetchCategoryBySlug).toHaveBeenCalledWith('sausage-hotdog');
+    expect(mockPermanentRedirect).toHaveBeenCalledWith('/products?categorySlug=sausage-hotdog');
   });
 
   it('calls notFound when category does not exist', async () => {
     vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue(null);
-    vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
 
     await CategoryPage({
       params: Promise.resolve({ slug: 'non-existent' }),
     });
 
-    expect(navigation.notFound).toHaveBeenCalledTimes(1);
-  });
-
-  it('navigates when selecting another category in filter sidebar', async () => {
-    vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue(mockCategory);
-    vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
-    vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([
-      { id: 1, nameFa: 'سوسیس و هات‌داگ', slug: 'sausage-hotdog' },
-      { id: 2, nameFa: 'کالباس و ژامبون', slug: 'cold-cuts-deli' },
-    ]);
-    vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
-      content: mockProducts,
-      totalElements: 2,
-      totalPages: 1,
-      page: 0,
-      size: 48,
-    });
-
-    const jsx = await CategoryPage({
-      params: Promise.resolve({ slug: 'sausage-hotdog' }),
-    });
-    render(jsx!);
-
-    const coldCutsBtn = screen.getByRole('button', { name: /کالباس و ژامبون/i });
-    expect(coldCutsBtn).toBeInTheDocument();
-
-    fireEvent.click(coldCutsBtn);
-    expect(mockPush).toHaveBeenCalledWith('/category/cold-cuts-deli');
+    expect(serverCatalog.fetchCategoryBySlug).toHaveBeenCalledWith('non-existent');
+    expect(mockNotFound).toHaveBeenCalledTimes(1);
+    expect(mockPermanentRedirect).not.toHaveBeenCalled();
   });
 });

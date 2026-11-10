@@ -147,7 +147,7 @@ export default async function CategoriesPage() {
                         {root.children.map((child) => (
                           <Link
                             key={child.id}
-                            href={`/category/${child.slug}`}
+                            href={`/products?categoryId=${child.id}`}
                             className="text-xs px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-primary/10 hover:text-primary text-gray-700 transition-colors border border-gray-100"
                           >
                             {child.nameFa}
@@ -159,7 +159,7 @@ export default async function CategoriesPage() {
                 </div>
 
                 <Link
-                  href={`/category/${root.slug}`}
+                  href={`/products?categoryId=${root.id}`}
                   className="mt-2 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-primary/10 text-gray-700 hover:text-primary transition-colors text-xs font-semibold"
                 >
                   <span>مشاهده همه محصولات {root.nameFa}</span>

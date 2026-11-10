@@ -134,7 +134,7 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
           <span>دسته‌بندی‌های محبوب</span>
         </h2>
         <Link
-          href="/category/all"
+          href="/products"
           className="text-xs sm:text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
         >
           مشاهده تمام دسته‌ها
@@ -150,10 +150,15 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
             DEFAULT_CATEGORIES[idx % DEFAULT_CATEGORIES.length].color ||
             'bg-emerald-50 text-emerald-600 border-emerald-200/60 group-hover:bg-emerald-500 group-hover:text-white';
 
+          const targetHref =
+            cat.id !== undefined && cat.id !== null
+              ? `/products?categoryId=${cat.id}`
+              : `/products?categorySlug=${cat.slug}`;
+
           return (
             <Link
               key={cat.slug || cat.id || idx}
-              href={`/category/${cat.slug}`}
+              href={targetHref}
               className="group flex flex-col items-center text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl p-2 transition-transform active:scale-95"
             >
               <div

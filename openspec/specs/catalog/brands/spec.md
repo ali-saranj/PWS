@@ -28,26 +28,26 @@ The public catalog API MUST provide an endpoint to retrieve a single active bran
 - **THEN** the system returns HTTP 404 with RFC 7807 problem details and error code `BRAND_NOT_FOUND`.
 
 ### Requirement: Dynamic Brand Directory Page
-The storefront MUST render a responsive brand directory page at `/brands` displaying all active brands with logos, names, and search filtering.
+The storefront MUST render a responsive brand directory page at `/brands` displaying all active brands with logos, names, and search filtering, linking directly to the filtered products screen.
 
 #### Scenario: Directory displays active brands
 - **WHEN** a user navigates to `/brands`
-- **THEN** all active partner brands are displayed in a responsive grid featuring brand logo images (with monogram fallback), Persian names, English names, and links to each brand's showcase page (`/brands/{slug}`).
+- **THEN** all active partner brands are displayed in a responsive grid featuring brand logo images (with monogram fallback), Persian names, English names, and links directly targeting the dedicated Products screen at `/products?brandId={id}`.
 
 #### Scenario: Real-time search filtering in directory
 - **WHEN** a user enters text in the brand directory search input
 - **THEN** the brand grid instantly filters to only show brands whose Persian or English name matches the search term.
 
 ### Requirement: Dedicated Brand Showcase Page
-The storefront MUST render a dedicated brand page at `/brands/[slug]` featuring brand branding and a brand-filtered product catalog.
+The storefront MUST direct brand navigation directly to the dedicated Products catalog screen at `/products` with the clicked brand filter pre-applied, and MUST redirect legacy brand routes.
 
 #### Scenario: Brand showcase header and products rendered
-- **WHEN** a user navigates to `/brands/{slug}` for an existing brand
-- **THEN** the page displays breadcrumbs (`صفحه اصلی / برندها / [نام برند]`), brand header (logo, Persian name, English badge), and a grid of products belonging to that brand.
+- **WHEN** a user navigates to `/products?brandId={id}` (or `brandSlug={slug}`)
+- **THEN** the Products screen opens directly with the specified brand pre-selected in the filter sidebar and displays only products belonging to that brand.
 
 #### Scenario: Interactive filtering and sorting on brand page
-- **WHEN** a user selects category filters, toggles in-stock products, or changes sort order on `/brands/{slug}`
-- **THEN** the product listing updates to reflect only products from that brand matching the active filter criteria.
+- **WHEN** a user navigates to `/brands/{slug}` for an existing brand
+- **THEN** the storefront issues an HTTP 308 redirect to `/products?brandSlug={slug}` (or `/products?brandId={id}`).
 
 #### Scenario: Non-existent brand navigation
 - **WHEN** a user navigates to `/brands/{slug}` for an invalid or non-existent brand slug

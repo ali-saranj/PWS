@@ -14,7 +14,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   headline = 'تازه، سالم، باکیفیت / تأمین روزانه مواد غذایی با بهترین قیمت',
   subtitle = 'میوه و سبزیجات تازه، لبنیات، پروتئین، نان و...',
   ctaText = 'خرید محصولات',
-  ctaHref = '/category/all',
+  ctaHref = '/products',
   discountPillText = 'تخفیف‌های ویژه تا ۵۰٪',
 }) => {
   return (

@@ -278,7 +278,7 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
           </Link>
           <ChevronLeft className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
           <Link
-            href={`/category/${product.categorySlug}`}
+            href={`/products?categoryId=${product.categoryId}`}
             className="hover:text-emerald-600 transition-colors"
           >
             {product.categoryNameFa}
@@ -669,7 +669,7 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
                 </p>
               </div>
               <Link
-                href={`/category/${product.categorySlug}`}
+                href={`/products?categoryId=${product.categoryId}`}
                 className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700"
               >
                 <span>مشاهده همه</span>

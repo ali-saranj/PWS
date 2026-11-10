@@ -28,22 +28,22 @@ The public catalog API MUST provide an endpoint to retrieve a single active cate
 - **THEN** the system returns HTTP 404 with RFC 7807 problem details and error code `NOT_FOUND`.
 
 ### Requirement: Dynamic Categories Directory Page
-The storefront MUST render a responsive catalog directory page at `/categories` displaying all active categories grouped by parent-child hierarchy.
+The storefront MUST render a responsive catalog directory page at `/categories` displaying all active categories grouped by parent-child hierarchy, linking directly to the filtered products screen.
 
 #### Scenario: Directory displays active categories and subcategories
 - **WHEN** a user navigates to `/categories`
-- **THEN** all root categories and their immediate subcategories are rendered in responsive cards with navigation links to `/category/{slug}`.
+- **THEN** all root categories and their immediate subcategories are rendered in responsive cards with navigation links targeting the dedicated Products screen at `/products?categoryId={id}`.
 
 ### Requirement: Category Products Showcase Page with Filtering
-The storefront MUST render a dedicated category page at `/category/[slug]` with category breadcrumbs, subcategory pills, and a filtered product grid driven by URL search parameters.
+The storefront MUST direct category navigation directly to the dedicated Products catalog screen at `/products` with the clicked category filter pre-applied, and MUST redirect legacy category routes.
 
 #### Scenario: Category header and products rendered
-- **WHEN** a user navigates to `/category/{slug}` for an existing category
-- **THEN** the page displays the category Persian name, breadcrumbs, subcategory navigation chips, and a grid of products belonging to that category or its descendants.
+- **WHEN** a user navigates to `/products?categoryId={id}` (or `categorySlug={slug}`)
+- **THEN** the Products screen opens directly with the specified category pre-selected in the filter sidebar and displays only products belonging to that category or its descendants.
 
 #### Scenario: URL search parameter filtering and sorting
-- **WHEN** a user selects a brand, price range, stock toggle, or sort option on `/category/{slug}`
-- **THEN** the URL updates its query parameters and the product grid reflects the filtered results.
+- **WHEN** a user navigates to `/category/{slug}` for an existing category
+- **THEN** the storefront issues an HTTP 308 redirect to `/products?categorySlug={slug}` (or `/products?categoryId={id}`).
 
 #### Scenario: Invalid category slug renders 404
 - **WHEN** a user navigates to `/category/{slug}` with an unknown or inactive category slug

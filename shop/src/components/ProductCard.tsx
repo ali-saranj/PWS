@@ -46,6 +46,7 @@ export const ProductCard: React.FC<ProductCardProps> = (props) => {
     slug = '',
     nameFa = '',
     brandNameFa,
+    brandId,
     thumbnailUrl,
     priceToman = 0,
     compareAtPriceToman,
@@ -158,7 +159,17 @@ export const ProductCard: React.FC<ProductCardProps> = (props) => {
           {/* Brand & Portion */}
           <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
             {brandNameFa ? (
-              <span className="font-medium text-gray-500">{brandNameFa}</span>
+              brandId ? (
+                <Link
+                  href={`/products?brandId=${brandId}`}
+                  className="font-medium text-gray-500 hover:text-primary transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {brandNameFa}
+                </Link>
+              ) : (
+                <span className="font-medium text-gray-500">{brandNameFa}</span>
+              )
             ) : (
               <span />
             )}

@@ -173,4 +173,34 @@ describe('ProductsPage Server Component', () => {
       })
     );
   });
+
+  it('resolves brandSlug and categorySlug to IDs so FilterSidebar displays them as active', async () => {
+    vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 24,
+    });
+    vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([
+      { id: 2, nameFa: 'ژامبون و بیکن', slug: 'ham-bacon' },
+    ]);
+    vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([
+      { id: 10, nameFa: 'آندره', slug: 'andre' },
+    ]);
+
+    const searchParamsPromise = Promise.resolve({
+      brandSlug: 'andre',
+      categorySlug: 'ham-bacon',
+    });
+
+    const jsx = await ProductsPage({ searchParams: searchParamsPromise });
+    render(jsx);
+
+    const brandCheckbox = screen.getByRole('checkbox', { name: 'آندره' }) as HTMLInputElement;
+    expect(brandCheckbox.checked).toBe(true);
+
+    const categoryButton = screen.getByRole('button', { name: /ژامبون و بیکن/i });
+    expect(categoryButton.className).toContain('bg-primary');
+  });
 });

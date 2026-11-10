@@ -22,10 +22,12 @@ describe('HomePage', () => {
       screen.getByText(/میوه و سبزیجات تازه، لبنیات، پروتئین، نان و.../)
     ).toBeInTheDocument();
     expect(screen.getByText(/تخفیف‌های ویژه تا ۵۰٪/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /خرید محصولات/i })).toBeInTheDocument();
+    const ctaLink = screen.getByRole('link', { name: /خرید محصولات/i });
+    expect(ctaLink).toBeInTheDocument();
+    expect(ctaLink).toHaveAttribute('href', '/products');
   });
 
-  it('renders all category circles with proper labels', () => {
+  it('renders all category circles with proper labels and links to /products', () => {
     render(<HomePage />);
     const expectedCategories = [
       'سوسیس و هات‌داگ',
@@ -41,13 +43,22 @@ describe('HomePage', () => {
     expectedCategories.forEach((cat) => {
       expect(screen.getByText(cat)).toBeInTheDocument();
     });
+
+    const allCategoriesLink = screen.getByRole('link', { name: /مشاهده تمام دسته‌ها/i });
+    expect(allCategoriesLink).toHaveAttribute('href', '/products');
+
+    const sausageCircleLink = screen.getByRole('link', { name: /سوسیس و هات‌داگ/i });
+    expect(sausageCircleLink).toHaveAttribute('href', '/products?categoryId=1');
   });
 
-  it('renders promotional tiles with titles and discount badges', () => {
+  it('renders promotional tiles with titles, discount badges, and links to /products', () => {
     render(<HomePage />);
     expect(screen.getByText(/فروش ویژه سوسیس و ژامبون/)).toBeInTheDocument();
     expect(screen.getByText(/لبنیات تازه با تضمین کیفیت/)).toBeInTheDocument();
     expect(screen.getByText(/تنقلات و چیپس/)).toBeInTheDocument();
+
+    const promoLinks = screen.getAllByRole('link', { name: /(مشاهده و خرید|مشاهده محصولات|خرید تنقلات)/i });
+    expect(promoLinks[0]).toHaveAttribute('href', '/products?categorySlug=sausage-hotdog');
   });
 
   it('renders special offers carousel section with header and products', () => {

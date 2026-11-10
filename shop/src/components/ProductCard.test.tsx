@@ -33,6 +33,14 @@ describe('ProductCard Component', () => {
     expect(screen.getByText('۲۰')).toBeDefined();
   });
 
+  it('renders brand as link to /products?brandId={id} when brandId is provided', () => {
+    render(<ProductCard product={{ ...sampleProduct, brandId: 5 } as any} />);
+
+    const brandLink = screen.getByRole('link', { name: 'آندره' });
+    expect(brandLink).toBeDefined();
+    expect(brandLink).toHaveAttribute('href', '/products?brandId=5');
+  });
+
   it('shows out of stock badge when inStock is false', () => {
     render(<ProductCard product={{ ...sampleProduct, inStock: false } as any} />);
 

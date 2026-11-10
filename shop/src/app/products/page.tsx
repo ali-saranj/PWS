@@ -82,6 +82,20 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     fetchBrands(),
   ]);
 
+  if (brandId === undefined && brandSlug && brands) {
+    const matched = brands.find((b) => b.slug === brandSlug);
+    if (matched) {
+      brandId = matched.id;
+    }
+  }
+
+  if (categoryId === undefined && categorySlug && categories) {
+    const matched = categories.find((c) => c.slug === categorySlug);
+    if (matched) {
+      categoryId = matched.id;
+    }
+  }
+
   const initialFilters: FilterState = {
     categoryId: categoryId ?? categorySlug ?? null,
     brandId: brandId ?? null,

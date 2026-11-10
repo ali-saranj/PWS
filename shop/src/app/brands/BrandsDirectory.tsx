@@ -61,7 +61,7 @@ export default function BrandsDirectory({ initialBrands }: BrandsDirectoryProps)
             return (
               <Link
                 key={b.id || b.slug}
-                href={`/brands/${b.slug}`}
+                href={`/products?brandId=${b.id}`}
                 className="group bg-white rounded-3xl p-5 sm:p-6 border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/30 transition-all flex flex-col items-center text-center justify-between"
               >
                 <div className="w-full flex flex-col items-center">
