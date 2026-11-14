@@ -28,4 +28,14 @@ describe('Footer component', () => {
       screen.getByText(/کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین پروتئین ایرانی می‌باشد/)
     ).toBeInTheDocument();
   });
+
+  it('renders enamad trust seal badge', () => {
+    render(<Footer />);
+    const link = screen.getByRole('link', { name: /نماد اعتماد الکترونیکی/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute(
+      'href',
+      'https://trustseal.enamad.ir/?id=8617111&Code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt'
+    );
+  });
 });

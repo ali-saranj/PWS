@@ -220,11 +220,32 @@ export const Footer: React.FC = () => {
         </div>
       </div>
 
-      {/* Copyright */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-800 text-center text-xs text-gray-500">
-        <p>
+      {/* Copyright & Trust Seal */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <p className="text-xs text-gray-500 text-center sm:text-right">
           کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین {BRAND.nameFa} می‌باشد. © ۲۰۲۶
         </p>
+
+        {/* Certificates & Enamad */}
+        <div className="flex items-center gap-4">
+          <a
+            referrerPolicy="origin"
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://trustseal.enamad.ir/?id=8617111&Code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
+            className="inline-flex items-center justify-center p-2.5 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-gray-100 group"
+            title="نماد اعتماد الکترونیکی سبد سبز (پروتئین ایرانی)"
+            aria-label="نماد اعتماد الکترونیکی"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              referrerPolicy="origin"
+              src="https://trustseal.enamad.ir/logo.aspx?id=8617111&Code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
+              alt="نماد اعتماد الکترونیکی"
+              className="w-16 h-16 sm:w-20 sm:h-20 object-contain cursor-pointer"
+            />
+          </a>
+        </div>
       </div>
     </footer>
   );
