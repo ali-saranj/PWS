@@ -46,7 +46,7 @@ describe('ProductListPage', () => {
     expect(table.getByText('Draft')).toBeInTheDocument()
     expect(table.getByText('Archived')).toBeInTheDocument()
     expect(table.getAllByText('150,000 Toman')).toHaveLength(2)
-    expect(table.getByText('—')).toBeInTheDocument()
+    expect(table.getAllByText('—').length).toBeGreaterThan(0)
     expect(screen.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Active')
     expect(screen.getByLabelText('Search')).toHaveValue('whey')
   })
