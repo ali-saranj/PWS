@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router'
-import { login, verify } from '../api/auth'
+import { csrf, login, verify } from '../api/auth'
 import type { LoginChallenge } from '../api/types'
 import { ErrorAlert } from '../components/ErrorAlert'
 import { toLatinDigits } from '../lib/format'
@@ -32,7 +32,11 @@ export default function LoginPage() {
     },
   })
   const verifyMutation = useMutation({
-    mutationFn: (c: LoginChallenge) => verify(c.challenge, toLatinDigits(code).trim()),
+    mutationFn: async (c: LoginChallenge) => {
+      const s = await verify(c.challenge, toLatinDigits(code).trim())
+      await csrf().catch(() => {})
+      return s
+    },
     onSuccess: (s) => signIn(s),
   })
 

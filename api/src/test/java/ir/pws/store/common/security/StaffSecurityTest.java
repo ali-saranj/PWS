@@ -1,5 +1,6 @@
 package ir.pws.store.common.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -23,6 +24,7 @@ import java.util.Date;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 
 class StaffSecurityTest extends IntegrationTest {
 
@@ -174,5 +176,33 @@ class StaffSecurityTest extends IntegrationTest {
                 mac.doFinal((header + "." + payload).getBytes(StandardCharsets.US_ASCII)));
         mvc.perform(get("/api/admin/auth/me").cookie(accessCookie(header + "." + payload + "." + signature)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void safeGet_setsReadableXsrfCookie() throws Exception {
+        StaffUser owner = adminAuth.createStaff(StaffRole.OWNER);
+        mvc.perform(get("/api/admin/auth/me").cookie(accessCookie(jwt.staffAccessToken(owner))))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("XSRF-TOKEN"))
+                .andExpect(cookie().httpOnly("XSRF-TOKEN", false))
+                .andExpect(cookie().path("XSRF-TOKEN", "/"));
+    }
+
+    @Test
+    void realCsrfLifecycle_getSetsCookie_thenMutatingPostWithMatchingHeader_succeeds() throws Exception {
+        StaffUser owner = adminAuth.createStaff(StaffRole.OWNER);
+        Cookie access = accessCookie(jwt.staffAccessToken(owner));
+        MvcResult getRes = mvc.perform(get("/api/admin/auth/me").cookie(access))
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("XSRF-TOKEN"))
+                .andReturn();
+
+        Cookie xsrfCookie = getRes.getResponse().getCookie("XSRF-TOKEN");
+        assertThat(xsrfCookie).isNotNull();
+
+        mvc.perform(post("/api/admin/test-probe/echo")
+                        .cookie(access, xsrfCookie)
+                        .header("X-XSRF-TOKEN", xsrfCookie.getValue()))
+                .andExpect(status().isOk());
     }
 }

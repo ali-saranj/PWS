@@ -41,7 +41,8 @@ public class SecurityConfig {
             HttpSecurity http, JwtService jwt, ProblemAuthHandlers handlers, AppProperties props) throws Exception {
         boolean secureCookies = props.cookies().secure();
         CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        csrfRepository.setCookieCustomizer(c -> c.sameSite("Lax").secure(secureCookies));
+        csrfRepository.setCookiePath("/");
+        csrfRepository.setCookieCustomizer(c -> c.sameSite("Lax").secure(secureCookies).path("/"));
         return http.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(c -> c.csrfTokenRepository(csrfRepository)
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
@@ -59,6 +60,7 @@ public class SecurityConfig {
                 .exceptionHandling(e -> e.authenticationEntryPoint(handlers).accessDeniedHandler(handlers))
                 .addFilterBefore(new StaffJwtCookieFilter(jwt), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new CustomerJwtCookieFilter(jwt), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(a -> a.dispatcherTypeMatchers(DispatcherType.ERROR)
                         .permitAll() // container-level errors keep their real status instead of becoming 401
                         .requestMatchers("/actuator/health", "/actuator/health/**")

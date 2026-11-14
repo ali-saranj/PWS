@@ -26,9 +26,11 @@ export class ApiError extends Error {
 
 const AUTH_PREFIX = '/api/admin/auth/'
 const REFRESH_PATH = '/api/admin/auth/refresh'
+const CSRF_PATH = '/api/admin/auth/csrf'
 
 let sessionExpiredHandler: () => void = () => {}
 let refreshInFlight: Promise<RefreshResult> | null = null
+let csrfInFlight: Promise<void> | null = null
 
 export function setSessionExpiredHandler(fn: () => void): void {
   sessionExpiredHandler = fn
@@ -42,10 +44,25 @@ function readCookie(name: string): string | null {
   return null
 }
 
+async function ensureCsrfToken(): Promise<void> {
+  if (readCookie('XSRF-TOKEN')) return
+  csrfInFlight ??= (async () => {
+    try {
+      await send(CSRF_PATH, { method: 'GET' })
+    } catch {
+      // Ignore: if backend is unreachable or doesn't support /csrf, send() will attempt anyway
+    }
+  })().finally(() => {
+    csrfInFlight = null
+  })
+  return csrfInFlight
+}
+
 interface FetchOptions {
   method?: string
   json?: unknown
   formData?: FormData
+  csrfRetried?: boolean
 }
 
 function networkError(): ApiError {
@@ -115,6 +132,11 @@ function refreshSession(): Promise<RefreshResult> {
 }
 
 export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promise<T> {
+  const method = (opts.method ?? 'GET').toUpperCase()
+  if (method !== 'GET' && path !== CSRF_PATH) {
+    await ensureCsrfToken()
+  }
+
   let res = await send(path, opts)
 
   if (res.status === 401 && !path.startsWith(AUTH_PREFIX)) {
@@ -128,6 +150,15 @@ export async function apiFetch<T>(path: string, opts: FetchOptions = {}): Promis
       throw refreshed.error
     }
     res = await send(path, opts)
+  }
+
+  if (res.status === 403 && method !== 'GET' && !opts.csrfRetried) {
+    if (!readCookie('XSRF-TOKEN')) {
+      await send(CSRF_PATH, { method: 'GET' }).catch(() => {})
+    }
+    if (readCookie('XSRF-TOKEN')) {
+      res = await send(path, { ...opts, csrfRetried: true })
+    }
   }
 
   if (!res.ok) throw await toApiError(res)

@@ -149,4 +149,44 @@ describe('apiFetch', () => {
     await expect(apiFetch('/api/admin/auth/login', { method: 'POST', json: {} })).rejects.toMatchObject({ status: 401 })
     expect(refreshes).toBe(0)
   })
+
+  it('pre-flight fetches CSRF token if cookie is missing on mutating request', async () => {
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/'
+    let csrfCalled = false
+    let receivedHeader: string | null = null
+    server.use(
+      http.get('/api/admin/auth/csrf', () => {
+        csrfCalled = true
+        document.cookie = 'XSRF-TOKEN=fetched-tok; path=/'
+        return new HttpResponse(null, { status: 204 })
+      }),
+      http.post('/api/admin/things', ({ request }) => {
+        receivedHeader = request.headers.get('X-XSRF-TOKEN')
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    await apiFetch('/api/admin/things', { method: 'POST', json: { b: 2 } })
+    expect(csrfCalled).toBe(true)
+    expect(receivedHeader).toBe('fetched-tok')
+  })
+
+  it('on 403 on mutating request retries once with renewed token', async () => {
+    let calls = 0
+    let lastHeader: string | null = null
+    server.use(
+      http.post('/api/admin/things', ({ request }) => {
+        calls++
+        lastHeader = request.headers.get('X-XSRF-TOKEN')
+        if (calls === 1) {
+          document.cookie = 'XSRF-TOKEN=renewed-tok; path=/'
+          return problem(403, 'FORBIDDEN')
+        }
+        return HttpResponse.json({ ok: true })
+      }),
+    )
+    const res = await apiFetch<{ ok: boolean }>('/api/admin/things', { method: 'POST', json: { c: 3 } })
+    expect(res).toEqual({ ok: true })
+    expect(calls).toBe(2)
+    expect(lastHeader).toBe('renewed-tok')
+  })
 })
