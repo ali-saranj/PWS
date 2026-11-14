@@ -3,6 +3,7 @@ package ir.pws.store.catalog.image;
 import ir.pws.store.config.AppProperties;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -36,6 +37,10 @@ public class LocalMediaStorage implements MediaStorage {
                 Files.deleteIfExists(tmp);
             }
         } catch (IOException e) {
+            if (e instanceof AccessDeniedException) {
+                log.error("Permission denied writing media file '{}' under root '{}'. Check volume permissions and user ownership.",
+                        relPath, root, e);
+            }
             throw new UncheckedIOException(e);
         }
     }

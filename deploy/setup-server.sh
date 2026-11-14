@@ -85,6 +85,13 @@ elif command -v apt-get &>/dev/null; then
     systemctl enable --now docker
 fi
 
+# Pre-configure service user and permissions for persistent volumes (UID 1001: pws)
+echo "Configuring service user and permissions (UID 1001: pws)..."
+if ! id -u 1001 &>/dev/null; then
+    groupadd -g 1001 pws 2>/dev/null || true
+    useradd -u 1001 -g pws -m -s /sbin/nologin pws 2>/dev/null || true
+fi
+
 echo "==> [5/6] Configuring Firewall (Ports 22, 80, 443)..."
 if command -v firewall-cmd &>/dev/null && systemctl is-active --quiet firewalld; then
     firewall-cmd --permanent --add-service=ssh || true

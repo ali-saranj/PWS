@@ -45,6 +45,11 @@ fi
 
 ${COMPOSE_CMD} -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up -d --build --remove-orphans
 
+# Ensure persistent media volume has correct ownership and permissions for the non-root API container user (UID 1001)
+echo "==> Ensuring media volume permissions (pws:pws 1001:1001, mode 775)..."
+${COMPOSE_CMD} -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod exec -u 0 -T api chown -R pws:pws /media 2>/dev/null || true
+${COMPOSE_CMD} -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod exec -u 0 -T api chmod -R u=rwX,g=rwX,o=rX /media 2>/dev/null || true
+
 # 3. Wait for services to become healthy
 echo "==> [3/4] Waiting for services to become healthy..."
 MAX_ATTEMPTS=30
