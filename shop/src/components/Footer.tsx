@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { BRAND } from '@/config/branding';
 import {
   ShieldCheck,
   Truck,
@@ -73,11 +74,11 @@ export const Footer: React.FC = () => {
                 <Store className="w-5 h-5" />
               </div>
               <span className="font-black text-xl text-white">
-                سبد سبز - سوپرمارکت آنلاین
+                {BRAND.titleFa}
               </span>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed max-w-sm">
-              فروشگاه تخصصی مواد غذایی، محصولات پروتئینی، سوسیس و کالباس درجه یک،
+              فروشگاه تخصصی مواد غذایی، فرآورده‌های پروتئینی، سوسیس و کالباس درجه یک،
               پنیرهای فرآوری‌شده، چاشنی‌ها و نان‌های ساندویچی با ارسال فوری به سراسر
               کشور و بسته‌بندی استاندارد بهداشتی.
             </p>
@@ -93,7 +94,7 @@ export const Footer: React.FC = () => {
                 <Mail className="w-4 h-4 text-primary" />
                 <span>پست الکترونیک:</span>
                 <span className="font-semibold text-white">
-                  support@sabadsabz.ir
+                  {BRAND.supportEmail}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-gray-300">
@@ -222,7 +223,7 @@ export const Footer: React.FC = () => {
       {/* Copyright */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-800 text-center text-xs text-gray-500">
         <p>
-          کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین سبد سبز می‌باشد. © ۲۰۲۶
+          کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین {BRAND.nameFa} می‌باشد. © ۲۰۲۶
         </p>
       </div>
     </footer>

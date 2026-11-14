@@ -28,16 +28,16 @@ describe('Header component', () => {
 
   it('renders brand name and logo text', () => {
     render(<Header />);
-    expect(screen.getByTestId('brand-title-mobile')).toHaveTextContent('سبد سبز');
+    expect(screen.getByTestId('brand-title-mobile')).toHaveTextContent('پروتئین ایرانی');
     expect(screen.getByTestId('brand-title-desktop')).toHaveTextContent(
-      'سبد سبز - سوپرمارکت آنلاین'
+      'پروتئین ایرانی - فروشگاه تخصصی فرآورده‌های پروتئینی'
     );
   });
 
   it('renders inline search bar that submits query', () => {
     render(<Header />);
     const searchInput = screen.getByPlaceholderText(
-      'جستجو در سبد سبز...'
+      'جستجو در پروتئین ایرانی...'
     );
     expect(searchInput).toBeInTheDocument();
 

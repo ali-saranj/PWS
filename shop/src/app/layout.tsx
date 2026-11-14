@@ -3,20 +3,35 @@ import './globals.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BottomNav } from '@/components/BottomNav';
+import { BRAND } from '@/config/branding';
 
 export const metadata: Metadata = {
-  title: 'سبد سبز - سوپرمارکت آنلاین پروتئینی و مواد غذایی',
+  metadataBase: new URL(BRAND.domain),
+  title: {
+    default: BRAND.titleFa,
+    template: `%s | ${BRAND.nameFa}`,
+  },
   description:
-    'فروشگاه آنلاین انواع سوسیس، کالباس، فرآورده‌های گوشتی، پنیرها، چاشنی‌ها و اقلام سوپرمارکتی تازه با ارسال فوری و بسته‌بندی عایق در سراسر کشور.',
+    'فروشگاه آنلاین تخصصی انواع سوسیس، کالباس، فرآورده‌های پروتئینی، پنیرها، چاشنی‌ها و اقلام مرغوب با ارسال فوری و بسته‌بندی عایق.',
   keywords: [
-    'سوپرمارکت آنلاین',
-    'سبد سبز',
-    'پروتئینی',
+    BRAND.nameFa,
+    BRAND.nameEn,
+    'سوپرمارکت آنلاین پروتئینی',
     'سوسیس و کالباس',
-    'خرید گوشت',
-    'ساندویچ',
-    'مواد غذایی',
+    'فرآورده‌های پروتئینی',
+    'ژامبون',
+    'خرید سوسیس و کالباس',
+    'پنیر پیتزا و گودا',
   ],
+  openGraph: {
+    type: 'website',
+    locale: 'fa_IR',
+    url: BRAND.domain,
+    siteName: BRAND.nameFa,
+    title: BRAND.titleFa,
+    description:
+      'فروشگاه آنلاین تخصصی انواع سوسیس، کالباس، فرآورده‌های پروتئینی و اقلام تازه.',
+  },
   other: {
     enamad: '13642013',
   },

@@ -13,7 +13,7 @@ describe('Footer component', () => {
   it('renders customer service contact info', () => {
     render(<Footer />);
     expect(screen.getByText(/۰۲۱-۸۸۸۸۹۹۹۹/)).toBeInTheDocument();
-    expect(screen.getByText(/support@sabadsabz.ir/)).toBeInTheDocument();
+    expect(screen.getByText(/support@proteinirany.ir/)).toBeInTheDocument();
   });
 
   it('renders newsletter subscription form', () => {
@@ -25,7 +25,7 @@ describe('Footer component', () => {
   it('renders copyright text', () => {
     render(<Footer />);
     expect(
-      screen.getByText(/کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین سبد سبز می‌باشد/)
+      screen.getByText(/کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین پروتئین ایرانی می‌باشد/)
     ).toBeInTheDocument();
   });
 });

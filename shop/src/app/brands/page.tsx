@@ -2,10 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import { fetchBrands } from '@/lib/serverCatalog';
 import BrandsDirectory from './BrandsDirectory';
+import { BRAND } from '@/config/branding';
 
 export const metadata = {
-  title: 'برندهای معتبر و ممتاز | سبد سبز',
-  description: 'فهرست برندهای ممتاز و معتبر غذایی و پروتئینی در فروشگاه سبد سبز',
+  title: `برندهای معتبر و ممتاز | ${BRAND.nameFa}`,
+  description: `فهرست برندهای ممتاز و معتبر غذایی و پروتئینی در فروشگاه ${BRAND.nameFa}`,
 };
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,7 @@ export default async function BrandsPage() {
       </nav>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">برندهای معتبر و ممتاز در سبد سبز</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">برندهای معتبر و ممتاز در {BRAND.nameFa}</h1>
         <p className="text-gray-500 text-sm">
           تضمین کیفیت و اصالت تمامی کالاهای برندهای معتبر با تاریخ تولید روز
         </p>

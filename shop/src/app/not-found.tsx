@@ -17,7 +17,7 @@ export default function NotFound() {
         href="/"
         className="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-primary hover:bg-primary-dark text-white font-semibold text-sm shadow-md shadow-primary/20 transition-colors"
       >
-        بازگشت به صفحه اصلی سبد سبز
+        بازگشت به صفحه اصلی پروتئین ایرانی
       </Link>
     </div>
   );

@@ -14,10 +14,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { fetchCategories, CategoryItem } from '@/lib/serverCatalog';
+import { BRAND } from '@/config/branding';
 
 export const metadata = {
-  title: 'دسته‌بندی‌های محصولات | سبد سبز',
-  description: 'انواع فرآورده‌های پروتئینی، لبنیات، چاشنی‌ها و اقلام سوپرمارکتی در فروشگاه سبد سبز',
+  title: `دسته‌بندی‌های محصولات | ${BRAND.nameFa}`,
+  description: `انواع فرآورده‌های پروتئینی، لبنیات، چاشنی‌ها و اقلام مرغوب در فروشگاه ${BRAND.nameFa}`,
 };
 
 export const dynamic = 'force-dynamic';
@@ -92,7 +93,7 @@ export default async function CategoriesPage() {
       </nav>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">دسته‌بندی‌های سبد سبز</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">دسته‌بندی‌های {BRAND.nameFa}</h1>
         <p className="text-gray-500 text-sm">
           انواع فرآورده‌های پروتئینی، لبنیات، چاشنی‌ها و اقلام سوپرمارکتی تازه و معتبر
         </p>

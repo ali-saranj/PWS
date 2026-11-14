@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { BRAND } from '@/config/branding';
 
 export interface CartItem {
   id: string;
@@ -32,7 +33,17 @@ const safeLocalStorage = {
   getItem: (key: string): string | null => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem(key);
+        const val = window.localStorage.getItem(key);
+        if (val) return val;
+        // Check for legacy cart storage and migrate if needed
+        if (key === BRAND.cartStorageKey) {
+          const legacy = window.localStorage.getItem(BRAND.legacyCartStorageKey);
+          if (legacy) {
+            window.localStorage.setItem(BRAND.cartStorageKey, legacy);
+            window.localStorage.removeItem(BRAND.legacyCartStorageKey);
+            return legacy;
+          }
+        }
       }
     } catch {
       // fallback
@@ -126,7 +137,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'sabad-sabz-cart',
+      name: BRAND.cartStorageKey,
       storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({ items: state.items } as CartState),
     }

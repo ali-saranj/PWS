@@ -135,7 +135,7 @@ export const PopularProductsCarousel: React.FC<PopularProductsCarouselProps> = (
               پرفروش‌ترین محصولات
             </h2>
             <p className="text-xs text-gray-500">
-              محبوب‌ترین انتخاب‌های خریداران سبد سبز در هفته گذشته
+              محبوب‌ترین انتخاب‌های خریداران پروتئین ایرانی در هفته گذشته
             </p>
           </div>
         </div>

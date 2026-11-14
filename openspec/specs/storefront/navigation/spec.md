@@ -10,11 +10,11 @@ The storefront header SHALL display a compact brand identity on mobile viewports
 
 #### Scenario: Mobile viewport renders compact brand text
 - **WHEN** the user views the storefront on a mobile screen (< 768px)
-- **THEN** the header displays the brand logo icon and concise title "سبد سبز" without horizontal overflow.
+- **THEN** the header displays the brand logo icon and concise title "پروتئین ایرانی" without horizontal overflow.
 
 #### Scenario: Desktop viewport renders full brand title and subtitle
 - **WHEN** the user views the storefront on a desktop screen (>= 768px)
-- **THEN** the header displays "سبد سبز - سوپرمارکت آنلاین" along with the descriptive subtitle.
+- **THEN** the header displays "پروتئین ایرانی - فروشگاه تخصصی فرآورده‌های پروتئینی" along with the descriptive subtitle.
 
 ### Requirement: Inline Mobile Search Bar
 The storefront header SHALL provide an inline search bar directly in the primary header row on mobile devices, maintaining single-row efficiency without stacking.

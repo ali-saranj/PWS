@@ -31,7 +31,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-emerald-100 text-xs font-semibold backdrop-blur-sm">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>سوپرمارکت تخصصی سبد سبز</span>
+              <span>فروشگاه تخصصی پروتئین ایرانی</span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/90 text-white text-xs font-bold shadow-sm animate-pulse">

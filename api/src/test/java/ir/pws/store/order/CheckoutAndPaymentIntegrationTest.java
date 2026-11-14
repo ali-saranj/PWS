@@ -220,7 +220,7 @@ class CheckoutAndPaymentIntegrationTest extends IntegrationTest {
         String orderNumber = json.readTree(result.getResponse().getContentAsString()).path("orderNumber").asText();
         String trackingCode = json.readTree(result.getResponse().getContentAsString()).path("trackingCode").asText();
 
-        assertThat(orderNumber).startsWith("PWS-");
+        assertThat(orderNumber).startsWith("PI-");
         assertThat(trackingCode).startsWith("TRK-");
 
         // Verify Order in DB

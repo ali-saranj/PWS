@@ -434,7 +434,7 @@ public class CheckoutService {
                 .format(now);
         for (int i = 0; i < 10; i++) {
             int randomNum = ThreadLocalRandom.current().nextInt(1000, 10000);
-            String candidate = "PWS-" + datePart + "-" + randomNum;
+            String candidate = "PI-" + datePart + "-" + randomNum;
             if (!orderRepository.existsByOrderNumber(candidate)) {
                 return candidate;
             }

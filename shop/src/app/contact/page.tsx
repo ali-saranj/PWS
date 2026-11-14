@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { BRAND } from '@/config/branding';
 
 export default function ContactPage() {
   return (
@@ -16,7 +17,7 @@ export default function ContactPage() {
 
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-gray-100 shadow-sm">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-4">
-          ارتباط با پشتیبانی سبد سبز
+          ارتباط با پشتیبانی {BRAND.nameFa}
         </h1>
         <p className="text-gray-600 mb-8 text-sm">
           همکاران ما در واحد پشتیبانی و ثبت سفارش‌ها هفت روز هفته آماده پاسخگویی به شما هستند.
@@ -39,7 +40,7 @@ export default function ContactPage() {
             </div>
             <div>
               <span className="text-xs text-gray-400 block mb-0.5">پست الکترونیک</span>
-              <span className="text-sm font-semibold text-gray-900">support@sabadsabz.ir</span>
+              <span className="text-sm font-semibold text-gray-900">{BRAND.supportEmail}</span>
             </div>
           </div>
 

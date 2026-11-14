@@ -93,7 +93,7 @@ function mapBackendProductToDetail(backend: any): ProductDetailData {
     variants,
     volumeTiers,
     specifications: [
-      { label: 'برند', value: backend.brandNameFa || 'سبد سبز' },
+      { label: 'برند', value: backend.brandNameFa || 'پروتئین ایرانی' },
       { label: 'دسته‌بندی', value: backend.categoryNameFa || 'پروتئینی' },
     ],
     inStock: backend.inStock ?? variants.some((v) => v.inStock),
@@ -601,7 +601,7 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
                   </div>
                   <div>
                     <div className="text-sm font-bold text-gray-900">
-                      امتیاز کاربران سبد سبز
+                      امتیاز کاربران پروتئین ایرانی
                     </div>
                     <div className="text-xs text-gray-500">
                       بر اساس {toPersianDigits(product.reviewCount || 24)} تجربه خرید ثبت شده

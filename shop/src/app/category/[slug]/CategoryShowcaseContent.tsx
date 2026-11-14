@@ -309,7 +309,7 @@ export default function CategoryShowcaseContent({
                 )}
               </div>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                تضمین تازگی و کیفیت درجه یک سبد سبز با تحویل فوری
+                تضمین تازگی و کیفیت درجه یک پروتئین ایرانی با تحویل فوری
               </p>
             </div>
           </div>

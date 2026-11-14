@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '@/lib/cartStore';
 import { useAuthStore } from '@/lib/authStore';
+import { BRAND } from '@/config/branding';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { CartDrawer } from './CartDrawer';
 
@@ -106,16 +107,16 @@ export const Header: React.FC = () => {
                 data-testid="brand-title-mobile"
                 className="font-black text-base sm:text-lg text-gray-900 group-hover:text-primary transition-colors md:hidden"
               >
-                سبد سبز
+                {BRAND.nameFa}
               </span>
               <span
                 data-testid="brand-title-desktop"
                 className="font-black text-xl text-gray-900 group-hover:text-primary transition-colors hidden md:inline"
               >
-                سبد سبز - سوپرمارکت آنلاین
+                {BRAND.titleFa}
               </span>
               <span className="text-xs text-gray-400 font-medium hidden lg:inline">
-                پروتئینی، سوسیس و کالباس، و کالاهای تازه
+                {BRAND.sloganFa}
               </span>
             </div>
           </Link>
@@ -127,7 +128,7 @@ export const Header: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="جستجو در سبد سبز..."
+                placeholder={`جستجو در ${BRAND.nameFa}...`}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-1.5 md:py-2.5 pr-3 md:pr-4 pl-8 md:pl-28 text-xs md:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
               <button
@@ -231,7 +232,7 @@ export const Header: React.FC = () => {
                   <Store className="w-4 h-4" />
                 </div>
                 <span className="font-bold text-gray-900 text-sm">
-                  منوی سبد سبز
+                  منوی {BRAND.nameFa}
                 </span>
               </div>
               <button

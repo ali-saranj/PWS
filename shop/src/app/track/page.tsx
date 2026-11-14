@@ -28,7 +28,7 @@ export default function TrackLookupPage() {
         </div>
 
         <h1 className="text-xl sm:text-2xl font-black text-gray-900 mb-2">
-          پیگیری سفارش سبد سبز
+          پیگیری سفارش پروتئین ایرانی
         </h1>
         <p className="text-sm text-gray-500 mb-8 leading-relaxed">
           برای اطلاع از آخرین وضعیت آماده‌سازی، برش و ارسال سفارش خود، کد پیگیری پیامک شده را در کادر زیر

@@ -36,7 +36,7 @@ export const ValueBadges: React.FC<ValueBadgesProps> = ({
   ];
 
   return (
-    <section className="py-4" aria-label="مزایای خرید از سبد سبز">
+    <section className="py-4" aria-label="مزایای خرید از پروتئین ایرانی">
       {/* Top Highlight Banner */}
       <div className="bg-gradient-to-r from-emerald-700 via-primary-dark to-emerald-800 text-white rounded-2xl p-4 sm:p-5 shadow-sm mb-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">

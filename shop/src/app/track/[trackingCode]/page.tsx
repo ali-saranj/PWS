@@ -208,7 +208,7 @@ export default function OrderTrackingPage({ params }: PageProps) {
             </div>
             <p className="text-xs text-gray-500 leading-relaxed mt-3">
               در صورت بروز هرگونه سوال پیرامون زمان تحویل، تغییر آدرس یا جزئیات سفارش، کارشناسان پشتیبانی
-              سبد سبز پاسخگوی شما هستند.
+              پروتئین ایرانی پاسخگوی شما هستند.
             </p>
           </div>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, Truck, Clock, Sparkles } from 'lucide-react';
+import { BRAND } from '@/config/branding';
 
 export default function AboutPage() {
   return (
@@ -11,16 +12,16 @@ export default function AboutPage() {
           صفحه اصلی
         </Link>
         <span>/</span>
-        <span className="text-gray-900 font-medium">درباره سبد سبز</span>
+        <span className="text-gray-900 font-medium">درباره {BRAND.nameFa}</span>
       </nav>
 
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-gray-100 shadow-sm">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
-          درباره سوپرمارکت آنلاین سبد سبز
+          درباره {BRAND.titleFa}
         </h1>
 
         <p className="text-gray-700 leading-relaxed mb-6 text-base sm:text-lg">
-          <strong>سبد سبز</strong> با هدف تأمین روزانه و بدون واسطه تازه‌ترین فرآورده‌های پروتئینی (انواع کالباس و ژامبون ممتاز، سوسیس، هات‌داگ، پنیر پیتزا و گودا)، سس‌ها، نان‌های تازه و محصولات سوپرمارکتی مرغوب پایه‌گذاری شده است.
+          <strong>{BRAND.nameFa}</strong> با هدف تأمین روزانه و بدون واسطه تازه‌ترین فرآورده‌های پروتئینی (انواع کالباس و ژامبون ممتاز، سوسیس، هات‌داگ، پنیر پیتزا و گودا)، سس‌ها، نان‌های تازه و محصولات مرغوب پایه‌گذاری شده است.
         </p>
 
         <p className="text-gray-600 leading-relaxed mb-8">
