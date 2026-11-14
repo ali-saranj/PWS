@@ -8,6 +8,8 @@ export const metadata = {
   description: 'فهرست برندهای ممتاز و معتبر غذایی و پروتئینی در فروشگاه سبد سبز',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function BrandsPage() {
   const brands = await fetchBrands();
 

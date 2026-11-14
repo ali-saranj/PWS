@@ -20,6 +20,8 @@ export const metadata = {
   description: 'انواع فرآورده‌های پروتئینی، لبنیات، چاشنی‌ها و اقلام سوپرمارکتی در فروشگاه سبد سبز',
 };
 
+export const dynamic = 'force-dynamic';
+
 const categoryIconMap: Record<string, { icon: LucideIcon; color: string }> = {
   'sausages-hotdogs': { icon: Flame, color: 'from-amber-500 to-red-500' },
   'sausage-hotdog': { icon: Flame, color: 'from-amber-500 to-red-500' },

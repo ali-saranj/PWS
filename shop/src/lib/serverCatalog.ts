@@ -252,7 +252,7 @@ export async function fetchCatalogSearch(
 export async function fetchCategories(): Promise<CategoryItem[]> {
   const url = `${API_BASE_URL}/api/shop/catalog/categories`;
   try {
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -264,7 +264,7 @@ export async function fetchCategories(): Promise<CategoryItem[]> {
 export async function fetchCategoryBySlug(slug: string): Promise<CategoryDetail | null> {
   const url = `${API_BASE_URL}/api/shop/catalog/categories/${encodeURIComponent(slug)}`;
   try {
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const res = await fetch(url, { cache: 'no-store' });
     if (res.status === 404 || !res.ok) return null;
     return await res.json();
   } catch (err) {
@@ -275,7 +275,7 @@ export async function fetchCategoryBySlug(slug: string): Promise<CategoryDetail 
 export async function fetchBrands(): Promise<BrandItem[]> {
   const url = `${API_BASE_URL}/api/shop/catalog/brands`;
   try {
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) return [];
     const data = await res.json();
     if (Array.isArray(data)) {
@@ -293,7 +293,7 @@ export async function fetchBrands(): Promise<BrandItem[]> {
 export async function fetchBrandBySlug(slug: string): Promise<BrandItem | null> {
   const url = `${API_BASE_URL}/api/shop/catalog/brands/${encodeURIComponent(slug)}`;
   try {
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) return null;
     return await res.json();
   } catch (err) {
