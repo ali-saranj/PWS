@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { BottomNav } from '@/components/BottomNav';
 
 export const metadata: Metadata = {
   title: 'سبد سبز - سوپرمارکت آنلاین پروتئینی و مواد غذایی',
@@ -16,6 +17,9 @@ export const metadata: Metadata = {
     'ساندویچ',
     'مواد غذایی',
   ],
+  other: {
+    enamad: '13642013',
+  },
 };
 
 export default function RootLayout({
@@ -27,8 +31,9 @@ export default function RootLayout({
     <html lang="fa" dir="rtl">
       <body className="min-h-screen flex flex-col font-vazirmatn bg-gray-50 text-gray-900 selection:bg-primary/20 selection:text-primary-dark">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pb-16 md:pb-0">{children}</main>
         <Footer />
+        <BottomNav />
       </body>
     </html>
   );

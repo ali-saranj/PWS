@@ -1,11 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { Header } from './Header';
 import { useCartStore } from '@/lib/cartStore';
 import { useAuthStore } from '@/lib/authStore';
 
+const mockPush = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 describe('Header component', () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     useCartStore.setState({
       items: [],
       isOpen: false,
@@ -20,21 +28,47 @@ describe('Header component', () => {
 
   it('renders brand name and logo text', () => {
     render(<Header />);
-    expect(screen.getByText(/سبد سبز - سوپرمارکت آنلاین/)).toBeInTheDocument();
-  });
-
-  it('renders search bar with input placeholder and submit button', () => {
-    render(<Header />);
-    const searchInputs = screen.getAllByPlaceholderText(
-      'جستجوی محصول، برند یا دسته‌بندی...'
+    expect(screen.getByTestId('brand-title-mobile')).toHaveTextContent('سبد سبز');
+    expect(screen.getByTestId('brand-title-desktop')).toHaveTextContent(
+      'سبد سبز - سوپرمارکت آنلاین'
     );
-    expect(searchInputs.length).toBeGreaterThan(0);
-    expect(searchInputs[0]).toBeInTheDocument();
-    const searchButtons = screen.getAllByRole('button', { name: /جستجو/i });
-    expect(searchButtons[0]).toBeInTheDocument();
   });
 
-  it('renders customer login/register button linking to /profile', () => {
+  it('renders inline search bar that submits query', () => {
+    render(<Header />);
+    const searchInput = screen.getByPlaceholderText(
+      'جستجو در سبد سبز...'
+    );
+    expect(searchInput).toBeInTheDocument();
+
+    fireEvent.change(searchInput, { target: { value: 'سوسیس' } });
+    fireEvent.submit(searchInput.closest('form')!);
+
+    expect(mockPush).toHaveBeenCalledWith('/search?q=%D8%B3%D9%88%D8%B3%DB%8C%D8%B3');
+  });
+
+  it('opens and closes slide-over menu drawer on mobile', () => {
+    render(<Header />);
+    const menuBtn = screen.getByRole('button', { name: 'منوی سایت' });
+    expect(menuBtn).toBeInTheDocument();
+
+    // Drawer is closed initially
+    expect(screen.queryByTestId('mobile-drawer')).not.toBeInTheDocument();
+
+    // Click to open
+    fireEvent.click(menuBtn);
+    const drawer = screen.getByTestId('mobile-drawer');
+    expect(drawer).toBeInTheDocument();
+    expect(within(drawer).getByRole('link', { name: /تخفیف‌ها/i })).toBeInTheDocument();
+    expect(within(drawer).getByRole('link', { name: 'پیگیری سفارش' })).toBeInTheDocument();
+
+    // Click close button
+    const closeBtn = screen.getByRole('button', { name: 'بستن منو' });
+    fireEvent.click(closeBtn);
+    expect(screen.queryByTestId('mobile-drawer')).not.toBeInTheDocument();
+  });
+
+  it('renders customer login/register button linking to /profile on desktop', () => {
     render(<Header />);
     const link = screen.getByRole('link', { name: /ورود \/ ثبت نام/i });
     expect(link).toBeInTheDocument();
@@ -88,7 +122,7 @@ describe('Header component', () => {
     expect(screen.getByText(/تومان/)).toBeInTheDocument();
   });
 
-  it('renders sub-navigation links and city delivery badge', () => {
+  it('renders sub-navigation links and city delivery badge on desktop', () => {
     render(<Header />);
     expect(screen.getByText('صفحه اصلی')).toBeInTheDocument();
     expect(screen.getByText('محصولات')).toBeInTheDocument();

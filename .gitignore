@@ -8,5 +8,6 @@ dist/
 .devdb/
 .media/
 .vscode/
+.idea/
 .superpowers/
 *.tsbuildinfo
