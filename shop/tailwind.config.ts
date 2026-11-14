@@ -40,6 +40,20 @@ const config: Config = {
       fontFamily: {
         vazirmatn: ['var(--font-vazirmatn)', 'Vazirmatn', 'sans-serif'],
       },
+      keyframes: {
+        'slide-in-right': {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+      animation: {
+        'slide-in-right': 'slide-in-right 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fade-in 0.2s ease-out',
+      },
     },
   },
   plugins: [],

@@ -213,17 +213,17 @@ export const Header: React.FC = () => {
       {isMobileMenuOpen && (
         <div
           data-testid="mobile-drawer"
-          className="fixed inset-0 z-50 md:hidden flex justify-end"
+          className="fixed inset-0 z-50 md:hidden overflow-hidden"
         >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
 
-          {/* Drawer Content */}
-          <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200">
+          {/* Drawer Content - Anchored strictly to the right */}
+          <div className="fixed inset-y-0 right-0 w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-10 animate-slide-in-right">
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 bg-gray-50/60">
               <div className="flex items-center gap-2">
