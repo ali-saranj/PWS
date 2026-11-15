@@ -124,4 +124,80 @@ describe('CartDrawer', () => {
     fireEvent.click(closeBtn);
     expect(useCartStore.getState().isOpen).toBe(false);
   });
+
+  it('renders item with fixed 80x80px (w-20 h-20) thumbnail container and object-cover image', () => {
+    useCartStore.setState({
+      isOpen: true,
+      items: [
+        {
+          id: 'item-1',
+          productId: 10,
+          variantId: 20,
+          name: 'کالباس پپرونی ۹۰٪',
+          variantName: '۳۰۰ گرم اسلایس',
+          priceToman: 195000,
+          quantity: 1,
+          imageUrl: '/images/products/pepperoni.jpg',
+        },
+      ],
+    });
+
+    render(<CartDrawer />);
+
+    const img = screen.getByRole('img', { name: 'کالباس پپرونی ۹۰٪' });
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveClass('object-cover');
+
+    const container = img.closest('div');
+    expect(container).toHaveClass('w-20');
+    expect(container).toHaveClass('h-20');
+    expect(container).toHaveClass('shrink-0');
+    expect(container).not.toHaveClass('w-18');
+    expect(container).not.toHaveClass('h-18');
+  });
+
+  it('falls back to placeholder image when image fails to load via onError', () => {
+    useCartStore.setState({
+      isOpen: true,
+      items: [
+        {
+          id: 'item-1',
+          productId: 10,
+          variantId: 20,
+          name: 'کالباس پپرونی ۹۰٪',
+          variantName: '۳۰۰ گرم اسلایس',
+          priceToman: 195000,
+          quantity: 1,
+          imageUrl: '/images/products/broken-image.jpg',
+        },
+      ],
+    });
+
+    render(<CartDrawer />);
+
+    const img = screen.getByRole('img', { name: 'کالباس پپرونی ۹۰٪' });
+    fireEvent.error(img);
+    expect((img as HTMLImageElement).src).toContain('/images/products/placeholder-meat.svg');
+  });
+
+  it('renders fallback icon inside 80x80px container when imageUrl is missing', () => {
+    useCartStore.setState({
+      isOpen: true,
+      items: [
+        {
+          id: 'item-1',
+          productId: 10,
+          variantId: 20,
+          name: 'سوسیس فرانکفورتر',
+          variantName: '۵۰۰ گرم',
+          priceToman: 120000,
+          quantity: 1,
+        },
+      ],
+    });
+
+    const { container } = render(<CartDrawer />);
+    const thumbContainers = container.querySelectorAll('.w-20.h-20');
+    expect(thumbContainers.length).toBe(1);
+  });
 });

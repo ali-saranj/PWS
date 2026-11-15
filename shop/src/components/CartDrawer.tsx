@@ -118,15 +118,19 @@ export const CartDrawer: React.FC = () => {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100 relative group transition-all hover:bg-gray-50/80"
+                    className="flex gap-3.5 p-3.5 bg-gray-50/80 rounded-2xl border border-gray-100 relative group transition-all hover:bg-gray-50"
                   >
                     {/* Item Thumbnail */}
-                    <div className="w-18 h-18 rounded-xl bg-white border border-gray-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-xl bg-white border border-gray-200/80 overflow-hidden shrink-0 flex items-center justify-center aspect-square">
                       {item.imageUrl ? (
                         <img
                           src={item.imageUrl}
                           alt={item.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              '/images/products/placeholder-meat.svg';
+                          }}
                         />
                       ) : (
                         <ShoppingBag className="w-8 h-8 text-gray-300" />
@@ -150,8 +154,8 @@ export const CartDrawer: React.FC = () => {
                       </div>
 
                       {/* Stepper & Total */}
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-200/60">
-                        <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-1">
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200/60">
+                        <div className="flex items-center gap-1.5 bg-white rounded-lg border border-gray-200 p-0.5">
                           <button
                             type="button"
                             onClick={() =>
@@ -192,7 +196,7 @@ export const CartDrawer: React.FC = () => {
                           </button>
                         </div>
 
-                        <div className="text-xs font-bold text-gray-800">
+                        <div className="text-xs font-bold text-gray-900">
                           {formatToman(item.priceToman * item.quantity)} تومان
                         </div>
                       </div>
