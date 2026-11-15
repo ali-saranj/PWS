@@ -68,8 +68,9 @@ describe('ProductDetailPage (PDP)', () => {
       expect(screen.getByTestId('active-price')).toHaveTextContent(/۴۶۰[,٬]۰۰۰/);
     });
 
-    // In stock status
-    expect(screen.getByText(/موجود در انبار/i)).toBeInTheDocument();
+    // In stock status in Buy Box
+    const buyBox = screen.getByTestId('buy-box-card');
+    expect(within(buyBox).getByText(/موجود در انبار/i)).toBeInTheDocument();
   });
 
   it('highlights the active qualifying tier when quantity reaches volume threshold', async () => {
@@ -124,8 +125,9 @@ describe('ProductDetailPage (PDP)', () => {
     });
 
     expect(screen.getAllByText(/ناموجود/i).length).toBeGreaterThan(0);
-    const addToCartBtn = screen.getByRole('button', { name: /ناموجود/i });
-    expect(addToCartBtn).toBeDisabled();
+    const disabledButtons = screen.getAllByRole('button', { name: /ناموجود/i });
+    expect(disabledButtons.length).toBeGreaterThanOrEqual(1);
+    disabledButtons.forEach((btn) => expect(btn).toBeDisabled());
   });
 
   it('calls real API /api/shop/catalog/products/${slug}, maps real database variant ID, and passes real variant ID to cart', async () => {
@@ -203,5 +205,30 @@ describe('ProductDetailPage (PDP)', () => {
     expect(cartItems).toHaveLength(1);
     expect(cartItems[0].productId).toBe(55);
     expect(cartItems[0].variantId).toBe(5501);
+  });
+
+  it('renders 3-column layout on desktop, dedicated Buy Box card, and mobile sticky action bar', async () => {
+    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('gallery-container')).toBeInTheDocument();
+      expect(screen.getByTestId('buy-box-card')).toBeInTheDocument();
+      expect(screen.getByTestId('mobile-sticky-bar')).toBeInTheDocument();
+    });
+
+    // Check Buy Box card content
+    const buyBox = screen.getByTestId('buy-box-card');
+    expect(within(buyBox).getByTestId('active-price')).toHaveTextContent(/۲۴۰[,٬]۰۰۰/);
+    expect(within(buyBox).getByRole('button', { name: /افزودن به سبد خرید/i })).toBeInTheDocument();
+
+    // Check mobile sticky bar
+    const mobileBar = screen.getByTestId('mobile-sticky-bar');
+    expect(within(mobileBar).getByText(/۲۴۰[,٬]۰۰۰/)).toBeInTheDocument();
+    const mobileAddBtn = within(mobileBar).getByRole('button', { name: /افزودن به سبد/i });
+    expect(mobileAddBtn).toBeInTheDocument();
+    fireEvent.click(mobileAddBtn);
+
+    const cartItems = useCartStore.getState().items;
+    expect(cartItems.length).toBeGreaterThan(0);
   });
 });

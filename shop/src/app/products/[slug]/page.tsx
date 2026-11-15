@@ -267,7 +267,7 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
   };
 
   return (
-    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
       {/* Breadcrumbs Navigation */}
         <nav
           className="flex items-center gap-1.5 text-xs text-gray-500 mb-6 overflow-x-auto pb-1"
@@ -291,9 +291,9 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
 
         {/* Main Product Section */}
         <div className="bg-white rounded-3xl border border-gray-100 p-4 sm:p-6 lg:p-8 shadow-xs mb-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-            {/* Gallery Column (5 cols) */}
-            <div className="lg:col-span-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
+            {/* Gallery Column (4 cols) */}
+            <div className="lg:col-span-4 flex flex-col items-center lg:items-start">
               <ProductImageGallery
                 images={product.images}
                 title={product.nameFa}
@@ -302,10 +302,32 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
                 freshDeliGuarantee={product.freshDeliGuarantee}
                 badges={product.badges}
               />
+
+              {/* Service Badges on Gallery Column */}
+              <div className="w-full max-w-[380px] grid grid-cols-3 gap-2 mt-6 pt-5 border-t border-gray-100 text-[11px] text-gray-600">
+                <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-xl bg-gray-50/70">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <ThermometerSnowflake className="w-4 h-4" />
+                  </div>
+                  <span className="leading-tight">زنجیره سرمایش</span>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-xl bg-gray-50/70">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <span className="leading-tight">برش روزانه</span>
+                </div>
+                <div className="flex flex-col items-center text-center gap-1.5 p-2 rounded-xl bg-gray-50/70">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <span className="leading-tight">تضمین اصالت</span>
+                </div>
+              </div>
             </div>
 
-            {/* Info and Actions Column (7 cols) */}
-            <div className="lg:col-span-7 flex flex-col">
+            {/* Details & Specs Column (5 cols) */}
+            <div className="lg:col-span-5 flex flex-col">
               {/* Brand and Actions */}
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -368,16 +390,63 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
                 />
               </div>
 
-              {/* Price and Stock Box */}
-              <div className="rounded-2xl bg-gray-50/80 p-4 border border-gray-100 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {/* Volume Discount Tiers */}
+              {product.volumeTiers.length > 0 ? (
+                <div className="mb-6">
+                  <VolumeTierTable
+                    basePriceToman={currentVariant.priceToman}
+                    volumeTiers={product.volumeTiers}
+                    quantity={quantity}
+                  />
+                </div>
+              ) : null}
+
+              {/* Quick Specs Highlight */}
+              <div className="rounded-2xl bg-gray-50/70 p-4 border border-gray-100 text-xs text-gray-600 mb-4">
+                <div className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>ویژگی‌ها و راهنمای نگهداری</span>
+                </div>
+                <ul className="space-y-1.5 text-gray-600 list-disc list-inside">
+                  <li>دسته‌بندی: {product.categoryNameFa}</li>
+                  <li>بسته‌بندی وکیوم بهداشتی و استاندارد</li>
+                  <li>نگهداری در یخچال (دمای ۱ الی ۴ درجه سانتی‌گراد)</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Buy Box Column (3 cols) */}
+            <div className="lg:col-span-3 flex flex-col">
+              <div
+                data-testid="buy-box-card"
+                className="lg:sticky lg:top-24 rounded-3xl bg-gray-50/80 border border-gray-200/90 p-5 shadow-xs flex flex-col gap-4"
+              >
+                {/* Stock & Delivery Status */}
+                <div className="flex items-center justify-between gap-2 pb-3 border-b border-gray-200/80">
+                  <div className="text-xs font-bold text-gray-700">
+                    وضعیت کالا:
+                  </div>
+                  {isAvailable ? (
+                    <div className="flex items-center gap-1 text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                      <span>موجود در انبار</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100">
+                      ناموجود
+                    </span>
+                  )}
+                </div>
+
+                {/* Price Display */}
                 <div>
                   <div className="text-xs text-gray-500 mb-1">
-                    قیمت هر واحد ({currentVariant.nameFa}):
+                    قیمت واحد ({currentVariant.nameFa}):
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span
                       data-testid="active-price"
-                      className="text-2xl sm:text-3xl font-black text-emerald-700"
+                      className="text-2xl font-black text-emerald-700"
                     >
                       {formatToman(effectiveUnitPrice)}
                     </span>
@@ -385,72 +454,74 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
 
                     {currentVariant.compareAtPriceToman &&
                     currentVariant.compareAtPriceToman > effectiveUnitPrice ? (
-                      <span className="text-sm text-gray-400 line-through mr-1 font-medium">
+                      <span className="text-xs text-gray-400 line-through mr-1 font-medium">
                         {formatToman(currentVariant.compareAtPriceToman)}
                       </span>
                     ) : null}
                   </div>
+
+                  {activeTier ? (
+                    <div className="mt-1 text-[11px] text-emerald-600 font-bold">
+                      شامل {toPersianDigits(activeTier.discountPercent)}٪ تخفیف پلکانی
+                    </div>
+                  ) : null}
                 </div>
 
-                {isAvailable ? (
-                  <div className="flex flex-col sm:items-end text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">
-                    <div className="flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>آماده ارسال فوری دلی</span>
-                    </div>
-                    <span className="text-[11px] text-emerald-600 font-normal mt-0.5">
-                      نگهداری در زنجیره سرمایش استاندارد
+                {/* Quantity Controls */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-gray-500 font-medium">
+                    تعداد سفارش:
+                  </label>
+                  <div
+                    className="flex items-center justify-between bg-white rounded-2xl p-1.5 border border-gray-200 w-full"
+                    role="group"
+                    aria-label="انتخاب تعداد"
+                  >
+                    <button
+                      type="button"
+                      onClick={handleIncrement}
+                      disabled={!isAvailable || quantity >= (currentVariant.stock ?? 99)}
+                      aria-label="افزایش تعداد"
+                      className="w-9 h-9 rounded-xl bg-gray-50 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-40 disabled:hover:bg-gray-50 text-gray-700 flex items-center justify-center transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+
+                    <span
+                      data-testid="quantity-display"
+                      className="text-base font-black text-gray-900 px-3 select-none"
+                    >
+                      {toPersianDigits(quantity)}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={handleDecrement}
+                      disabled={!isAvailable || quantity <= 1}
+                      aria-label="کاهش تعداد"
+                      className="w-9 h-9 rounded-xl bg-gray-50 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40 disabled:hover:bg-gray-50 text-gray-700 flex items-center justify-center transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <Minus className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Total Price if quantity > 1 */}
+                {quantity > 1 ? (
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-200/60">
+                    <span className="text-gray-500">جمع کل ({toPersianDigits(quantity)} عدد):</span>
+                    <span className="font-black text-gray-900">
+                      {formatToman(totalCalculatedPrice)} تومان
                     </span>
                   </div>
-                ) : (
-                  <span className="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-100">
-                    ناموجود
-                  </span>
-                )}
-              </div>
+                ) : null}
 
-              {/* Quantity Counter & Add to Cart Action */}
-              <div className="pt-2 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                {/* Quantity Controls */}
-                <div
-                  className="inline-flex items-center justify-between bg-gray-100/90 rounded-2xl p-1.5 border border-gray-200/80 w-full sm:w-auto sm:min-w-[140px]"
-                  role="group"
-                  aria-label="انتخاب تعداد"
-                >
-                  <button
-                    type="button"
-                    onClick={handleIncrement}
-                    disabled={!isAvailable || quantity >= (currentVariant.stock ?? 99)}
-                    aria-label="افزایش تعداد"
-                    className="w-10 h-10 rounded-xl bg-white hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-40 disabled:hover:bg-white text-gray-700 flex items-center justify-center transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <Plus className="w-4 h-4 stroke-[2.5]" />
-                  </button>
-
-                  <span
-                    data-testid="quantity-display"
-                    className="text-base font-black text-gray-900 px-3 select-none"
-                  >
-                    {toPersianDigits(quantity)}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={handleDecrement}
-                    disabled={!isAvailable || quantity <= 1}
-                    aria-label="کاهش تعداد"
-                    className="w-10 h-10 rounded-xl bg-white hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40 disabled:hover:bg-white text-gray-700 flex items-center justify-center transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  >
-                    <Minus className="w-4 h-4 stroke-[2.5]" />
-                  </button>
-                </div>
-
-                {/* Add to Cart Button */}
+                {/* Add to Cart CTA */}
                 <button
                   type="button"
                   onClick={handleAddToCart}
                   disabled={!isAvailable}
-                  className={`flex-1 flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl font-black text-sm transition-all duration-200 shadow-md ${
+                  className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-black text-sm transition-all duration-200 shadow-md ${
                     !isAvailable
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                       : isAdded
@@ -469,46 +540,14 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
                     <>
                       <ShoppingBag className="w-5 h-5 stroke-[2.5]" />
                       <span>افزودن به سبد خرید</span>
-                      {quantity > 1 ? (
-                        <span className="text-xs bg-emerald-500/80 px-2 py-0.5 rounded-full mr-1">
-                          ({formatToman(totalCalculatedPrice)} تومان)
-                        </span>
-                      ) : null}
                     </>
                   )}
                 </button>
-              </div>
 
-              {/* Volume Discount Tiers */}
-              {product.volumeTiers.length > 0 ? (
-                <div className="mb-6">
-                  <VolumeTierTable
-                    basePriceToman={currentVariant.priceToman}
-                    volumeTiers={product.volumeTiers}
-                    quantity={quantity}
-                  />
-                </div>
-              ) : null}
-
-              {/* Service Badges */}
-              <div className="grid grid-cols-3 gap-2 mt-6 pt-6 border-t border-gray-100 text-[11px] text-gray-600">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                    <ThermometerSnowflake className="w-4 h-4" />
-                  </div>
-                  <span>ارسال با زنجیره سرمایش</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <span>برش تازه و روزانه</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <span>تضمین اصالت و مرغوبیت</span>
+                {/* Assurance Note */}
+                <div className="flex items-center gap-1.5 text-[11px] text-gray-500 pt-1">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>ضمانت سلامت و کیفیت پروتئینی دلی</span>
                 </div>
               </div>
             </div>
@@ -684,6 +723,66 @@ function ProductDetailPageContent({ slug }: { slug: string }) {
             </div>
           </section>
         ) : null}
+
+        {/* Mobile Sticky Bottom Action Bar */}
+        <aside
+          data-testid="mobile-sticky-bar"
+          aria-label="نوار خرید سریع"
+          className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/90 p-3 sm:p-4 shadow-lg lg:hidden"
+        >
+          <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] text-gray-500 font-medium truncate">
+                {product.nameFa} - {currentVariant.nameFa}
+              </div>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="text-lg font-black text-emerald-700">
+                  {formatToman(effectiveUnitPrice)}
+                </span>
+                <span className="text-[10px] text-gray-500 font-bold">تومان</span>
+
+                {currentVariant.compareAtPriceToman &&
+                currentVariant.compareAtPriceToman > effectiveUnitPrice ? (
+                  <span className="text-xs text-gray-400 line-through mr-1 font-medium">
+                    {formatToman(currentVariant.compareAtPriceToman)}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!isAvailable}
+              className={`flex-shrink-0 flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-black text-sm transition-all shadow-sm ${
+                !isAvailable
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : isAdded
+                  ? 'bg-emerald-700 text-white'
+                  : 'bg-emerald-600 active:bg-emerald-700 text-white shadow-emerald-600/20'
+              }`}
+            >
+              {!isAvailable ? (
+                <span>ناموجود</span>
+              ) : isAdded ? (
+                <>
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>افزوده شد</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
+                  <span>افزودن به سبد</span>
+                  {quantity > 1 ? (
+                    <span className="text-xs bg-emerald-500/90 px-1.5 py-0.5 rounded-full mr-0.5">
+                      ({toPersianDigits(quantity)})
+                    </span>
+                  ) : null}
+                </>
+              )}
+            </button>
+          </div>
+        </aside>
       </div>
   );
 }
