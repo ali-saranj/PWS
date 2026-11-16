@@ -44,6 +44,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa" dir="rtl">
+      <head>
+        <script
+          src="https://cdn.kavenegar.com/sdk/page.js?appId=0b42b71e-bd07-404f-9b84-669c4d262228"
+          defer
+          charSet="utf-8"
+        />
+      </head>
       <body className="min-h-screen flex flex-col font-vazirmatn bg-gray-50 text-gray-900 selection:bg-primary/20 selection:text-primary-dark">
         <Header />
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
