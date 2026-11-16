@@ -225,7 +225,7 @@ openspec-archive-change # Archive completed change
 | Service | Address | Default Credentials / Context |
 | :--- | :--- | :--- |
 | **API Backend** | `http://localhost:8080` | Port 8080 (Embedded DB on 5433) |
-| **Admin Back-Office** | `http://localhost:5173` | **User**: `owner` / **Password**: `ChangeMe12345` / **Mobile**: `09120000000` |
+| **Admin Back-Office** | `http://localhost:5173` | **User**: `owner` / **Password**: `Ali1384ali` / **Mobile**: `09136978682` |
 | **Storefront** | `http://localhost:3000` | Any Iranian mobile number (e.g. `09121112233`) |
 | **SMS OTP in Dev** | Terminal console | `LoggingSmsSender` prints 6-digit OTP codes directly to the API terminal log. |
 | **Dev DB Reset** | Local disk | Stop API, run `rm -rf api/.devdb`, restart `./mvnw -q spring-boot:test-run` |

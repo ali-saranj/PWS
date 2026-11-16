@@ -142,13 +142,13 @@ async function run() {
     const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
     if (await usernameInput.isVisible() && await passwordInput.isVisible()) {
       await usernameInput.fill('owner');
-      await passwordInput.fill('ChangeMe12345');
+      await passwordInput.fill('Ali1384ali');
       const loginBtn = page.locator('button[type="submit"]');
       await loginBtn.click();
       await page.waitForTimeout(1500);
 
       // Staff OTP challenge
-      const staffOtp = getLatestOtp('09120000000');
+      const staffOtp = getLatestOtp('09136978682');
       console.log(`   Fetched Staff OTP code: ${staffOtp}`);
       if (staffOtp) {
         const otpField = page.locator('input[autocomplete="one-time-code"], input[inputmode="numeric"], input[type="text"]').first();

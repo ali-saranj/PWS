@@ -46,8 +46,8 @@ app:
   bootstrap:
     owner:
       username: owner
-      password: dev-owner-password
-      mobile: "09120000000"
+      password: Ali1384ali
+      mobile: "09136978682"
   zarinpal:
     merchant-id: dev-zarinpal-merchant-id-0123456789
     sandbox: true

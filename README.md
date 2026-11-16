@@ -83,8 +83,8 @@ cd api
 - **Default Seed Data**: Applies automatically (`api/src/main/resources/db/dev`) with categories, brands, variants, volume tiers, and initial stock.
 - **Default Staff Account**:
   - **Username**: `owner`
-  - **Password**: `ChangeMe12345`
-  - **Mobile**: `09120000000`
+  - **Password**: `Ali1384ali`
+  - **Mobile**: `09136978682`
 - **SMS OTP in Dev**: The `LoggingSmsSender` prints SMS verification codes directly to the API terminal log. Copy the OTP code from the console.
 
 > **Resetting Dev Data**: Stop the API process and run `rm -rf api/.devdb`.
@@ -110,7 +110,7 @@ npm run dev
 
 - **URL**: `http://localhost:5173`
 - Proxies `/api` and `/media` requests directly to `http://localhost:8080`.
-- Log in with `owner` / `ChangeMe12345`, then check the API console for the 6-digit OTP code.
+- Log in with `owner` / `Ali1384ali`, then check the API console for the 6-digit OTP code.
 
 ---
 
