@@ -190,6 +190,46 @@ Screenshots from the E2E run are saved to `docs/screenshots/e2e/`.
 
 ---
 
+## Production Deployment & SSL (HTTPS)
+
+PWS is configured for automated, zero-downtime HTTPS deployments via Docker Compose, Nginx, and Certbot (Let's Encrypt):
+
+### 1. Server Bootstrap (One-Time)
+Run on a fresh AlmaLinux / EL10 or Ubuntu / Debian server:
+```bash
+sudo bash deploy/setup-server.sh
+```
+This configures a 4GB swap file, anti-sanction DNS mirrors, container runtime (Docker / Podman), and firewall rules for ports `22`, `80`, and `443`.
+
+### 2. Configure Production Secrets
+```bash
+cp deploy/.env.prod.example deploy/.env.prod
+# Edit deploy/.env.prod with strong secrets, database passwords, and your CERTBOT_EMAIL:
+# APP_COOKIES_SECURE=true
+# CERTBOT_EMAIL=ali.saranj1384@gmail.com
+# APP_ZARINPAL_CALLBACK_URL=https://proteinirany.ir/api/shop/payments/zarinpal/callback
+```
+
+### 3. Bootstrap SSL Certificate (Initial Chicken-and-Egg Resolution)
+```bash
+# Test with Let's Encrypt Staging API first (optional):
+bash deploy/init-ssl.sh --staging
+
+# Issue genuine production certificate:
+bash deploy/init-ssl.sh
+```
+`init-ssl.sh` creates a temporary self-signed certificate allowing Nginx to boot on port 443, issues genuine certificates for `proteinirany.ir` and `www.proteinirany.ir` via ACME webroot (`/.well-known/acme-challenge/`), and reloads Nginx gracefully.
+
+### 4. Deploy & Verify Production Stack
+```bash
+bash deploy/deploy.sh
+```
+- **Port 80 (HTTP)**: Serves ACME challenges and Enamad verification file (`/13642013.txt`); permanently redirects (HTTP 301) all other traffic to `https://proteinirany.ir`.
+- **Port 443 (HTTPS)**: Modern TLSv1.2/1.3 termination, HSTS, `www` redirect to apex domain, and reverse proxying to Storefront (`:3000`), Admin SPA (`/admin/`), and API (`:8080`).
+- **Auto-Renewal**: The `pws-certbot` container checks for renewal every 12 hours, while `pws-nginx` reloads certificates periodically in the background without dropping active connections.
+
+---
+
 ## Specifications & Documentation
 
 - [Grocery & Deli Store Design Spec](file:///Users/ali/Documents/PWS/docs/superpowers/specs/2026-10-25-grocery-deli-store-design.md)
