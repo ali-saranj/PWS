@@ -3,6 +3,7 @@ package ir.pws.store.staff;
 import ir.pws.store.common.security.AuthCookies;
 import ir.pws.store.staff.dto.LoginChallenge;
 import ir.pws.store.staff.dto.LoginRequest;
+import ir.pws.store.staff.dto.LoginResponse;
 import ir.pws.store.staff.dto.StaffMe;
 import ir.pws.store.staff.dto.VerifyRequest;
 import jakarta.validation.Valid;
@@ -27,8 +28,16 @@ public class StaffAuthController {
     }
 
     @PostMapping("/login")
-    public LoginChallenge login(@Valid @RequestBody LoginRequest request) {
-        return auth.login(request.username(), request.password());
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        StaffAuthService.LoginResult result = auth.login(request.username(), request.password());
+        if (result.isDirect()) {
+            StaffAuthService.Session session = result.session();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookies.staffAccess(session.accessToken()).toString())
+                    .header(HttpHeaders.SET_COOKIE, cookies.staffRefresh(session.refreshToken()).toString())
+                    .body(LoginResponse.direct(StaffMe.from(session.user(), session.accessToken())));
+        }
+        return ResponseEntity.ok(LoginResponse.challenge(result.challenge(), result.mobileMasked()));
     }
 
     @PostMapping("/verify")

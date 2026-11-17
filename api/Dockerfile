@@ -2,13 +2,12 @@
 FROM maven:3.9.9-eclipse-temurin-17 AS builder
 WORKDIR /build
 
-# Cache dependencies
-COPY pom.xml .
-RUN mvn dependency:go-offline -B -q
-
-# Copy source and build
-COPY src ./src
-RUN mvn clean package -DskipTests -B -q
+# If jar is pre-built, skip Maven build; otherwise build with offline fallback
+COPY . .
+RUN if [ ! -f target/store-api-*.jar ]; then \
+      mvn dependency:go-offline -B -q && \
+      (mvn clean package -DskipTests -B -q -o || mvn clean package -DskipTests -B -q); \
+    fi
 
 FROM eclipse-temurin:17-jre-jammy AS runner
 WORKDIR /app

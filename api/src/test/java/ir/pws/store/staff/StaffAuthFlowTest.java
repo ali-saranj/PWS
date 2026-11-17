@@ -145,6 +145,28 @@ class StaffAuthFlowTest extends IntegrationTest {
     }
 
     @Test
+    void login_whenSmsUnavailable_fallsBackToDirectLogin() throws Exception {
+        StaffUser u = adminAuth.createStaff(StaffRole.OWNER);
+        sms.failNext(true);
+
+        MvcResult loggedIn = login(u.getUsername(), AdminAuth.PASSWORD)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.staff.id").value(u.getId()))
+                .andExpect(jsonPath("$.staff.username").value(u.getUsername()))
+                .andExpect(jsonPath("$.staff.role").value("OWNER"))
+                .andExpect(jsonPath("$.challenge").doesNotExist())
+                .andExpect(header().stringValues("Set-Cookie", org.hamcrest.Matchers.hasItems(
+                        containsString("pws_admin_at="), containsString("pws_admin_rt="))))
+                .andReturn();
+
+        String at = cookieValue(loggedIn, AuthCookies.STAFF_ACCESS);
+        mvc.perform(get("/api/admin/auth/me")
+                        .cookie(new Cookie(AuthCookies.STAFF_ACCESS, at)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(u.getId()));
+    }
+
+    @Test
     void wrongPassword_isGenericUnauthenticated() throws Exception {
         StaffUser u = adminAuth.createStaff(StaffRole.OWNER);
         ObjectNode wrongPassword = (ObjectNode) body(login(u.getUsername(), WRONG)

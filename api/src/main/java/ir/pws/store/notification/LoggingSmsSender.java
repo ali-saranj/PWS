@@ -17,9 +17,13 @@ public class LoggingSmsSender implements SmsSender {
     private static final Logger log = LoggerFactory.getLogger(LoggingSmsSender.class);
 
     private final List<SentSms> sent = new CopyOnWriteArrayList<>();
+    private volatile boolean fail;
 
     @Override
     public void send(String mobile, SmsTemplate template, List<String> tokens) {
+        if (fail) {
+            throw new SmsException("Simulated SMS failure (e.g. out of credit)");
+        }
         log.info("SMS (not sent, logging provider) to={} template={} tokens={}", mobile, template, tokens);
         sent.add(new SentSms(mobile, template, List.copyOf(tokens)));
     }
@@ -28,7 +32,12 @@ public class LoggingSmsSender implements SmsSender {
         return List.copyOf(sent);
     }
 
+    public void failNext(boolean fail) {
+        this.fail = fail;
+    }
+
     public void clear() {
         sent.clear();
+        fail = false;
     }
 }

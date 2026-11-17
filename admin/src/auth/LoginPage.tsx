@@ -26,9 +26,13 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: () => login(username.trim(), password),
-    onSuccess: (c) => {
-      setChallenge(c)
-      setCode('')
+    onSuccess: (res) => {
+      if (res.staff) {
+        signIn(res.staff)
+      } else if (res.challenge && res.mobileMasked) {
+        setChallenge({ challenge: res.challenge, mobileMasked: res.mobileMasked })
+        setCode('')
+      }
     },
   })
   const verifyMutation = useMutation({

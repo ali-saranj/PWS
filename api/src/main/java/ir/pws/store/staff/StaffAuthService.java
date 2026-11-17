@@ -19,6 +19,8 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -35,8 +37,25 @@ public class StaffAuthService {
     static final int MAX_FAILURES = 5;
     public static final int MAX_PASSWORD_BYTES = 72;
 
+    private static final Logger log = LoggerFactory.getLogger(StaffAuthService.class);
+
     /** The authenticated staff member plus the freshly issued raw tokens (the refresh token is never stored raw). */
     public record Session(StaffUser user, String accessToken, String refreshToken) {}
+
+    /** Result of staff login: either a 2FA challenge (normal) or a direct session (when SMS is unavailable). */
+    public record LoginResult(String challenge, String mobileMasked, Session session) {
+        public static LoginResult challenge(String challenge, String mobileMasked) {
+            return new LoginResult(challenge, mobileMasked, null);
+        }
+
+        public static LoginResult direct(Session session) {
+            return new LoginResult(null, null, session);
+        }
+
+        public boolean isDirect() {
+            return session != null;
+        }
+    }
 
     private final StaffUserRepository staff;
     private final RefreshTokenRepository refreshTokens;
@@ -79,14 +98,26 @@ public class StaffAuthService {
      * holds a row lock on the staff user (so parallel guesses are serialised and all counted) and always commits;
      * errors are thrown only after that commit, and the OTP is issued outside it.
      */
-    public LoginChallenge login(String username, String password) {
+    public LoginResult login(String username, String password) {
         Attempt attempt = tx.execute(s -> attempt(username == null ? "" : username.trim().toLowerCase(java.util.Locale.ROOT), password));
         switch (attempt.outcome()) {
             case LOCKED -> throw new ApiException(ErrorCode.RATE_LIMITED);
             case BAD_CREDENTIALS -> throw new ApiException(ErrorCode.UNAUTHENTICATED);
             default -> {
-                otp.issue(attempt.mobile(), OtpPurpose.STAFF_LOGIN);
-                return new LoginChallenge(jwt.staffChallenge(attempt.staffId()), MobileNumbers.mask(attempt.mobile()));
+                StaffUser user = staff.findById(attempt.staffId())
+                        .filter(StaffUser::isActive)
+                        .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHENTICATED));
+                try {
+                    otp.issue(attempt.mobile(), OtpPurpose.STAFF_LOGIN);
+                    return LoginResult.challenge(jwt.staffChallenge(attempt.staffId()), MobileNumbers.mask(attempt.mobile()));
+                } catch (ApiException e) {
+                    if (e.code() == ErrorCode.SMS_UNAVAILABLE) {
+                        log.warn("Staff SMS OTP failed due to SMS_UNAVAILABLE (e.g. no credit/service down). Falling back to direct login for user: {}", user.getUsername());
+                        audit.recordFor(user.getId(), "STAFF_LOGIN", "STAFF_USER", user.getId(), null, null);
+                        return LoginResult.direct(newSession(user));
+                    }
+                    throw e;
+                }
             }
         }
     }

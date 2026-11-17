@@ -79,4 +79,15 @@ describe('LoginPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Back' }))
     expect(await screen.findByLabelText('Username')).toHaveValue('owner')
   })
+
+  it('direct login when SMS is unavailable navigates directly to / without step 2', async () => {
+    server.use(
+      http.post('/api/admin/auth/login', () => HttpResponse.json({ staff: owner })),
+    )
+    const { router } = renderRoutes('/login', null)
+    await fillStep1()
+    expect(await screen.findByText('Welcome, Main Owner')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.queryByLabelText('Verification code')).not.toBeInTheDocument()
+  })
 })

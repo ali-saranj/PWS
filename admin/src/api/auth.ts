@@ -1,12 +1,12 @@
-import type { LoginChallenge, StaffMe } from './types'
+import type { LoginResponse, StaffMe } from './types'
 import { apiFetch } from './client'
 
 export function csrf(): Promise<void> {
   return apiFetch<void>('/api/admin/auth/csrf')
 }
 
-export function login(username: string, password: string): Promise<LoginChallenge> {
-  return apiFetch<LoginChallenge>('/api/admin/auth/login', { method: 'POST', json: { username, password } })
+export function login(username: string, password: string): Promise<LoginResponse> {
+  return apiFetch<LoginResponse>('/api/admin/auth/login', { method: 'POST', json: { username, password } })
 }
 
 export function verify(challenge: string, code: string): Promise<StaffMe> {

@@ -20,6 +20,11 @@ export interface LoginChallenge {
   challenge: string
   mobileMasked: string
 }
+export interface LoginResponse {
+  challenge?: string
+  mobileMasked?: string
+  staff?: StaffMe
+}
 export interface VerifyRequest {
   challenge: string
   code: string
