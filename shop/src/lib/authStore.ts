@@ -45,6 +45,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (get().customer && get().isAuthenticated) {
       return get().customer;
     }
+    // Search bots are never logged in; skipping prevents unwanted 401 XHR errors during crawl inspection
+    if (
+      typeof navigator !== 'undefined' &&
+      /Googlebot|Google-InspectionTool|bingbot|Baiduspider|YandexBot|DuckDuckBot/i.test(
+        navigator.userAgent
+      )
+    ) {
+      return null;
+    }
     set({ isLoading: true, error: null });
     try {
       const customer = await api.get<Customer>('/api/shop/auth/me');
