@@ -243,6 +243,9 @@ export const Footer: React.FC = () => {
               src="https://trustseal.enamad.ir/logo.aspx?id=8617111&Code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
               alt="نماد اعتماد الکترونیکی"
               className="w-16 h-16 sm:w-20 sm:h-20 object-contain cursor-pointer"
+              loading="lazy"
+              width={80}
+              height={80}
             />
           </a>
         </div>

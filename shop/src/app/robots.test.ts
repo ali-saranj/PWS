@@ -10,7 +10,12 @@ describe('robots metadata route', () => {
     const rules = Array.isArray(res.rules) ? res.rules : [res.rules];
     const wildcardRule = rules.find((r) => r.userAgent === '*');
     expect(wildcardRule).toBeDefined();
-    expect(wildcardRule?.allow).toBe('/');
+    const allowRules = Array.isArray(wildcardRule?.allow)
+      ? wildcardRule?.allow
+      : [wildcardRule?.allow];
+    expect(allowRules).toEqual(
+      expect.arrayContaining(['/', '/api/shop/catalog/', '/api/shop/auth/me'])
+    );
     expect(wildcardRule?.disallow).toEqual(
       expect.arrayContaining([
         '/profile',
