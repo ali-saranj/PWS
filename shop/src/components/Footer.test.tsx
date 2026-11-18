@@ -35,7 +35,10 @@ describe('Footer component', () => {
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute(
       'href',
-      'https://trustseal.enamad.ir/?id=8617111&Code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt'
+      'https://trustseal.enamad.ir/?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt'
     );
+    expect(link).toHaveAttribute('referrerpolicy', 'origin');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).not.toHaveAttribute('rel', expect.stringContaining('noreferrer'));
   });
 });

@@ -231,8 +231,8 @@ export const Footer: React.FC = () => {
           <a
             referrerPolicy="origin"
             target="_blank"
-            rel="noopener noreferrer"
-            href="https://trustseal.enamad.ir/?id=8617111&Code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
+            rel="noopener"
+            href="https://trustseal.enamad.ir/?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
             className="inline-flex items-center justify-center p-2.5 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-gray-100 group"
             title="نماد اعتماد الکترونیکی سبد سبز (پروتئین ایرانی)"
             aria-label="نماد اعتماد الکترونیکی"
@@ -240,7 +240,7 @@ export const Footer: React.FC = () => {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               referrerPolicy="origin"
-              src="https://trustseal.enamad.ir/logo.aspx?id=8617111&Code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
+              src="https://trustseal.enamad.ir/logo.aspx?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
               alt="نماد اعتماد الکترونیکی"
               className="w-16 h-16 sm:w-20 sm:h-20 object-contain cursor-pointer"
               loading="lazy"
