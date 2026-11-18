@@ -8,6 +8,9 @@ import { generateOrganizationSchema, generateWebSiteSchema } from '@/lib/jsonLd'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND.domain),
+  alternates: {
+    canonical: '/',
+  },
   title: {
     default: BRAND.titleFa,
     template: `%s | ${BRAND.nameFa}`,
