@@ -16,6 +16,21 @@ import {
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
+  const [enamadSrc, setEnamadSrc] = React.useState('/images/enamad.png');
+
+  React.useEffect(() => {
+    const isCrawler =
+      typeof navigator !== 'undefined' &&
+      /Googlebot|Google-InspectionTool|bingbot|Baiduspider|YandexBot|DuckDuckBot/i.test(
+        navigator.userAgent
+      );
+    if (!isCrawler) {
+      setEnamadSrc(
+        'https://trustseal.enamad.ir/logo.aspx?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt'
+      );
+    }
+  }, []);
+
   const trustBadges = [
     {
       icon: ShieldCheck,
@@ -240,12 +255,13 @@ export const Footer: React.FC = () => {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               referrerPolicy="origin"
-              src="https://trustseal.enamad.ir/logo.aspx?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
+              src={enamadSrc}
               alt="نماد اعتماد الکترونیکی"
               className="w-16 h-16 sm:w-20 sm:h-20 object-contain cursor-pointer"
               loading="lazy"
               width={80}
               height={80}
+              onError={() => setEnamadSrc('/images/enamad.png')}
             />
           </a>
         </div>

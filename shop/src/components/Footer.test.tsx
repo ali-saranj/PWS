@@ -29,7 +29,7 @@ describe('Footer component', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders enamad trust seal badge', () => {
+  it('renders enamad trust seal badge for regular browsers', () => {
     render(<Footer />);
     const link = screen.getByRole('link', { name: /نماد اعتماد الکترونیکی/i });
     expect(link).toBeInTheDocument();
@@ -40,5 +40,32 @@ describe('Footer component', () => {
     expect(link).toHaveAttribute('referrerpolicy', 'origin');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', expect.stringContaining('noreferrer'));
+
+    const img = screen.getByAltText(/نماد اعتماد الکترونیکی/i);
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute(
+      'src',
+      'https://trustseal.enamad.ir/logo.aspx?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt'
+    );
+  });
+
+  it('keeps local enamad badge for search engine crawlers (Googlebot)', () => {
+    const originalUserAgent = navigator.userAgent;
+    try {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        configurable: true,
+      });
+
+      render(<Footer />);
+      const img = screen.getByAltText(/نماد اعتماد الکترونیکی/i);
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute('src', '/images/enamad.png');
+    } finally {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: originalUserAgent,
+        configurable: true,
+      });
+    }
   });
 });
