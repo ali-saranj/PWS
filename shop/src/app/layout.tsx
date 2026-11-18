@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BottomNav } from '@/components/BottomNav';
 import { BRAND } from '@/config/branding';
+import { generateOrganizationSchema, generateWebSiteSchema } from '@/lib/jsonLd';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND.domain),
@@ -42,9 +43,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const organizationSchema = generateOrganizationSchema();
+  const websiteSchema = generateWebSiteSchema();
+
   return (
     <html lang="fa" dir="rtl">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteSchema),
+          }}
+        />
         <script
           src="https://cdn.kavenegar.com/sdk/page.js?appId=0b42b71e-bd07-404f-9b84-669c4d262228"
           defer

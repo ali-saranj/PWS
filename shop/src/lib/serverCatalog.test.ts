@@ -7,6 +7,7 @@ import {
   fetchBrandBySlug,
   fetchCategories,
   fetchCategoryBySlug,
+  fetchSitemapEntries,
   BrandItem,
   CategoryItem,
   CategoryDetail,
@@ -340,5 +341,39 @@ describe('serverCatalog API client', () => {
     } as Response);
     const notFound = await fetchCategoryBySlug('invalid');
     expect(notFound).toBeNull();
+  });
+
+  it('fetchSitemapEntries aggregates products, categories, and brands with graceful fallback', async () => {
+    global.fetch = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('/api/shop/catalog/products')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            content: [{ slug: 'sausage-frankfurter' }],
+          }),
+        } as Response;
+      }
+      if (url.includes('/api/shop/catalog/categories')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => [{ slug: 'sausages' }],
+        } as Response;
+      }
+      if (url.includes('/api/shop/catalog/brands')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => [{ slug: 'andre' }],
+        } as Response;
+      }
+      return { ok: false, status: 500 } as Response;
+    });
+
+    const entries = await fetchSitemapEntries();
+    expect(entries.products).toEqual([{ slug: 'sausage-frankfurter' }]);
+    expect(entries.categories).toEqual([{ slug: 'sausages' }]);
+    expect(entries.brands).toEqual([{ slug: 'andre' }]);
   });
 });

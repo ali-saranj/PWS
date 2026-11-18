@@ -300,3 +300,36 @@ export async function fetchBrandBySlug(slug: string): Promise<BrandItem | null> 
     return null;
   }
 }
+
+export interface SitemapCatalogEntries {
+  products: Array<{ slug: string }>;
+  categories: Array<{ slug: string }>;
+  brands: Array<{ slug: string }>;
+}
+
+export async function fetchSitemapEntries(): Promise<SitemapCatalogEntries> {
+  try {
+    const [productsResult, categoriesResult, brandsResult] = await Promise.allSettled([
+      fetchCatalogProducts({ size: 1000 }),
+      fetchCategories(),
+      fetchBrands(),
+    ]);
+
+    const products =
+      productsResult.status === 'fulfilled'
+        ? productsResult.value.content.map((p) => ({ slug: p.slug }))
+        : [];
+    const categories =
+      categoriesResult.status === 'fulfilled'
+        ? categoriesResult.value.map((c) => ({ slug: c.slug }))
+        : [];
+    const brands =
+      brandsResult.status === 'fulfilled'
+        ? brandsResult.value.map((b) => ({ slug: b.slug }))
+        : [];
+
+    return { products, categories, brands };
+  } catch (err) {
+    return { products: [], categories: [], brands: [] };
+  }
+}

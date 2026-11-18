@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import ProductDetailPage from './[slug]/page';
+import ProductDetailPage, { generateMetadata } from './[slug]/page';
 import { useCartStore } from '@/lib/cartStore';
 
 describe('ProductDetailPage (PDP)', () => {
@@ -13,7 +13,7 @@ describe('ProductDetailPage (PDP)', () => {
   });
 
   it('renders PDP with product details, variants, volume tiers, breadcrumbs, and tabs', async () => {
-    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+    render(await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-turkey-ham-90' }) }));
 
     await waitFor(() => {
       const breadcrumbNav = screen.getByRole('navigation', { name: /مسیر راهنما/i });
@@ -50,7 +50,7 @@ describe('ProductDetailPage (PDP)', () => {
   });
 
   it('switching variants updates selected price, portion label, and stock status', async () => {
-    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+    render(await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-turkey-ham-90' }) }));
 
     await waitFor(() => {
       expect(screen.getAllByText(/۲۵۰ گرم اسلایس/i).length).toBeGreaterThan(0);
@@ -74,7 +74,7 @@ describe('ProductDetailPage (PDP)', () => {
   });
 
   it('highlights the active qualifying tier when quantity reaches volume threshold', async () => {
-    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+    render(await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-turkey-ham-90' }) }));
 
     await waitFor(() => {
       expect(screen.getByText(/تخفیف پلکانی و خرید عمده/i)).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe('ProductDetailPage (PDP)', () => {
   });
 
   it('changing quantity and clicking "افزودن به سبد خرید" adds item with correct quantity to useCartStore', async () => {
-    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+    render(await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-turkey-ham-90' }) }));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { level: 1, name: /ژامبون بوقلمون ۹۰٪ آندره/i })).toBeInTheDocument();
@@ -118,7 +118,7 @@ describe('ProductDetailPage (PDP)', () => {
   });
 
   it('handles out-of-stock products gracefully with disabled add to cart', async () => {
-    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-bulgarian-smoked' })} />);
+    render(await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-bulgarian-smoked' }) }));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { level: 1, name: /سوسیس بلغاری دودی/i })).toBeInTheDocument();
@@ -192,7 +192,7 @@ describe('ProductDetailPage (PDP)', () => {
       });
     });
 
-    render(<ProductDetailPage params={Promise.resolve({ slug: 'real-salami-slug' })} />);
+    render(await ProductDetailPage({ params: Promise.resolve({ slug: 'real-salami-slug' }) }));
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { level: 1, name: /سالامی ممتاز واقعی/i })).toBeInTheDocument();
@@ -208,7 +208,7 @@ describe('ProductDetailPage (PDP)', () => {
   });
 
   it('renders 3-column layout on desktop, dedicated Buy Box card, and mobile sticky action bar', async () => {
-    render(<ProductDetailPage params={Promise.resolve({ slug: 'andre-turkey-ham-90' })} />);
+    render(await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-turkey-ham-90' }) }));
 
     await waitFor(() => {
       expect(screen.getByTestId('gallery-container')).toBeInTheDocument();
@@ -230,5 +230,44 @@ describe('ProductDetailPage (PDP)', () => {
 
     const cartItems = useCartStore.getState().items;
     expect(cartItems.length).toBeGreaterThan(0);
+  });
+
+  it('generates dynamic SEO metadata including title, canonical URL, and OpenGraph', async () => {
+    const meta = await generateMetadata({
+      params: Promise.resolve({ slug: 'andre-turkey-ham-90' }),
+    });
+
+    expect(meta.title).toBe('ژامبون بوقلمون ۹۰٪ آندره | آندره');
+    expect(meta.description).toContain('ژامبون بوقلمون');
+    expect(meta.alternates?.canonical).toBe(
+      'https://proteinirany.ir/products/andre-turkey-ham-90'
+    );
+    expect(meta.openGraph?.url).toBe(
+      'https://proteinirany.ir/products/andre-turkey-ham-90'
+    );
+    expect(meta.openGraph?.siteName).toBe('پروتئین ایرانی');
+    expect(meta.twitter?.card).toBe('summary_large_image');
+  });
+
+  it('injects JSON-LD scripts for Product and BreadcrumbList schemas', async () => {
+    const { container } = render(
+      await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-turkey-ham-90' }) })
+    );
+
+    const scriptTags = Array.from(
+      container.querySelectorAll('script[type="application/ld+json"]')
+    );
+    expect(scriptTags.length).toBe(2);
+
+    const parsed = scriptTags.map((s) => JSON.parse(s.textContent || '{}'));
+    const productSchema = parsed.find((p) => p['@type'] === 'Product');
+    const breadcrumbSchema = parsed.find((p) => p['@type'] === 'BreadcrumbList');
+
+    expect(productSchema).toBeDefined();
+    expect(productSchema.name).toBe('ژامبون بوقلمون ۹۰٪ آندره');
+    expect(productSchema.offers.priceCurrency).toBe('IRR');
+
+    expect(breadcrumbSchema).toBeDefined();
+    expect(breadcrumbSchema.itemListElement.length).toBeGreaterThanOrEqual(3);
   });
 });

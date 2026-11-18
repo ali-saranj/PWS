@@ -6,11 +6,11 @@ Defines the unified brand identity, contact channels, order code prefixes, and c
 ## Requirements
 
 ### Requirement: Storefront Metadata and SEO Identity
-The storefront SHALL specify the brand name "پروتئین ایرانی" and primary domain "http://proteinirany.ir" across HTML document titles, meta descriptions, and OpenGraph tags.
+The storefront SHALL specify the brand name "پروتئین ایرانی" and primary secure domain "https://proteinirany.ir" across HTML document titles, meta descriptions, OpenGraph tags, and metadataBase configuration.
 
 #### Scenario: Root layout metadata
 - **WHEN** a customer loads the storefront home page
-- **THEN** the document title includes "پروتئین ایرانی" and the meta description references the specialized protein deli catalog.
+- **THEN** the document title includes "پروتئین ایرانی", metadataBase points to "https://proteinirany.ir", and the meta description references the specialized protein deli catalog.
 
 #### Scenario: Search input placeholder
 - **WHEN** a user views the search bar in the storefront header
