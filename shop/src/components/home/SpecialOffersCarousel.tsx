@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Flame, Plus, Check, ArrowLeft, Percent, ShoppingBag } from 'lucide-react';
-import { useCartStore } from '@/lib/cartStore';
-import { formatToman, toPersianDigits } from '@/lib/format';
+import { Flame, ArrowLeft } from 'lucide-react';
+import { ProductCard } from '@/components/ProductCard';
 
 export interface ProductItem {
   id: number;
@@ -95,27 +94,6 @@ export const SpecialOffersCarousel: React.FC<SpecialOffersCarouselProps> = ({
   products = DEFAULT_SPECIAL_OFFERS,
 }) => {
   const items = products && products.length > 0 ? products : DEFAULT_SPECIAL_OFFERS;
-  const addItem = useCartStore((state) => state.addItem);
-  const [addedIds, setAddedIds] = useState<Record<number, boolean>>({});
-
-  const handleAddToCart = (product: ProductItem) => {
-    const effectiveVariantId = product.defaultVariantId || product.variantId || product.id * 10;
-    addItem({
-      id: `prod-${product.id}`,
-      productId: product.id,
-      variantId: effectiveVariantId,
-      name: product.nameFa,
-      variantName: product.weightLabel || 'بسته استاندارد',
-      priceToman: product.priceToman,
-      imageUrl: product.thumbnailUrl,
-      quantity: 1,
-    });
-
-    setAddedIds((prev) => ({ ...prev, [product.id]: true }));
-    setTimeout(() => {
-      setAddedIds((prev) => ({ ...prev, [product.id]: false }));
-    }, 1200);
-  };
 
   return (
     <section className="py-6" aria-label="پیشنهادهای شگفت‌انگیز">
@@ -152,114 +130,9 @@ export const SpecialOffersCarousel: React.FC<SpecialOffersCarouselProps> = ({
 
         {/* Product Cards Row / Horizontal Scroll */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto pb-2">
-          {items.map((prod) => {
-            const isAdded = !!addedIds[prod.id];
-            const discount =
-              prod.discountPercent ||
-              (prod.compareAtPriceToman && prod.compareAtPriceToman > prod.priceToman
-                ? Math.round(
-                    ((prod.compareAtPriceToman - prod.priceToman) /
-                      prod.compareAtPriceToman) *
-                      100
-                  )
-                : 20);
-
-            return (
-              <div
-                key={prod.id}
-                className="bg-white rounded-2xl p-3 sm:p-4 border border-rose-100/80 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative"
-              >
-                {/* Discount Badge */}
-                <div className="absolute top-2.5 right-2.5 z-10">
-                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-600 text-white text-xs font-extrabold shadow-sm">
-                    <Percent className="w-2.5 h-2.5" />
-                    <span>٪{toPersianDigits(discount)}</span>
-                  </span>
-                </div>
-
-                {/* Thumbnail */}
-                <Link
-                  href={`/product/${prod.slug}`}
-                  className="block relative w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3 group-hover:opacity-90 transition-opacity"
-                >
-                  {prod.thumbnailUrl ? (
-                    <img
-                      src={prod.thumbnailUrl}
-                      alt={prod.nameFa}
-                      className="w-full h-full object-contain p-2"
-                      loading="lazy"
-                      onError={(e) => {
-                        // Fallback placeholder styling
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
-                  ) : null}
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-300 -z-0">
-                    <ShoppingBag className="w-10 h-10 stroke-[1.2]" />
-                  </div>
-                </Link>
-
-                {/* Details */}
-                <div className="space-y-1.5 flex-1 flex flex-col justify-between">
-                  <div>
-                    {prod.brandNameFa && (
-                      <span className="text-[11px] font-medium text-gray-400 block">
-                        {prod.brandNameFa}
-                      </span>
-                    )}
-                    <Link
-                      href={`/product/${prod.slug}`}
-                      className="text-xs sm:text-sm font-bold text-gray-800 line-clamp-2 hover:text-primary transition-colors leading-tight"
-                      title={prod.nameFa}
-                    >
-                      {prod.nameFa}
-                    </Link>
-                    {prod.weightLabel && (
-                      <span className="text-[11px] text-gray-500 block pt-1">
-                        {prod.weightLabel}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Price */}
-                  <div className="pt-2">
-                    {prod.compareAtPriceToman && (
-                      <div className="text-xs text-gray-400 line-through">
-                        {formatToman(prod.compareAtPriceToman)} تومان
-                      </div>
-                    )}
-                    <div className="flex items-baseline gap-1 text-primary font-black text-sm sm:text-base">
-                      <span>{formatToman(prod.priceToman)}</span>
-                      <span className="text-[11px] font-medium text-gray-500">تومان</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Direct Add To Cart Button */}
-                <button
-                  type="button"
-                  onClick={() => handleAddToCart(prod)}
-                  className={`mt-3 w-full py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm ${
-                    isAdded
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-primary hover:bg-primary-dark text-white'
-                  }`}
-                >
-                  {isAdded ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>افزوده شد</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      <span>افزودن به سبد</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            );
-          })}
+          {items.map((prod) => (
+            <ProductCard key={prod.id} product={prod} />
+          ))}
         </div>
       </div>
     </section>
