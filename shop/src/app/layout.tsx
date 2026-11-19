@@ -69,6 +69,11 @@ export default function RootLayout({
           defer
           charSet="utf-8"
         />
+        <script
+          src="https://tabapay.ir/payments/trust"
+          type="text/javascript"
+          async
+        />
       </head>
       <body className="min-h-screen flex flex-col font-vazirmatn bg-gray-50 text-gray-900 selection:bg-primary/20 selection:text-primary-dark">
         <Header />

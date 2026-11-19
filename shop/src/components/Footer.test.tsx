@@ -68,4 +68,21 @@ describe('Footer component', () => {
       });
     }
   });
+
+  it('renders tabapay trust badge container and link', () => {
+    render(<Footer />);
+    const tabapayContainer = document.getElementById('TabaPayLogo');
+    expect(tabapayContainer).toBeInTheDocument();
+
+    const tabapayLink = screen.getByRole('link', { name: /لوگو تاباپی/i });
+    expect(tabapayLink).toBeInTheDocument();
+    expect(tabapayLink).toHaveAttribute(
+      'href',
+      'https://tabapay.ir/payments/trust/proteinirany.ir'
+    );
+
+    const tabapayImg = screen.getByAltText(/لوگو تاباپی/i);
+    expect(tabapayImg).toBeInTheDocument();
+    expect(tabapayImg).toHaveAttribute('src', '/images/tabapay.png');
+  });
 });

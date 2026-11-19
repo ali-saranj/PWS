@@ -17,6 +17,7 @@ import {
 
 export const Footer: React.FC = () => {
   const [enamadSrc, setEnamadSrc] = React.useState('/images/enamad.png');
+  const [tabapaySrc, setTabapaySrc] = React.useState('/images/tabapay.png');
 
   React.useEffect(() => {
     const isCrawler =
@@ -28,6 +29,29 @@ export const Footer: React.FC = () => {
       setEnamadSrc(
         'https://trustseal.enamad.ir/logo.aspx?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt'
       );
+
+      const domain =
+        typeof window !== 'undefined'
+          ? window.location.hostname
+              .split('.')
+              .reverse()
+              .splice(0, 2)
+              .reverse()
+              .join('.') || 'proteinirany.ir'
+          : 'proteinirany.ir';
+
+      fetch(`https://tabapay.ir/payments/check/?${new URLSearchParams({ domain })}`)
+        .then((res) => (res.ok ? res.text() : ''))
+        .then((data) => {
+          if (data && data.trim()) {
+            setTabapaySrc(data.trim());
+          } else {
+            setTabapaySrc('https://tabapay.ir/assets/images/payment_logo/Namad.png');
+          }
+        })
+        .catch(() => {
+          setTabapaySrc('/images/tabapay.png');
+        });
     }
   }, []);
 
@@ -50,7 +74,7 @@ export const Footer: React.FC = () => {
     {
       icon: CreditCard,
       title: 'پرداخت امن با کلیه کارت‌های شتاب',
-      desc: 'درگاه پرداخت شاپرک و زرین‌پال',
+      desc: 'درگاه پرداخت شاپرک و تاباپی',
     },
   ];
 
@@ -241,7 +265,7 @@ export const Footer: React.FC = () => {
           کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین {BRAND.nameFa} می‌باشد. © ۲۰۲۶
         </p>
 
-        {/* Certificates & Enamad */}
+        {/* Certificates & Enamad & TabaPay */}
         <div className="flex items-center gap-4">
           <a
             referrerPolicy="origin"
@@ -264,6 +288,47 @@ export const Footer: React.FC = () => {
               onError={() => setEnamadSrc('/images/enamad.png')}
             />
           </a>
+
+          {/* TabaPay Trust Badge */}
+          <div id="TabaPayLogo" className="inline-flex">
+            <a
+              referrerPolicy="origin"
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://tabapay.ir/payments/trust/proteinirany.ir"
+              onClick={(e) => {
+                e.preventDefault();
+                const domain =
+                  typeof window !== 'undefined'
+                    ? window.location.hostname
+                        .split('.')
+                        .reverse()
+                        .splice(0, 2)
+                        .reverse()
+                        .join('.') || 'proteinirany.ir'
+                    : 'proteinirany.ir';
+                window.open(
+                  `https://tabapay.ir/payments/trust/${domain}`,
+                  'tabapay_trust',
+                  'width=450,height=600,scrollbars=no,resizable=no'
+                );
+              }}
+              className="inline-flex items-center justify-center p-2.5 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-gray-100 group"
+              title="تاییدیه درگاه پرداخت تاباپی"
+              aria-label="لوگو تاباپی"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={tabapaySrc}
+                alt="لوگو تاباپی"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain cursor-pointer"
+                loading="lazy"
+                width={80}
+                height={80}
+                onError={() => setTabapaySrc('/images/tabapay.png')}
+              />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
