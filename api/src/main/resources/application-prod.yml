@@ -32,6 +32,12 @@ app:
       username: ${APP_BOOTSTRAP_OWNER_USERNAME}
       password: ${APP_BOOTSTRAP_OWNER_PASSWORD}
       mobile: ${APP_BOOTSTRAP_OWNER_MOBILE}
+  payment:
+    active-gateway: ${APP_PAYMENT_ACTIVE_GATEWAY:TABAPAY}
+  tabapay:
+    merchant-id: ${APP_TABAPAY_MERCHANT_ID:sandbox-merchant-id-0123456789}
+    sandbox: ${APP_TABAPAY_SANDBOX:true}
+    callback-url: ${APP_TABAPAY_CALLBACK_URL:http://localhost:8080/api/shop/payments/callback}
   zarinpal:
     merchant-id: ${APP_ZARINPAL_MERCHANT_ID:sandbox-merchant-id-0123456789}
     sandbox: ${APP_ZARINPAL_SANDBOX:true}

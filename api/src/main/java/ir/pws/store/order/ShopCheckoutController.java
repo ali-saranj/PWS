@@ -33,15 +33,39 @@ public class ShopCheckoutController {
         return checkoutService.checkout(principal.customerId(), request);
     }
 
+    @GetMapping("/payments/callback")
+    public PaymentCallbackResponse handleCallback(
+            @RequestParam(value = "token", required = false) String token,
+            @RequestParam(value = "Authority", required = false) String authority,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "Status", required = false) String uppercaseStatus,
+            @RequestParam(value = "responseCode", required = false) Integer responseCode) {
+        String authorityOrToken = token != null && !token.isBlank() ? token : authority;
+        String resolvedStatus = status != null && !status.isBlank() ? status : uppercaseStatus;
+        return checkoutService.handlePaymentCallback(authorityOrToken, resolvedStatus, responseCode);
+    }
+
+    @PostMapping("/payments/callback")
+    public PaymentCallbackResponse handleCallbackPost(
+            @RequestParam(value = "token", required = false) String token,
+            @RequestParam(value = "Authority", required = false) String authority,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "Status", required = false) String uppercaseStatus,
+            @RequestParam(value = "responseCode", required = false) Integer responseCode) {
+        String authorityOrToken = token != null && !token.isBlank() ? token : authority;
+        String resolvedStatus = status != null && !status.isBlank() ? status : uppercaseStatus;
+        return checkoutService.handlePaymentCallback(authorityOrToken, resolvedStatus, responseCode);
+    }
+
     @GetMapping("/payments/zarinpal/callback")
-    public PaymentCallbackResponse handleCallbackGet(
+    public PaymentCallbackResponse handleZarinpalCallbackGet(
             @RequestParam("Authority") String authority,
             @RequestParam("Status") String status) {
         return checkoutService.handlePaymentCallback(authority, status);
     }
 
     @PostMapping("/payments/zarinpal/callback")
-    public PaymentCallbackResponse handleCallbackPost(
+    public PaymentCallbackResponse handleZarinpalCallbackPost(
             @RequestParam("Authority") String authority,
             @RequestParam("Status") String status) {
         return checkoutService.handlePaymentCallback(authority, status);

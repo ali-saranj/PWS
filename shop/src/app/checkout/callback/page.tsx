@@ -26,8 +26,11 @@ interface CallbackResult {
 
 function PaymentCallbackContent() {
   const searchParams = useSearchParams();
+  const token = searchParams.get('token') || '';
   const authority = searchParams.get('Authority') || '';
-  const statusParam = searchParams.get('Status') || '';
+  const tokenOrAuth = token || authority;
+  const statusParam = searchParams.get('status') || searchParams.get('Status') || '';
+  const responseCode = searchParams.get('responseCode');
 
   const [isLoading, setIsLoading] = useState(true);
   const [result, setResult] = useState<CallbackResult | null>(null);
@@ -36,8 +39,12 @@ function PaymentCallbackContent() {
     let isMounted = true;
 
     async function verifyPayment() {
-      // If user cancelled or gateway returned NOK immediately
-      if (statusParam.toUpperCase() === 'NOK') {
+      // If user cancelled or gateway returned failure immediately
+      if (
+        statusParam.toUpperCase() === 'NOK' ||
+        statusParam.toLowerCase() === 'error' ||
+        (responseCode !== null && responseCode !== '1')
+      ) {
         if (isMounted) {
           setResult({
             success: false,
@@ -48,10 +55,11 @@ function PaymentCallbackContent() {
         return;
       }
 
-      // If status is OK (or no status was sent), verify with backend
+      // Verify with unified backend payment callback endpoint
       try {
-        const query = new URLSearchParams({
-          Authority: authority,
+        const query = searchParams.toString() || new URLSearchParams({
+          token: tokenOrAuth,
+          Authority: tokenOrAuth,
           Status: statusParam || 'OK',
         }).toString();
 
@@ -61,7 +69,7 @@ function PaymentCallbackContent() {
           orderNumber?: string;
           refId?: string;
           message?: string;
-        }>(`/api/shop/payments/zarinpal/callback?${query}`);
+        }>(`/api/shop/payments/callback?${query}`);
 
         if (isMounted) {
           if (data && data.success && data.trackingCode && data.orderNumber) {
@@ -71,7 +79,7 @@ function PaymentCallbackContent() {
               success: true,
               trackingCode: data.trackingCode,
               orderNumber: data.orderNumber,
-              refId: data.refId || authority,
+              refId: data.refId || tokenOrAuth,
             });
           } else {
             setResult({

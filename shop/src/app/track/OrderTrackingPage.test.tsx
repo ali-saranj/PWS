@@ -33,7 +33,7 @@ describe('Task 12: Payment Callback & Real-Time Order Tracking', () => {
       );
 
       global.fetch = vi.fn().mockImplementation((url: string) => {
-        if (url.includes('/api/shop/payments/zarinpal/callback')) {
+        if (url.includes('/api/shop/payments/')) {
           return Promise.resolve({
             ok: true,
             status: 200,
@@ -114,7 +114,7 @@ describe('Task 12: Payment Callback & Real-Time Order Tracking', () => {
       );
 
       global.fetch = vi.fn().mockImplementation((url: string) => {
-        if (url.includes('/api/shop/payments/zarinpal/callback')) {
+        if (url.includes('/api/shop/payments/')) {
           return Promise.resolve({
             ok: false,
             status: 500,
@@ -140,6 +140,70 @@ describe('Task 12: Payment Callback & Real-Time Order Tracking', () => {
       // Does not synthesize fake tracking codes or claim success
       expect(screen.queryByText(/پرداخت با موفقیت انجام شد/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/TRK-/i)).not.toBeInTheDocument();
+      expect(useCartStore.getState().items).toHaveLength(1);
+    });
+
+    it('handles TabaPay successful callback with token and responseCode=1', async () => {
+      vi.spyOn(navigation, 'useSearchParams').mockReturnValue(
+        new URLSearchParams('token=05d3f1d4-taba-token&status=success&responseCode=1&amount=10000000')
+      );
+
+      global.fetch = vi.fn().mockImplementation((url: string) => {
+        if (url.includes('/api/shop/payments/')) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  success: true,
+                  trackingCode: 'TRK-TABA-777',
+                  orderNumber: 'PI-TABA-100',
+                  refId: 'SHAPARAK-123456',
+                })
+              ),
+            json: () =>
+              Promise.resolve({
+                success: true,
+                trackingCode: 'TRK-TABA-777',
+                orderNumber: 'PI-TABA-100',
+                refId: 'SHAPARAK-123456',
+              }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve('{}'),
+          json: () => Promise.resolve({}),
+        });
+      });
+
+      render(<PaymentCallbackPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/پرداخت با موفقیت انجام شد/i)).toBeInTheDocument();
+      });
+
+      expect(useCartStore.getState().items).toHaveLength(0);
+      expect(screen.getByText(/PI-TABA-100/i)).toBeInTheDocument();
+      expect(screen.getByText(/TRK-TABA-777/i)).toBeInTheDocument();
+      expect(screen.getByText(/SHAPARAK-123456/i)).toBeInTheDocument();
+    });
+
+    it('renders failure alert when TabaPay returns responseCode=-1', async () => {
+      vi.spyOn(navigation, 'useSearchParams').mockReturnValue(
+        new URLSearchParams('token=05d3f1d4-taba-token&status=error&responseCode=-1')
+      );
+
+      render(<PaymentCallbackPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/تراکنش ناموفق بود یا توسط کاربر لغو شد/i)
+        ).toBeInTheDocument();
+      });
+
       expect(useCartStore.getState().items).toHaveLength(1);
     });
   });

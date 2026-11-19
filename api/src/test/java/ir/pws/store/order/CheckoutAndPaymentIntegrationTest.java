@@ -69,6 +69,7 @@ class CheckoutAndPaymentIntegrationTest extends IntegrationTest {
 
     @DynamicPropertySource
     static void zarinpalProperties(DynamicPropertyRegistry registry) {
+        registry.add("app.payment.active-gateway", () -> "ZARINPAL");
         registry.add("app.zarinpal.base-url", () -> "http://localhost:" + wireMockServer.port() + "/pg/v4/payment");
     }
 

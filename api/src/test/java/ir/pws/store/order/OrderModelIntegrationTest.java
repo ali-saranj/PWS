@@ -286,6 +286,65 @@ class OrderModelIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    @DisplayName("Payment gateway check constraint accepts ZARINPAL and TABAPAY, rejects unsupported gateways")
+    void paymentGatewayCheckConstraint() {
+        Order order = orderRepository.saveAndFlush(new Order(
+                "PWS-050805-GWTEST",
+                "TRK-GW-1",
+                customer.getId(),
+                "Tehran",
+                "Tehran",
+                "Address",
+                "1234567890",
+                "Ali Rezai",
+                "09123456789",
+                shippingMethod.getId(),
+                shippingMethod.getNameFa(),
+                0L,
+                10_000_000L,
+                0L,
+                10_000_000L,
+                OrderStatus.PENDING_PAYMENT,
+                null,
+                null,
+                false,
+                Instant.now(),
+                null
+        ));
+
+        // TABAPAY is accepted
+        Payment tabapayPayment = new Payment(
+                order.getId(),
+                "TABAPAY",
+                10_000_000L,
+                "AUTH-TABAPAY-TOKEN-1",
+                PaymentStatus.INITIATED,
+                null,
+                null,
+                null,
+                null
+        );
+        Payment savedTabapay = paymentRepository.saveAndFlush(tabapayPayment);
+        assertThat(savedTabapay.getId()).isNotNull();
+        assertThat(savedTabapay.getGateway()).isEqualTo("TABAPAY");
+
+        // Unsupported gateway is rejected by DB constraint
+        Payment invalidPayment = new Payment(
+                order.getId(),
+                "UNSUPPORTED_GW",
+                10_000_000L,
+                "AUTH-INVALID-GW",
+                PaymentStatus.INITIATED,
+                null,
+                null,
+                null,
+                null
+        );
+        assertThatThrownBy(() -> paymentRepository.saveAndFlush(invalidPayment))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
     @DisplayName("Test StockReservation queries and available stock calculation")
     void stockReservationCalculations() {
         Instant now = Instant.now();

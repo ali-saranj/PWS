@@ -48,6 +48,12 @@ app:
       username: owner
       password: Ali1384ali
       mobile: "09136978682"
+  payment:
+    active-gateway: TABAPAY
+  tabapay:
+    merchant-id: dev-tabapay-merchant-id-0123456789
+    sandbox: true
+    callback-url: http://localhost:8080/api/shop/payments/callback
   zarinpal:
     merchant-id: dev-zarinpal-merchant-id-0123456789
     sandbox: true

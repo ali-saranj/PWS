@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
-public class ZarinpalClient {
+public class ZarinpalClient implements PaymentGateway {
 
     private static final Logger log = LoggerFactory.getLogger(ZarinpalClient.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -104,7 +104,19 @@ public class ZarinpalClient {
         }
     }
 
-    public PaymentVerifyResult verifyPayment(long amountRials, String authority) {
+    @Override
+    public String gatewayName() {
+        return "ZARINPAL";
+    }
+
+    @Override
+    public PaymentInitiateResult initiatePayment(long amountRials, String description, String mobile, String callbackUrl) {
+        PaymentRequestResult res = requestPayment(amountRials, description, mobile, callbackUrl);
+        return new PaymentInitiateResult(res.authority(), res.paymentUrl());
+    }
+
+    @Override
+    public ir.pws.store.order.PaymentVerifyResult verifyPayment(long amountRials, String authority) {
         String targetUrl = baseUrl + "/verify.json";
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("merchant_id", config.merchantId());
@@ -127,14 +139,14 @@ public class ZarinpalClient {
             if (code == 100 || code == 101) {
                 String refId = data.path("ref_id").asText();
                 String cardPan = data.hasNonNull("card_pan") ? data.path("card_pan").asText() : null;
-                return new PaymentVerifyResult(true, code, refId, cardPan, null);
+                return ir.pws.store.order.PaymentVerifyResult.success(refId, cardPan, responseString);
             }
             String message = data.hasNonNull("message") ? data.path("message").asText() : root.path("errors").toString();
             log.warn("Zarinpal verifyPayment returned failure code: {} with message: {}", code, message);
-            return new PaymentVerifyResult(false, code, null, null, message);
+            return ir.pws.store.order.PaymentVerifyResult.failure(message, responseString);
         } catch (Exception e) {
             log.error("Zarinpal verifyPayment call failed", e);
-            return new PaymentVerifyResult(false, -1, null, null, e.getMessage());
+            return ir.pws.store.order.PaymentVerifyResult.failure(e.getMessage(), null);
         }
     }
 

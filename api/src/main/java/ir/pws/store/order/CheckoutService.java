@@ -60,7 +60,7 @@ public class CheckoutService {
     private final CustomerRepository customerRepository;
     private final AddressRepository addressRepository;
     private final StockLedger stockLedger;
-    private final ZarinpalClient zarinpalClient;
+    private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final SmsSender smsSender;
     private final AppProperties props;
     private final Clock clock;
@@ -78,7 +78,7 @@ public class CheckoutService {
             CustomerRepository customerRepository,
             AddressRepository addressRepository,
             StockLedger stockLedger,
-            ZarinpalClient zarinpalClient,
+            PaymentGatewayRegistry paymentGatewayRegistry,
             SmsSender smsSender,
             AppProperties props,
             Clock clock) {
@@ -94,7 +94,7 @@ public class CheckoutService {
         this.customerRepository = customerRepository;
         this.addressRepository = addressRepository;
         this.stockLedger = stockLedger;
-        this.zarinpalClient = zarinpalClient;
+        this.paymentGatewayRegistry = paymentGatewayRegistry;
         this.smsSender = smsSender;
         this.props = props;
         this.clock = clock;
@@ -262,10 +262,11 @@ public class CheckoutService {
                 "ثبت سفارش"
         ));
 
-        // Call Zarinpal gateway
+        // Call active payment gateway
+        PaymentGateway gateway = paymentGatewayRegistry.getActiveGateway();
         String description = "پرداخت سفارش " + order.getOrderNumber();
-        String callbackUrl = props.zarinpal().callbackUrl();
-        ZarinpalClient.PaymentRequestResult paymentRequest = zarinpalClient.requestPayment(
+        String callbackUrl = resolveCallbackUrl(gateway.gatewayName());
+        PaymentInitiateResult initiateResult = gateway.initiatePayment(
                 total,
                 description,
                 customer.getMobile(),
@@ -274,9 +275,9 @@ public class CheckoutService {
 
         Payment payment = new Payment(
                 order.getId(),
-                "ZARINPAL",
+                gateway.gatewayName(),
                 total,
-                paymentRequest.authority(),
+                initiateResult.trackingToken(),
                 PaymentStatus.INITIATED,
                 null,
                 null,
@@ -288,14 +289,23 @@ public class CheckoutService {
         return new CheckoutResponse(
                 order.getOrderNumber(),
                 order.getTrackingCode(),
-                paymentRequest.paymentUrl(),
-                paymentRequest.authority()
+                initiateResult.paymentUrl(),
+                initiateResult.trackingToken()
         );
     }
 
     @Transactional
     public PaymentCallbackResponse handlePaymentCallback(String authority, String status) {
-        Payment payment = paymentRepository.findByAuthorityForUpdate(authority)
+        return handlePaymentCallback(authority, status, null);
+    }
+
+    @Transactional
+    public PaymentCallbackResponse handlePaymentCallback(String authorityOrToken, String status, Integer responseCode) {
+        if (authorityOrToken == null || authorityOrToken.isBlank()) {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
+
+        Payment payment = paymentRepository.findByAuthorityForUpdate(authorityOrToken)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
         Order order = orderRepository.findById(payment.getOrderId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -305,16 +315,17 @@ public class CheckoutService {
             return new PaymentCallbackResponse(true, order.getTrackingCode(), order.getOrderNumber(), payment.getRefId());
         }
 
-        if (!"OK".equalsIgnoreCase(status)) {
+        if (!isSuccessStatus(payment.getGateway(), status, responseCode)) {
             payment.setStatus(PaymentStatus.FAILED);
             paymentRepository.save(payment);
             return new PaymentCallbackResponse(false, order.getTrackingCode(), order.getOrderNumber(), null);
         }
 
-        ZarinpalClient.PaymentVerifyResult verifyResult = zarinpalClient.verifyPayment(payment.getAmount(), authority);
+        PaymentGateway gateway = paymentGatewayRegistry.getGateway(payment.getGateway());
+        PaymentVerifyResult verifyResult = gateway.verifyPayment(payment.getAmount(), authorityOrToken);
         if (!verifyResult.success()) {
             payment.setStatus(PaymentStatus.FAILED);
-            payment.setRawResponse(verifyResult.message());
+            payment.setRawResponse(verifyResult.errorMessage() != null ? verifyResult.errorMessage() : verifyResult.rawResponse());
             paymentRepository.save(payment);
             return new PaymentCallbackResponse(false, order.getTrackingCode(), order.getOrderNumber(), null);
         }
@@ -323,6 +334,7 @@ public class CheckoutService {
         payment.setStatus(PaymentStatus.PAID);
         payment.setRefId(verifyResult.refId());
         payment.setCardPanMasked(verifyResult.cardPanMasked());
+        payment.setRawResponse(verifyResult.rawResponse());
         paymentRepository.save(payment);
 
         OrderStatus fromStatus = order.getStatus();
@@ -494,5 +506,28 @@ public class CheckoutService {
             }
         }
         return sb.toString();
+    }
+
+    private boolean isSuccessStatus(String gateway, String statusParam, Integer responseCode) {
+        if ("TABAPAY".equalsIgnoreCase(gateway)) {
+            if (responseCode != null && responseCode != 1) {
+                return false;
+            }
+            return statusParam == null || "success".equalsIgnoreCase(statusParam) || "OK".equalsIgnoreCase(statusParam);
+        }
+        return "OK".equalsIgnoreCase(statusParam) || "success".equalsIgnoreCase(statusParam);
+    }
+
+    private String resolveCallbackUrl(String gatewayName) {
+        if ("TABAPAY".equalsIgnoreCase(gatewayName)) {
+            if (props.tabapay() != null && props.tabapay().callbackUrl() != null && !props.tabapay().callbackUrl().isBlank()) {
+                return props.tabapay().callbackUrl();
+            }
+        } else if ("ZARINPAL".equalsIgnoreCase(gatewayName)) {
+            if (props.zarinpal() != null && props.zarinpal().callbackUrl() != null && !props.zarinpal().callbackUrl().isBlank()) {
+                return props.zarinpal().callbackUrl();
+            }
+        }
+        return "http://localhost:8080/api/shop/payments/callback";
     }
 }

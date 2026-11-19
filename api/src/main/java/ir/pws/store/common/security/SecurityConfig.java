@@ -90,12 +90,14 @@ public class SecurityConfig {
                                 "/api/shop/auth/verify",
                                 "/api/shop/auth/refresh",
                                 "/api/shop/auth/logout",
+                                "/api/shop/payments/callback",
                                 "/api/shop/payments/zarinpal/callback")
                         .permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/shop/catalog/**",
                                 "/api/shop/orders/track/**",
+                                "/api/shop/payments/callback",
                                 "/api/shop/payments/zarinpal/callback")
                         .permitAll()
                         .requestMatchers(
