@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import {
   Search,
   ShoppingCart,
@@ -37,6 +37,8 @@ interface SearchSuggestion {
 
 export const Header: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
@@ -56,6 +58,14 @@ export const Header: React.FC = () => {
     setMounted(true);
     checkAuth();
   }, [checkAuth]);
+
+  // Synchronize search input with URL query when browsing /search
+  useEffect(() => {
+    if (pathname === '/search') {
+      const q = searchParams?.get('q') || '';
+      setSearchQuery(q);
+    }
+  }, [pathname, searchParams]);
 
   // Lock body scroll when mobile drawer is open
   useEffect(() => {

@@ -135,4 +135,41 @@ describe('SearchPage & Catalog Listing', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('reactively updates displayed query when search params change on navigation', async () => {
+    let currentParams = new URLSearchParams('q=سوسیس');
+    vi.spyOn(navigation, 'useSearchParams').mockImplementation(() => currentParams);
+
+    const { rerender } = render(<SearchPage searchParams={Promise.resolve({ q: 'سوسیس' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/«سوسیس»/i)).toBeInTheDocument();
+    });
+
+    // Simulate URL query change via navigation
+    currentParams = new URLSearchParams('q=کالباس');
+    rerender(<SearchPage searchParams={Promise.resolve({ q: 'سوسیس' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/«کالباس»/i)).toBeInTheDocument();
+    });
+  });
+
+  it('updates from empty query to populated query when search params update', async () => {
+    let currentParams = new URLSearchParams('');
+    vi.spyOn(navigation, 'useSearchParams').mockImplementation(() => currentParams);
+
+    const { rerender } = render(<SearchPage searchParams={Promise.resolve({ q: '' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/«همه محصولات»/i)).toBeInTheDocument();
+    });
+
+    currentParams = new URLSearchParams('q=سوسیس');
+    rerender(<SearchPage searchParams={Promise.resolve({ q: '' })} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/«سوسیس»/i)).toBeInTheDocument();
+    });
+  });
 });

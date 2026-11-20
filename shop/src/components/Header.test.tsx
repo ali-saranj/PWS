@@ -13,10 +13,15 @@ vi.mock('@/lib/api', () => ({
 }));
 
 const mockPush = vi.fn();
+let mockPathname = '/';
+let mockSearchParams = new URLSearchParams();
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  usePathname: () => mockPathname,
+  useSearchParams: () => mockSearchParams,
 }));
 
 describe('Header component', () => {
@@ -173,5 +178,17 @@ describe('Header component', () => {
     // Press Escape to dismiss
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByTestId('search-suggestions-dropdown')).not.toBeInTheDocument();
+  });
+
+  it('synchronizes search input with url query when active on /search page', () => {
+    mockPathname = '/search';
+    mockSearchParams = new URLSearchParams('q=ژامبون');
+
+    render(<Header />);
+    const searchInput = screen.getByPlaceholderText(
+      'جستجو در پروتئین ایرانی...'
+    ) as HTMLInputElement;
+
+    expect(searchInput.value).toBe('ژامبون');
   });
 });

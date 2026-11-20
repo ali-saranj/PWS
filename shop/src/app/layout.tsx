@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
 import { Header } from '@/components/Header';
@@ -76,7 +77,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col font-vazirmatn bg-gray-50 text-gray-900 selection:bg-primary/20 selection:text-primary-dark">
-        <Header />
+        <Suspense fallback={<div className="h-16 bg-white border-b border-gray-100 shadow-sm" />}>
+          <Header />
+        </Suspense>
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
         <Footer />
         <BottomNav />

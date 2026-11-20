@@ -64,16 +64,13 @@ const FALLBACK_SEARCH_PRODUCTS: CatalogProduct[] = [
 ];
 
 interface SearchPageProps {
-  searchParams?: Promise<{ q?: string; sort?: string; [key: string]: string | string[] | undefined }>;
+  params?: Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function SearchPageContent({
-  searchParamsPromise,
-}: {
-  searchParamsPromise?: SearchPageProps['searchParams'];
-}) {
-  const nextSearchParams = useSearchParams();
-  const [resolvedQuery, setResolvedQuery] = useState<string>('');
+function SearchPageContent() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q')?.trim() || '';
   const [products, setProducts] = useState<CatalogProduct[]>(FALLBACK_SEARCH_PRODUCTS);
   const [loading, setLoading] = useState(false);
   const [sort, setSort] = useState<SortOptionKey>('newest');
@@ -86,38 +83,12 @@ function SearchPageContent({
     maxPrice: null,
   });
 
-  // Resolve search query from searchParamsPromise or useSearchParams
-  useEffect(() => {
-    let active = true;
-
-    if (searchParamsPromise) {
-      if (typeof (searchParamsPromise as any)?.then === 'function') {
-        searchParamsPromise.then((resolved) => {
-          if (active) {
-            setResolvedQuery(resolved?.q || '');
-          }
-        });
-      } else {
-        const resolved = searchParamsPromise as unknown as { q?: string };
-        setResolvedQuery(resolved?.q || '');
-      }
-    } else {
-      const q = nextSearchParams?.get('q') || '';
-      setResolvedQuery(q);
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [searchParamsPromise, nextSearchParams]);
-
-  // Fetch or fallback products
+  // Fetch or fallback products reactively on query change
   useEffect(() => {
     let isCancelled = false;
 
     const fetchSearchResults = async () => {
       setLoading(true);
-      const query = resolvedQuery.trim();
 
       try {
         const res = await api.get<{ items?: any[]; content?: any[] }>(
@@ -157,7 +128,7 @@ function SearchPageContent({
     return () => {
       isCancelled = true;
     };
-  }, [resolvedQuery]);
+  }, [query]);
 
   // Apply filters and sorting
   const filteredAndSortedProducts = useMemo(() => {
@@ -209,12 +180,12 @@ function SearchPageContent({
       result.sort((a, b) => a.priceToman - b.priceToman);
     } else if (sort === 'price_desc') {
       result.sort((a, b) => b.priceToman - a.priceToman);
-    } else if (!resolvedQuery) {
+    } else if (!query) {
       result.sort((a, b) => b.id - a.id);
     }
 
     return result;
-  }, [products, filters, sort]);
+  }, [products, filters, sort, query]);
 
   return (
     <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -230,7 +201,7 @@ function SearchPageContent({
               <h1 className="text-lg sm:text-2xl font-black text-gray-900 flex items-center gap-2">
                 <span>نتایج جستجو برای:</span>
                 <span className="text-primary font-bold">
-                  «{resolvedQuery || 'همه محصولات'}»
+                  «{query || 'همه محصولات'}»
                 </span>
                 <span className="text-xs sm:text-sm text-gray-500 font-medium">
                   ({toPersianDigits(filteredAndSortedProducts.length)} کالا)
@@ -271,9 +242,9 @@ function SearchPageContent({
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
                   هیچ محصولی مطابق با جستجوی شما یافت نشد
                 </h3>
-                {resolvedQuery ? (
+                {query ? (
                   <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mb-4 leading-relaxed">
-                    متأسفانه برای عبارت «{resolvedQuery}» نتیجه‌ای پیدا نشد.
+                    متأسفانه برای عبارت «{query}» نتیجه‌ای پیدا نشد.
                   </p>
                 ) : (
                   <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mb-4 leading-relaxed">
@@ -316,7 +287,7 @@ function SearchPageContent({
   );
 }
 
-export default function SearchPage(props: SearchPageProps) {
+export default function SearchPage(_props: SearchPageProps) {
   return (
     <Suspense
       fallback={
@@ -325,7 +296,7 @@ export default function SearchPage(props: SearchPageProps) {
         </div>
       }
     >
-      <SearchPageContent searchParamsPromise={props.searchParams} />
+      <SearchPageContent />
     </Suspense>
   );
 }
