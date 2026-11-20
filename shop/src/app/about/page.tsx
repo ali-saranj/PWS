@@ -1,7 +1,16 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShieldCheck, Truck, Clock, Sparkles } from 'lucide-react';
 import { BRAND } from '@/config/branding';
+
+export const metadata: Metadata = {
+  title: `درباره ${BRAND.nameFa} | سوپرمارکت آنلاین پروتئینی`,
+  description: `آشنایی با فروشگاه اینترنتی ${BRAND.nameFa}، تأمین‌کننده مستقیم مرغوب‌ترین فرآورده‌های پروتئینی، سوسیس، کالباس و پنیر.`,
+  alternates: {
+    canonical: `${BRAND.domain}/about`,
+  },
+};
 
 export default function AboutPage() {
   return (

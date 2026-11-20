@@ -50,4 +50,9 @@ describe('CategoriesPage', () => {
 
     expect(screen.getByText(/در حال حاضر دسته‌بندی فعالی وجود ندارد/i)).toBeInTheDocument();
   });
+
+  it('exports explicit self-referential canonical metadata', async () => {
+    const { metadata } = await import('./page');
+    expect(metadata.alternates?.canonical).toBe('https://proteinirany.ir/categories');
+  });
 });

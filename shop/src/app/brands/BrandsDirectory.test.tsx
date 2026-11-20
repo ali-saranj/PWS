@@ -81,4 +81,9 @@ describe('BrandsDirectory Component', () => {
     fireEvent.change(searchInput, { target: { value: 'ناموجود' } });
     expect(screen.getByText(/برندی با این مشخصات یافت نشد/i)).toBeInTheDocument();
   });
+
+  it('exports explicit self-referential canonical metadata on brands page', async () => {
+    const { metadata } = await import('./page');
+    expect(metadata.alternates?.canonical).toBe('https://proteinirany.ir/brands');
+  });
 });

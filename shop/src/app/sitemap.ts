@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}`,
+      url: `${baseUrl}/`,
       lastModified: now,
       changeFrequency: 'daily',
       priority: 1.0,
@@ -62,14 +62,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     const categoryRoutes: MetadataRoute.Sitemap = categories.map((c) => ({
-      url: `${baseUrl}/category/${encodeURIComponent(c.slug)}`,
+      url: `${baseUrl}/products?categorySlug=${encodeURIComponent(c.slug)}`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.8,
     }));
 
     const brandRoutes: MetadataRoute.Sitemap = brands.map((b) => ({
-      url: `${baseUrl}/brands/${encodeURIComponent(b.slug)}`,
+      url: `${baseUrl}/products?brandSlug=${encodeURIComponent(b.slug)}`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.7,

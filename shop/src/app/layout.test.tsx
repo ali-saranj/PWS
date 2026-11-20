@@ -8,7 +8,7 @@ describe('RootLayout Metadata and Structured Data', () => {
   it('has https production domain in BRAND and metadataBase', () => {
     expect(BRAND.domain).toBe('https://proteinirany.ir');
     expect(metadata.metadataBase?.toString()).toBe('https://proteinirany.ir/');
-    expect(metadata.alternates?.canonical).toBe('/');
+    expect(metadata.alternates?.canonical).toBeUndefined();
   });
 
   it('contains Persian store titles and openGraph configuration', () => {

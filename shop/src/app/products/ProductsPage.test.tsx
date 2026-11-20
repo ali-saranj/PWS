@@ -1,13 +1,15 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import ProductsPage from './page';
+import ProductsPage, { generateMetadata } from './page';
 import * as serverCatalog from '@/lib/serverCatalog';
 
 vi.mock('@/lib/serverCatalog', () => ({
   fetchCatalogProducts: vi.fn(),
   fetchCategories: vi.fn(),
   fetchBrands: vi.fn(),
+  fetchCategoryBySlug: vi.fn(),
+  fetchBrandBySlug: vi.fn(),
 }));
 
 describe('ProductsPage Server Component', () => {
@@ -202,5 +204,45 @@ describe('ProductsPage Server Component', () => {
 
     const categoryButton = screen.getByRole('button', { name: /ژامبون و بیکن/i });
     expect(categoryButton.className).toContain('bg-primary');
+  });
+
+  describe('generateMetadata', () => {
+    it('returns default catalog metadata and canonical for unfiltered products', async () => {
+      const meta = await generateMetadata({ searchParams: Promise.resolve({}) });
+      expect(meta.title).toContain('همه محصولات');
+      expect(meta.alternates?.canonical).toBe('https://proteinirany.ir/products');
+    });
+
+    it('returns category title and canonical when categorySlug is present', async () => {
+      vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue({
+        id: 2,
+        slug: 'sausages',
+        nameFa: 'سوسیس و هات‌داگ',
+      } as any);
+
+      const meta = await generateMetadata({
+        searchParams: Promise.resolve({ categorySlug: 'sausages' }),
+      });
+      expect(meta.title).toContain('سوسیس و هات‌داگ');
+      expect(meta.alternates?.canonical).toBe(
+        'https://proteinirany.ir/products?categorySlug=sausages'
+      );
+    });
+
+    it('returns brand title and canonical when brandSlug is present', async () => {
+      vi.mocked(serverCatalog.fetchBrandBySlug).mockResolvedValue({
+        id: 10,
+        slug: 'andre',
+        nameFa: 'آندره',
+      } as any);
+
+      const meta = await generateMetadata({
+        searchParams: Promise.resolve({ brandSlug: 'andre' }),
+      });
+      expect(meta.title).toContain('آندره');
+      expect(meta.alternates?.canonical).toBe(
+        'https://proteinirany.ir/products?brandSlug=andre'
+      );
+    });
   });
 });

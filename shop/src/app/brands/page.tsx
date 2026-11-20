@@ -1,12 +1,16 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchBrands } from '@/lib/serverCatalog';
 import BrandsDirectory from './BrandsDirectory';
 import { BRAND } from '@/config/branding';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: `برندهای معتبر و ممتاز | ${BRAND.nameFa}`,
   description: `فهرست برندهای ممتاز و معتبر غذایی و پروتئینی در فروشگاه ${BRAND.nameFa}`,
+  alternates: {
+    canonical: `${BRAND.domain}/brands`,
+  },
 };
 
 export const dynamic = 'force-dynamic';

@@ -1,9 +1,19 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Flame } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
 import { Pagination } from '@/components/Pagination';
 import { fetchCatalogProducts } from '@/lib/serverCatalog';
+import { BRAND } from '@/config/branding';
+
+export const metadata: Metadata = {
+  title: `تخفیف‌ها و پیشنهادهای شگفت‌انگیز | ${BRAND.nameFa}`,
+  description: `مشاهده و خرید آنلاین محصولات تخفیف‌دار و پیشنهادات شگفت‌انگیز در فروشگاه ${BRAND.nameFa}`,
+  alternates: {
+    canonical: `${BRAND.domain}/discounts`,
+  },
+};
 
 interface DiscountsPageProps {
   searchParams?: Promise<{

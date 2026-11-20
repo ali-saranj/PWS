@@ -1,7 +1,16 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { BRAND } from '@/config/branding';
+
+export const metadata: Metadata = {
+  title: `تماس با ما | ${BRAND.nameFa}`,
+  description: `اطلاعات تماس، تلفن پشتیبانی و آدرس فروشگاه اینترنتی فرآورده‌های پروتئینی ${BRAND.nameFa}.`,
+  alternates: {
+    canonical: `${BRAND.domain}/contact`,
+  },
+};
 
 export default function ContactPage() {
   return (

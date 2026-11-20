@@ -54,4 +54,9 @@ describe('DiscountsPage Server Component', () => {
     expect(screen.getByText('سوسیس فرانکفورتر تخفیف‌دار')).toBeDefined();
     expect(screen.getByText('پیشنهادهای شگفت‌انگیز و تخفیف‌های ویژه')).toBeDefined();
   });
+
+  it('exports explicit self-referential canonical metadata', async () => {
+    const { metadata } = await import('./page');
+    expect(metadata.alternates?.canonical).toBe('https://proteinirany.ir/discounts');
+  });
 });

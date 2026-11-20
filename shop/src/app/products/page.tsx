@@ -1,11 +1,19 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { Pagination } from '@/components/Pagination';
 import { CatalogFilters } from '@/components/catalog/CatalogFilters';
-import { fetchCatalogProducts, fetchCategories, fetchBrands } from '@/lib/serverCatalog';
+import {
+  fetchCatalogProducts,
+  fetchCategories,
+  fetchBrands,
+  fetchCategoryBySlug,
+  fetchBrandBySlug,
+} from '@/lib/serverCatalog';
 import { FilterState } from '@/components/FilterSidebar';
 import { SortOptionKey } from '@/components/SortDropdown';
+import { BRAND } from '@/config/branding';
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -20,6 +28,121 @@ interface ProductsPageProps {
     sort?: string;
     page?: string;
   }>;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: ProductsPageProps): Promise<Metadata> {
+  const params = await searchParams;
+
+  const rawCatId = params.categoryId;
+  let categoryId: number | undefined = undefined;
+  let categorySlug: string | undefined = params.categorySlug;
+  if (rawCatId) {
+    const num = Number(rawCatId);
+    if (!Number.isNaN(num)) {
+      categoryId = num;
+    } else {
+      categorySlug = rawCatId;
+    }
+  }
+
+  const rawBrandId = params.brandId;
+  let brandId: number | undefined = undefined;
+  let brandSlug: string | undefined = params.brandSlug;
+  if (rawBrandId) {
+    const num = Number(rawBrandId);
+    if (!Number.isNaN(num)) {
+      brandId = num;
+    } else {
+      brandSlug = rawBrandId;
+    }
+  }
+
+  // 1. Category facet
+  if (categorySlug || categoryId !== undefined) {
+    let catName = '';
+    let resolvedSlug = categorySlug;
+    if (categorySlug) {
+      const cat = await fetchCategoryBySlug(categorySlug);
+      if (cat) {
+        catName = cat.nameFa;
+        resolvedSlug = cat.slug;
+      }
+    }
+    if (!catName && categoryId !== undefined) {
+      const allCats = await fetchCategories();
+      const match = allCats.find((c) => c.id === categoryId);
+      if (match) {
+        catName = match.nameFa;
+        resolvedSlug = match.slug;
+      }
+    }
+    const title = catName
+      ? `خرید و قیمت انواع ${catName} | ${BRAND.nameFa}`
+      : `محصولات دسته‌بندی | ${BRAND.nameFa}`;
+    const description = catName
+      ? `خرید آنلاین انواع ${catName} با بهترین کیفیت، تاریخ روز و ارسال سریع در ${BRAND.nameFa}`
+      : `مشاهده و خرید انواع فرآورده‌های پروتئینی در ${BRAND.nameFa}`;
+    const canonical = resolvedSlug
+      ? `${BRAND.domain}/products?categorySlug=${encodeURIComponent(resolvedSlug)}`
+      : `${BRAND.domain}/products`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical,
+      },
+    };
+  }
+
+  // 2. Brand facet
+  if (brandSlug || brandId !== undefined) {
+    let brandName = '';
+    let resolvedSlug = brandSlug;
+    if (brandSlug) {
+      const b = await fetchBrandBySlug(brandSlug);
+      if (b) {
+        brandName = b.nameFa;
+        resolvedSlug = b.slug;
+      }
+    }
+    if (!brandName && brandId !== undefined) {
+      const allBrands = await fetchBrands();
+      const match = allBrands.find((b) => b.id === brandId);
+      if (match) {
+        brandName = match.nameFa;
+        resolvedSlug = match.slug;
+      }
+    }
+    const title = brandName
+      ? `محصولات برند ${brandName} | ${BRAND.nameFa}`
+      : `محصولات برند | ${BRAND.nameFa}`;
+    const description = brandName
+      ? `خرید آنلاین انواع محصولات برند معتبر ${brandName} با تضمین اصالت و ارسال فوری در ${BRAND.nameFa}`
+      : `مشاهده محصولات برندهای معتبر در ${BRAND.nameFa}`;
+    const canonical = resolvedSlug
+      ? `${BRAND.domain}/products?brandSlug=${encodeURIComponent(resolvedSlug)}`
+      : `${BRAND.domain}/products`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical,
+      },
+    };
+  }
+
+  // 3. Default catalog
+  return {
+    title: `همه محصولات و فرآورده‌های پروتئینی | ${BRAND.nameFa}`,
+    description: `فروشگاه آنلاین تخصصی انواع سوسیس، کالباس، فرآورده‌های پروتئینی، پنیرها و چاشنی‌ها با بهترین قیمت و ارسال روز.`,
+    alternates: {
+      canonical: `${BRAND.domain}/products`,
+    },
+  };
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {

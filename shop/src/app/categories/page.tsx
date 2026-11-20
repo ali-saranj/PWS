@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   Layers,
@@ -16,9 +17,12 @@ import {
 import { fetchCategories, CategoryItem } from '@/lib/serverCatalog';
 import { BRAND } from '@/config/branding';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: `دسته‌بندی‌های محصولات | ${BRAND.nameFa}`,
   description: `انواع فرآورده‌های پروتئینی، لبنیات، چاشنی‌ها و اقلام مرغوب در فروشگاه ${BRAND.nameFa}`,
+  alternates: {
+    canonical: `${BRAND.domain}/categories`,
+  },
 };
 
 export const dynamic = 'force-dynamic';
