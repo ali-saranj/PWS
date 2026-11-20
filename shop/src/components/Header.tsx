@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -16,16 +16,33 @@ import {
   PackageCheck,
   PhoneCall,
   Info,
+  Loader2,
+  Package,
 } from 'lucide-react';
 import { useCartStore } from '@/lib/cartStore';
 import { useAuthStore } from '@/lib/authStore';
 import { BRAND } from '@/config/branding';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { CartDrawer } from './CartDrawer';
+import { api } from '@/lib/api';
+
+interface SearchSuggestion {
+  id: number;
+  slug: string;
+  nameFa: string;
+  thumbnailUrl?: string;
+  priceToman: number;
+  categoryNameFa?: string;
+}
 
 export const Header: React.FC = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -58,8 +75,85 @@ export const Header: React.FC = () => {
     0
   );
 
+  // Debounced live suggestion fetcher
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (trimmed.length < 2) {
+      setSuggestions([]);
+      setIsDropdownOpen(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsLoadingSuggestions(true);
+      try {
+        const data = await api.get<SearchSuggestion[]>(
+          `/api/shop/catalog/search/suggest?q=${encodeURIComponent(trimmed)}`
+        );
+        if (Array.isArray(data)) {
+          setSuggestions(data);
+          setIsDropdownOpen(true);
+          setHighlightedIndex(-1);
+        }
+      } catch {
+        // Ignore suggest fetch failure
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Click outside and Escape handler to dismiss dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isDropdownOpen || suggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) =>
+        prev < suggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) =>
+        prev > 0 ? prev - 1 : suggestions.length - 1
+      );
+    } else if (e.key === 'Enter') {
+      if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+        e.preventDefault();
+        const selected = suggestions[highlightedIndex];
+        setIsDropdownOpen(false);
+        router.push(`/products/${selected.slug}`);
+      }
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsDropdownOpen(false);
     if (searchQuery.trim()) {
       try {
         router?.push?.(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -122,12 +216,18 @@ export const Header: React.FC = () => {
           </Link>
 
           {/* Inline Search Bar (Single Row for Mobile and Desktop) */}
-          <div className="flex-1 max-w-2xl mx-1 sm:mx-4">
+          <div ref={searchContainerRef} className="flex-1 max-w-2xl mx-1 sm:mx-4 relative">
             <form onSubmit={handleSearch} className="relative flex items-center">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (suggestions.length > 0 && searchQuery.trim().length >= 2) {
+                    setIsDropdownOpen(true);
+                  }
+                }}
+                onKeyDown={handleInputKeyDown}
                 placeholder={`جستجو در ${BRAND.nameFa}...`}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-1.5 md:py-2.5 pr-3 md:pr-4 pl-8 md:pl-28 text-xs md:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
@@ -140,6 +240,81 @@ export const Header: React.FC = () => {
                 <span className="hidden md:inline">جستجو</span>
               </button>
             </form>
+
+            {/* Live Autocomplete Dropdown */}
+            {isDropdownOpen && (
+              <div
+                data-testid="search-suggestions-dropdown"
+                className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden z-50"
+              >
+                {isLoadingSuggestions ? (
+                  <div className="py-3 px-4 text-xs text-gray-500 text-center flex items-center justify-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    <span>در حال جستجو...</span>
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <div>
+                    <ul className="divide-y divide-gray-100 max-h-80 overflow-y-auto">
+                      {suggestions.map((item, idx) => (
+                        <li key={item.id}>
+                          <Link
+                            href={`/products/${item.slug}`}
+                            onClick={() => setIsDropdownOpen(false)}
+                            className={`flex items-center justify-between p-2.5 transition-colors ${
+                              highlightedIndex === idx
+                                ? 'bg-primary/5 text-primary'
+                                : 'hover:bg-gray-50 text-gray-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              {item.thumbnailUrl ? (
+                                <img
+                                  src={item.thumbnailUrl}
+                                  alt={item.nameFa}
+                                  className="w-9 h-9 rounded-lg object-cover bg-gray-50 flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                  <Package className="w-4 h-4 text-gray-400" />
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-xs md:text-sm font-medium truncate">
+                                  {item.nameFa}
+                                </p>
+                                {item.categoryNameFa && (
+                                  <span className="text-[11px] text-gray-400">
+                                    {item.categoryNameFa}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-left flex-shrink-0 mr-2">
+                              <span className="text-xs font-bold text-primary">
+                                {formatToman(item.priceToman)}
+                              </span>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="p-2 bg-gray-50 border-t border-gray-100 text-center">
+                      <Link
+                        href={`/search?q=${encodeURIComponent(searchQuery.trim())}`}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="text-xs font-semibold text-primary hover:underline block py-1"
+                      >
+                        مشاهده همه نتایج برای «{searchQuery.trim()}»
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-4 px-4 text-xs text-gray-500 text-center">
+                    نتیجه‌ای برای «{searchQuery.trim()}» پیدا نشد.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Desktop User actions: Login & Cart */}

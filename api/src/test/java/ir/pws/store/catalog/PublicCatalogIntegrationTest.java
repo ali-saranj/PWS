@@ -207,6 +207,88 @@ class PublicCatalogIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /api/shop/catalog/search ranks title match before description match")
+    void searchRanksTitleMatchBeforeDescriptionMatch() throws Exception {
+        // Product 1: Has "سوسیس آلمانی" in description only
+        long p1 = createProduct("bread-sandwich", "نان باگت", "Baguette",
+                "<p>مناسب برای ساندویچ سوسیس آلمانی</p>", childCategoryId, "ACTIVE", false);
+        createVariant(p1, "BREAD-01", 50_000L, null, 10, true, 0);
+
+        // Product 2: Has "سوسیس آلمانی" in nameFa
+        long p2 = createProduct("sausage-german", "سوسیس آلمانی ۷۰ درصد", "German Sausage 70%",
+                "<p>محصول باکیفیت پروتئینی</p>", childCategoryId, "ACTIVE", false);
+        createVariant(p2, "SAUSAGE-01", 300_000L, null, 10, true, 0);
+
+        // Query "سوسیس آلمانی" - sausage-german MUST come first despite p2 creation order
+        mvc.perform(get("/api/shop/catalog/search").param("q", "سوسیس آلمانی"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.items[0].slug").value("sausage-german"))
+                .andExpect(jsonPath("$.items[1].slug").value("bread-sandwich"));
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/search matches Arabic characters and ZWNJ half-space variants")
+    void searchMatchesArabicAndZwnjVariants() throws Exception {
+        // Product with Persian Kaf & Yeh: "کالباس مرغ"
+        long p1 = createProduct("chicken-ham", "کالباس مرغ اعلا", "Chicken Ham",
+                "<p>کالباس مرغ ممتاز</p>", childCategoryId, "ACTIVE", false);
+        createVariant(p1, "HAM-CHICKEN", 400_000L, null, 10, true, 0);
+
+        // Product with ZWNJ: "هات‌داگ پنیری"
+        long p2 = createProduct("hotdog-cheese", "هات\u200Cداگ پنیری", "Cheese Hotdog",
+                "<p>هات داگ با پنیر گودا</p>", childCategoryId, "ACTIVE", false);
+        createVariant(p2, "HOTDOG-CH", 250_000L, null, 10, true, 0);
+
+        // 1. Search with Arabic Kaf: "كالباس"
+        mvc.perform(get("/api/shop/catalog/search").param("q", "كالباس"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value("chicken-ham"));
+
+        // 2. Search with space instead of ZWNJ: "هات داگ"
+        mvc.perform(get("/api/shop/catalog/search").param("q", "هات داگ"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value("hotdog-cheese"));
+
+        // 3. Search joined: "هاتداگ"
+        mvc.perform(get("/api/shop/catalog/search").param("q", "هاتداگ"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value("hotdog-cheese"));
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/search falls back to OR matching when strict AND yields zero results")
+    void searchProgressiveFallbackMatchesTokensWhenStrictAndYieldsZero() throws Exception {
+        long p = createProduct("cocktail-sausage", "سوسیس کوکتل ممتاز", "Cocktail Sausage",
+                "<p>سوسیس گوشت</p>", childCategoryId, "ACTIVE", false);
+        createVariant(p, "COCKTAIL-01", 350_000L, null, 10, true, 0);
+
+        // "سوسیس کوکتل گیاهی" - "گیاهی" does not exist in any product, but "سوسیس" and "کوکتل" do
+        mvc.perform(get("/api/shop/catalog/search").param("q", "سوسیس کوکتل گیاهی"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].slug").value("cocktail-sausage"));
+    }
+
+    @Test
+    @DisplayName("GET /api/shop/catalog/search/suggest returns up to 6 quick suggestions")
+    void suggestEndpointReturnsQuickLightweightResults() throws Exception {
+        long p = createProduct("suggest-sausage", "سوسیس فرانکفورتر", "Frankfurter",
+                "<p>سوسیس تازه</p>", childCategoryId, "ACTIVE", false);
+        createVariant(p, "SUGG-01", 200_000L, null, 10, true, 0);
+
+        mvc.perform(get("/api/shop/catalog/search/suggest").param("q", "فرانکفورتر"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].slug").value("suggest-sausage"))
+                .andExpect(jsonPath("$[0].nameFa").value("سوسیس فرانکفورتر"))
+                .andExpect(jsonPath("$[0].priceToman").value(20_000L));
+    }
+
+    @Test
     @DisplayName("GET /api/shop/catalog/products/{slug} returns detail with breadcrumbs & variants, or 404")
     void productDetailReturnsVariantsTiersBreadcrumbsAnd404OnDraft() throws Exception {
         long p = createProduct("gold-whey", "وی گلد استاندارد", "Gold Standard Whey",

@@ -202,20 +202,16 @@ function SearchPageContent({
       result = result.filter((p) => p.priceToman <= filters.maxPrice!);
     }
 
-    // Sort
-    result.sort((a, b) => {
-      switch (sort) {
-        case 'popular':
-          return (b.totalStock ?? 0) - (a.totalStock ?? 0);
-        case 'price_asc':
-          return a.priceToman - b.priceToman;
-        case 'price_desc':
-          return b.priceToman - a.priceToman;
-        case 'newest':
-        default:
-          return b.id - a.id;
-      }
-    });
+    // Sort: Preserve API relevance order when searching with default 'newest' sort
+    if (sort === 'popular') {
+      result.sort((a, b) => (b.totalStock ?? 0) - (a.totalStock ?? 0));
+    } else if (sort === 'price_asc') {
+      result.sort((a, b) => a.priceToman - b.priceToman);
+    } else if (sort === 'price_desc') {
+      result.sort((a, b) => b.priceToman - a.priceToman);
+    } else if (!resolvedQuery) {
+      result.sort((a, b) => b.id - a.id);
+    }
 
     return result;
   }, [products, filters, sort]);
@@ -275,9 +271,21 @@ function SearchPageContent({
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
                   هیچ محصولی مطابق با جستجوی شما یافت نشد
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-                  پیشنهاد می‌کنیم املای کلمه را بررسی کرده یا فیلترهای اعمال‌شده را پاک کنید.
-                </p>
+                {resolvedQuery ? (
+                  <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mb-4 leading-relaxed">
+                    متأسفانه برای عبارت «{resolvedQuery}» نتیجه‌ای پیدا نشد.
+                  </p>
+                ) : (
+                  <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mb-4 leading-relaxed">
+                    هیچ محصولی با فیلترهای انتخابی شما یافت نشد.
+                  </p>
+                )}
+                <div className="bg-gray-50 rounded-xl p-4 max-w-sm mx-auto mb-6 text-right text-xs text-gray-600 space-y-1.5 border border-gray-100">
+                  <p className="font-semibold text-gray-700">راهنمای جستجو:</p>
+                  <p>• املای صحیح کلمات را بررسی کنید.</p>
+                  <p>• از کلمات عمومی‌تر یا کوتاه‌تر استفاده کنید (مثل «سوسیس»، «ژامبون»، «پنیر»).</p>
+                  <p>• فیلترهای اعمال‌شده را حذف کنید.</p>
+                </div>
                 <button
                   type="button"
                   onClick={() =>

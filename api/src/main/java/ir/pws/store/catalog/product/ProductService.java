@@ -11,6 +11,7 @@ import ir.pws.store.catalog.variant.VariantService;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.text.HtmlSanitizer;
+import ir.pws.store.common.text.PersianTextNormalizer;
 import ir.pws.store.common.text.Slugs;
 import ir.pws.store.common.web.PageResponse;
 import jakarta.persistence.criteria.Predicate;
@@ -152,13 +153,16 @@ public class ProductService {
         return (root, query, cb) -> {
             List<Predicate> ps = new ArrayList<>();
             if (q != null && !q.isBlank()) {
-                String like = "%" + q.trim().toLowerCase().replace("\\", "\\\\").replace("%", "\\%")
-                        .replace("_", "\\_") + "%";
-                ps.add(cb.or(
-                        cb.like(cb.lower(root.get("nameFa")), like, '\\'),
-                        cb.like(cb.lower(root.get("nameEn")), like, '\\'),
-                        cb.like(cb.lower(root.get("slug")), like, '\\'),
-                        cb.exists(skuMatch(root, query, cb, like))));
+                List<String> tokens = PersianTextNormalizer.tokenize(q);
+                for (String token : tokens) {
+                    String tokenPersian = PersianTextNormalizer.normalize(token);
+                    String tokenArabic = tokenPersian.replace('ک', 'ك').replace('ی', 'ي');
+                    Predicate tokenPred = matchAdminToken(root, query, cb, tokenPersian);
+                    if (!tokenPersian.equals(tokenArabic)) {
+                        tokenPred = cb.or(tokenPred, matchAdminToken(root, query, cb, tokenArabic));
+                    }
+                    ps.add(tokenPred);
+                }
             }
             if (status != null) {
                 ps.add(cb.equal(root.get("status"), status));
@@ -171,6 +175,17 @@ public class ProductService {
             }
             return cb.and(ps.toArray(Predicate[]::new));
         };
+    }
+
+    private static Predicate matchAdminToken(Root<Product> root, jakarta.persistence.criteria.CriteriaQuery<?> query,
+            jakarta.persistence.criteria.CriteriaBuilder cb, String token) {
+        String like = "%" + token.toLowerCase().replace("\\", "\\\\").replace("%", "\\%")
+                .replace("_", "\\_") + "%";
+        return cb.or(
+                cb.like(cb.lower(root.get("nameFa")), like, '\\'),
+                cb.like(cb.lower(cb.coalesce(root.get("nameEn"), "")), like, '\\'),
+                cb.like(cb.lower(root.get("slug")), like, '\\'),
+                cb.exists(skuMatch(root, query, cb, like)));
     }
 
     private static Subquery<Long> skuMatch(Root<Product> root, jakarta.persistence.criteria.CriteriaQuery<?> query,

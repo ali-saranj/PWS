@@ -1,8 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import { Header } from './Header';
 import { useCartStore } from '@/lib/cartStore';
 import { useAuthStore } from '@/lib/authStore';
+import { api } from '@/lib/api';
+
+vi.mock('@/lib/api', () => ({
+  api: {
+    get: vi.fn(),
+    post: vi.fn(),
+  },
+}));
 
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -13,7 +21,7 @@ vi.mock('next/navigation', () => ({
 
 describe('Header component', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     useCartStore.setState({
       items: [],
       isOpen: false,
@@ -132,5 +140,38 @@ describe('Header component', () => {
     expect(screen.getByText('درباره ما')).toBeInTheDocument();
     expect(screen.getByText('تماس با ما')).toBeInTheDocument();
     expect(screen.getByText(/تهران - ارسال سریع/)).toBeInTheDocument();
+  });
+
+  it('displays live autocomplete dropdown when typing search query', async () => {
+    const mockSuggestions = [
+      {
+        id: 101,
+        slug: 'sausage-cocktail',
+        nameFa: 'سوسیس کوکتل دودی',
+        priceToman: 180000,
+        thumbnailUrl: '/media/s.jpg',
+        categoryNameFa: 'سوسیس',
+      },
+    ];
+    vi.mocked(api.get).mockImplementation(async (url: string) => {
+      if (url.includes('/api/shop/catalog/search/suggest')) {
+        return mockSuggestions;
+      }
+      return null;
+    });
+
+    render(<Header />);
+    const searchInput = screen.getByPlaceholderText('جستجو در پروتئین ایرانی...');
+    fireEvent.change(searchInput, { target: { value: 'کوکتل' } });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-suggestions-dropdown')).toBeInTheDocument();
+      expect(screen.getByText('سوسیس کوکتل دودی')).toBeInTheDocument();
+      expect(screen.getByText(/۱۸۰,۰۰۰/)).toBeInTheDocument();
+    });
+
+    // Press Escape to dismiss
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByTestId('search-suggestions-dropdown')).not.toBeInTheDocument();
   });
 });

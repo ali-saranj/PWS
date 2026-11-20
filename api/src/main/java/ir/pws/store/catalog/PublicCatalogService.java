@@ -12,6 +12,7 @@ import ir.pws.store.catalog.dto.ProductDetailResponse.StorefrontImageDto;
 import ir.pws.store.catalog.dto.ProductDetailResponse.StorefrontVariantDto;
 import ir.pws.store.catalog.dto.ProductDetailResponse.VolumeTierDto;
 import ir.pws.store.catalog.dto.ProductSummaryResponse;
+import ir.pws.store.catalog.dto.SearchSuggestionDto;
 import ir.pws.store.catalog.image.ProductImageService;
 import ir.pws.store.catalog.product.Product;
 import ir.pws.store.catalog.product.ProductRepository;
@@ -23,10 +24,12 @@ import ir.pws.store.catalog.variant.VolumeTierRepository;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
 import ir.pws.store.common.text.Digits;
+import ir.pws.store.common.text.PersianTextNormalizer;
 import ir.pws.store.common.web.PageResponse;
 import ir.pws.store.config.AppProperties;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
@@ -245,11 +248,42 @@ public class PublicCatalogService {
         int pageSize = Math.min(Math.max(size, 1), 100);
         Pageable pageable = PageRequest.of(pageIndex, pageSize);
 
-        Specification<Product> spec = buildSearchSpec(q);
-        Page<Product> productPage = products.findAll(spec, pageable);
-        List<ProductSummaryResponse> items = mapToSummaries(productPage.getContent());
+        if (q == null || q.isBlank()) {
+            Specification<Product> spec = buildSearchSpec(q, false);
+            Page<Product> productPage = products.findAll(spec, pageable);
+            return PageResponse.of(productPage, mapToSummaries(productPage.getContent()));
+        }
 
+        // 1. Strict AND search
+        Specification<Product> andSpec = buildSearchSpec(q, false);
+        Page<Product> productPage = products.findAll(andSpec, pageable);
+
+        // 2. Progressive fallback to OR search if strict AND produced 0 results
+        List<String> tokens = PersianTextNormalizer.tokenize(q);
+        if (productPage.getTotalElements() == 0 && tokens.size() > 1) {
+            Specification<Product> orSpec = buildSearchSpec(q, true);
+            productPage = products.findAll(orSpec, pageable);
+        }
+
+        List<ProductSummaryResponse> items = mapToSummaries(productPage.getContent());
         return PageResponse.of(productPage, items);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SearchSuggestionDto> suggest(String q) {
+        if (q == null || q.isBlank()) {
+            return List.of();
+        }
+        PageResponse<ProductSummaryResponse> page = search(q, 0, 6);
+        return page.items().stream()
+                .map(p -> new SearchSuggestionDto(
+                        p.id(),
+                        p.slug(),
+                        p.nameFa(),
+                        p.thumbnailUrl(),
+                        p.priceToman(),
+                        p.categoryNameFa()))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -585,7 +619,7 @@ public class PublicCatalogService {
         };
     }
 
-    private Specification<Product> buildSearchSpec(String q) {
+    private Specification<Product> buildSearchSpec(String q, boolean fallbackOr) {
         return (root, query, cb) -> {
             List<Predicate> ps = new ArrayList<>();
 
@@ -602,23 +636,55 @@ public class PublicCatalogService {
 
             // 3. Search query matching
             if (q != null && !q.isBlank()) {
-                String raw = q.trim();
-                List<String> tokens = Arrays.stream(raw.split("\\s+"))
-                        .filter(s -> !s.isBlank())
-                        .toList();
+                List<String> tokens = PersianTextNormalizer.tokenize(q);
+                List<Predicate> tokenPredicates = new ArrayList<>();
+                Expression<Integer> relevanceScore = cb.literal(0);
 
                 for (String token : tokens) {
-                    String tokenLatin = Digits.toLatin(token);
                     Predicate tokenPred = matchToken(cb, root, query, token);
-                    if (!token.equals(tokenLatin)) {
-                        tokenPred = cb.or(tokenPred, matchToken(cb, root, query, tokenLatin));
-                    }
-                    ps.add(tokenPred);
-                }
-            }
+                    tokenPredicates.add(tokenPred);
 
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                query.orderBy(cb.desc(root.get("createdAt")), cb.desc(root.get("id")));
+                    String tokenNorm = PersianTextNormalizer.normalize(token);
+                    String like = "%" + tokenNorm.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+                    String prefixLike = tokenNorm.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+
+                    Expression<Integer> tokenScore = cb.<Integer>selectCase()
+                            .when(cb.equal(cb.lower(root.get("nameFa")), tokenNorm), 100)
+                            .when(cb.like(cb.lower(root.get("nameFa")), prefixLike, '\\'), 60)
+                            .when(cb.like(cb.lower(root.get("nameFa")), like, '\\'), 30)
+                            .when(cb.like(cb.lower(cb.coalesce(root.get("nameEn"), "")), like, '\\'), 20)
+                            .when(cb.like(cb.lower(cb.coalesce(root.get("descriptionFa"), "")), like, '\\'), 5)
+                            .otherwise(1);
+
+                    relevanceScore = cb.sum(relevanceScore, tokenScore);
+                }
+
+                if (!tokenPredicates.isEmpty()) {
+                    if (fallbackOr) {
+                        ps.add(cb.or(tokenPredicates.toArray(Predicate[]::new)));
+                    } else {
+                        ps.add(cb.and(tokenPredicates.toArray(Predicate[]::new)));
+                    }
+                }
+
+                if (tokens.size() > 1) {
+                    String fullNorm = PersianTextNormalizer.normalize(q);
+                    if (fullNorm != null && !fullNorm.isBlank()) {
+                        String fullLike = "%" + fullNorm.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+                        Expression<Integer> fullPhraseScore = cb.<Integer>selectCase()
+                                .when(cb.like(cb.lower(root.get("nameFa")), fullLike, '\\'), 50)
+                                .otherwise(0);
+                        relevanceScore = cb.sum(relevanceScore, fullPhraseScore);
+                    }
+                }
+
+                if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                    query.orderBy(cb.desc(relevanceScore), cb.desc(root.get("createdAt")), cb.desc(root.get("id")));
+                }
+            } else {
+                if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                    query.orderBy(cb.desc(root.get("createdAt")), cb.desc(root.get("id")));
+                }
             }
 
             return cb.and(ps.toArray(Predicate[]::new));
@@ -626,12 +692,42 @@ public class PublicCatalogService {
     }
 
     private Predicate matchToken(CriteriaBuilder cb, Root<Product> root, CriteriaQuery<?> query, String token) {
+        String tokenPersian = PersianTextNormalizer.normalize(token);
+        String tokenArabic = tokenPersian.replace('ک', 'ك').replace('ی', 'ي');
+
+        Predicate tokenPred = matchTokenPattern(cb, root, query, tokenPersian);
+        if (!tokenPersian.equals(tokenArabic)) {
+            tokenPred = cb.or(tokenPred, matchTokenPattern(cb, root, query, tokenArabic));
+        }
+
+        String tokenLatin = Digits.toLatin(token.toLowerCase());
+        if (!tokenLatin.equals(tokenPersian) && !tokenLatin.equals(tokenArabic)) {
+            tokenPred = cb.or(tokenPred, matchTokenPattern(cb, root, query, tokenLatin));
+        }
+
+        return tokenPred;
+    }
+
+    private Predicate matchTokenPattern(CriteriaBuilder cb, Root<Product> root, CriteriaQuery<?> query, String token) {
         String like = "%" + token.toLowerCase().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
 
-        // Product text fields
-        Predicate nameFa = cb.like(cb.lower(root.get("nameFa")), like, '\\');
+        // Product text fields (with ZWNJ-stripped and ZWNJ-spaced matching)
+        Expression<String> nameFaLower = cb.lower(root.get("nameFa"));
+        Expression<String> nameFaNoZwnj = cb.function("replace", String.class, nameFaLower, cb.literal("\u200C"), cb.literal(""));
+        Expression<String> nameFaSpaced = cb.function("replace", String.class, nameFaLower, cb.literal("\u200C"), cb.literal(" "));
+        Predicate nameFa = cb.or(
+                cb.like(nameFaLower, like, '\\'),
+                cb.like(nameFaNoZwnj, like, '\\'),
+                cb.like(nameFaSpaced, like, '\\'));
+
         Predicate nameEn = cb.like(cb.lower(cb.coalesce(root.get("nameEn"), "")), like, '\\');
-        Predicate descFa = cb.like(cb.lower(cb.coalesce(root.get("descriptionFa"), "")), like, '\\');
+
+        Expression<String> descFaLower = cb.lower(cb.coalesce(root.get("descriptionFa"), ""));
+        Expression<String> descFaNoZwnj = cb.function("replace", String.class, descFaLower, cb.literal("\u200C"), cb.literal(""));
+        Predicate descFa = cb.or(
+                cb.like(descFaLower, like, '\\'),
+                cb.like(descFaNoZwnj, like, '\\'));
+
         Predicate descEn = cb.like(cb.lower(cb.coalesce(root.get("descriptionEn"), "")), like, '\\');
 
         // Brand match

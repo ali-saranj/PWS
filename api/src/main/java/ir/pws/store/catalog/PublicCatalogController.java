@@ -6,6 +6,7 @@ import ir.pws.store.catalog.PublicCatalogService.PublicCategoryDto;
 import ir.pws.store.catalog.dto.HomeCatalogResponse;
 import ir.pws.store.catalog.dto.ProductDetailResponse;
 import ir.pws.store.catalog.dto.ProductSummaryResponse;
+import ir.pws.store.catalog.dto.SearchSuggestionDto;
 import ir.pws.store.common.web.PageResponse;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,6 +85,11 @@ public class PublicCatalogController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return service.search(q, page, size);
+    }
+
+    @GetMapping("/search/suggest")
+    public List<SearchSuggestionDto> suggest(@RequestParam(required = false) String q) {
+        return service.suggest(q);
     }
 
     @GetMapping("/products/{slug}")
