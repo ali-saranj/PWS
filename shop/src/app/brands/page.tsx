@@ -6,7 +6,7 @@ import BrandsDirectory from './BrandsDirectory';
 import { BRAND } from '@/config/branding';
 
 export const metadata: Metadata = {
-  title: `برندهای معتبر و ممتاز | ${BRAND.nameFa}`,
+  title: 'برندهای معتبر و ممتاز',
   description: `فهرست برندهای ممتاز و معتبر غذایی و پروتئینی در فروشگاه ${BRAND.nameFa}`,
   alternates: {
     canonical: `${BRAND.domain}/brands`,

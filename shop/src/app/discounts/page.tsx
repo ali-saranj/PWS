@@ -8,7 +8,7 @@ import { fetchCatalogProducts } from '@/lib/serverCatalog';
 import { BRAND } from '@/config/branding';
 
 export const metadata: Metadata = {
-  title: `تخفیف‌ها و پیشنهادهای شگفت‌انگیز | ${BRAND.nameFa}`,
+  title: 'تخفیف‌ها و پیشنهادهای شگفت‌انگیز',
   description: `مشاهده و خرید آنلاین محصولات تخفیف‌دار و پیشنهادات شگفت‌انگیز در فروشگاه ${BRAND.nameFa}`,
   alternates: {
     canonical: `${BRAND.domain}/discounts`,

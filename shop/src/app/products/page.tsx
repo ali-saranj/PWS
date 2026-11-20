@@ -79,8 +79,8 @@ export async function generateMetadata({
       }
     }
     const title = catName
-      ? `خرید و قیمت انواع ${catName} | ${BRAND.nameFa}`
-      : `محصولات دسته‌بندی | ${BRAND.nameFa}`;
+      ? `خرید و قیمت انواع ${catName}`
+      : `محصولات دسته‌بندی`;
     const description = catName
       ? `خرید آنلاین انواع ${catName} با بهترین کیفیت، تاریخ روز و ارسال سریع در ${BRAND.nameFa}`
       : `مشاهده و خرید انواع فرآورده‌های پروتئینی در ${BRAND.nameFa}`;
@@ -117,8 +117,8 @@ export async function generateMetadata({
       }
     }
     const title = brandName
-      ? `محصولات برند ${brandName} | ${BRAND.nameFa}`
-      : `محصولات برند | ${BRAND.nameFa}`;
+      ? `محصولات برند ${brandName}`
+      : `محصولات برند`;
     const description = brandName
       ? `خرید آنلاین انواع محصولات برند معتبر ${brandName} با تضمین اصالت و ارسال فوری در ${BRAND.nameFa}`
       : `مشاهده محصولات برندهای معتبر در ${BRAND.nameFa}`;
@@ -137,7 +137,7 @@ export async function generateMetadata({
 
   // 3. Default catalog
   return {
-    title: `همه محصولات و فرآورده‌های پروتئینی | ${BRAND.nameFa}`,
+    title: 'همه محصولات و فرآورده‌های پروتئینی',
     description: `فروشگاه آنلاین تخصصی انواع سوسیس، کالباس، فرآورده‌های پروتئینی، پنیرها و چاشنی‌ها با بهترین قیمت و ارسال روز.`,
     alternates: {
       canonical: `${BRAND.domain}/products`,

@@ -18,7 +18,7 @@ import { fetchCategories, CategoryItem } from '@/lib/serverCatalog';
 import { BRAND } from '@/config/branding';
 
 export const metadata: Metadata = {
-  title: `دسته‌بندی‌های محصولات | ${BRAND.nameFa}`,
+  title: 'دسته‌بندی‌های محصولات',
   description: `انواع فرآورده‌های پروتئینی، لبنیات، چاشنی‌ها و اقلام مرغوب در فروشگاه ${BRAND.nameFa}`,
   alternates: {
     canonical: `${BRAND.domain}/categories`,

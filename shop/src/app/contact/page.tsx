@@ -5,7 +5,7 @@ import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { BRAND } from '@/config/branding';
 
 export const metadata: Metadata = {
-  title: `تماس با ما | ${BRAND.nameFa}`,
+  title: 'تماس با ما',
   description: `اطلاعات تماس، تلفن پشتیبانی و آدرس فروشگاه اینترنتی فرآورده‌های پروتئینی ${BRAND.nameFa}.`,
   alternates: {
     canonical: `${BRAND.domain}/contact`,
