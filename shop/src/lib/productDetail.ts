@@ -1,4 +1,5 @@
 import { MOCK_CATALOG_PRODUCTS, CatalogProduct } from './mockProducts';
+import { BRAND } from '@/config/branding';
 
 export interface ProductVariant {
   id: number;
@@ -178,7 +179,7 @@ export function getProductDetailBySlug(slug: string): ProductDetailData | null {
       slug: slug,
       nameFa: custom.nameFa ?? catalogMatch?.nameFa ?? '',
       nameEn: custom.nameEn ?? catalogMatch?.nameEn,
-      brandNameFa: custom.brandNameFa ?? catalogMatch?.brandNameFa ?? 'پروتئین ایرانی',
+      brandNameFa: custom.brandNameFa ?? catalogMatch?.brandNameFa ?? BRAND.nameFa,
       brandId: custom.brandId ?? catalogMatch?.brandId,
       categoryId: custom.categoryId ?? catalogMatch?.categoryId ?? 1,
       categoryNameFa: custom.categoryNameFa ?? catalogMatch?.categoryNameFa ?? 'پروتئینی',
@@ -207,7 +208,7 @@ export function getProductDetailBySlug(slug: string): ProductDetailData | null {
         { minQuantity: 6, discountPercent: 20, tierLabel: '۶ عدد به بالا: ۲۰٪ تخفیف' },
       ],
       specifications: custom.specifications ?? [
-        { label: 'برند', value: catalogMatch?.brandNameFa ?? 'پروتئین ایرانی' },
+        { label: 'برند', value: catalogMatch?.brandNameFa ?? BRAND.nameFa },
         { label: 'مدت ماندگاری', value: '۳۰ روز در دمای یخچال' },
         { label: 'دمای نگهداری', value: '۱ تا ۴ درجه سانتی‌گراد' },
       ],
@@ -229,7 +230,7 @@ export function getProductDetailBySlug(slug: string): ProductDetailData | null {
     slug: catalogMatch.slug,
     nameFa: catalogMatch.nameFa,
     nameEn: catalogMatch.nameEn,
-    brandNameFa: catalogMatch.brandNameFa ?? 'پروتئین ایرانی',
+    brandNameFa: catalogMatch.brandNameFa ?? BRAND.nameFa,
     brandId: catalogMatch.brandId,
     categoryId: catalogMatch.categoryId ?? 1,
     categoryNameFa: catalogMatch.categoryNameFa ?? 'محصولات',
@@ -272,7 +273,7 @@ export function getProductDetailBySlug(slug: string): ProductDetailData | null {
       { minQuantity: 6, discountPercent: 20, tierLabel: '۶ عدد به بالا: ۲۰٪ تخفیف' },
     ],
     specifications: [
-      { label: 'برند', value: catalogMatch.brandNameFa ?? 'پروتئین ایرانی' },
+      { label: 'برند', value: catalogMatch.brandNameFa ?? BRAND.nameFa },
       { label: 'مدت ماندگاری', value: '۳۰ روز در دمای یخچال' },
       { label: 'دمای نگهداری', value: '۱ تا ۴ درجه سانتی‌گراد' },
     ],

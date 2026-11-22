@@ -6,14 +6,15 @@ describe('Footer component', () => {
   it('renders trust badges', () => {
     render(<Footer />);
     expect(screen.getByText(/ضمانت اصالت و تازگی کالا/)).toBeInTheDocument();
-    expect(screen.getByText(/ارسال سریع/)).toBeInTheDocument();
+    expect(screen.getByText('ارسال سریع با بسته‌بندی عایق')).toBeInTheDocument();
     expect(screen.getByText(/پرداخت امن/)).toBeInTheDocument();
   });
 
   it('renders customer service contact info', () => {
     render(<Footer />);
-    expect(screen.getByText(/۰۲۱-۸۸۸۸۹۹۹۹/)).toBeInTheDocument();
+    expect(screen.getByText(/۰۳۱-۳۵۳۲۳۲۴۰/)).toBeInTheDocument();
     expect(screen.getByText(/support@proteinirany.ir/)).toBeInTheDocument();
+    expect(screen.getByText(/خیابان رهنان/)).toBeInTheDocument();
   });
 
   it('renders newsletter subscription form', () => {
@@ -25,7 +26,7 @@ describe('Footer component', () => {
   it('renders copyright text', () => {
     render(<Footer />);
     expect(
-      screen.getByText(/کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین پروتئین ایرانی می‌باشد/)
+      screen.getByText(/کلیه حقوق این وب‌سایت متعلق به فروشگاه آنلاین دهکده پروتئین اصفهان می‌باشد/)
     ).toBeInTheDocument();
   });
 

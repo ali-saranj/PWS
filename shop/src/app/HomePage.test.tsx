@@ -16,10 +16,10 @@ describe('HomePage', () => {
   it('renders hero banner with headline, subtitle, discount pill and CTA', () => {
     render(<HomePage />);
     expect(
-      screen.getByText(/تازه، سالم، باکیفیت \/ تأمین روزانه مواد غذایی با بهترین قیمت/)
+      screen.getByText(/دهکده پروتئین اصفهان \/ مرجع تخصصی سوسیس، کالباس و مزه‌های اصیل/)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/میوه و سبزیجات تازه، لبنیات، پروتئین، نان و.../)
+      screen.getByText(/عرضه مستقیم تازه‌ترین سوسیس و ژامبون ممتاز، انواع پنیر پیتزا و گودا، سس‌های خاص، ترشیجات و خیارشور ترد با ارسال سریع در اصفهان/)
     ).toBeInTheDocument();
     expect(screen.getByText(/تخفیف‌های ویژه تا ۵۰٪/)).toBeInTheDocument();
     const ctaLink = screen.getByRole('link', { name: /خرید محصولات/i });
@@ -53,11 +53,11 @@ describe('HomePage', () => {
 
   it('renders promotional tiles with titles, discount badges, and links to /products', () => {
     render(<HomePage />);
-    expect(screen.getByText(/فروش ویژه سوسیس و ژامبون/)).toBeInTheDocument();
-    expect(screen.getByText(/لبنیات تازه با تضمین کیفیت/)).toBeInTheDocument();
-    expect(screen.getByText(/تنقلات و چیپس/)).toBeInTheDocument();
+    expect(screen.getByText(/سوسیس، هات‌داگ و ژامبون ممتاز/)).toBeInTheDocument();
+    expect(screen.getByText(/انواع پنیر پیتزا، گودا و ورقه‌ای/)).toBeInTheDocument();
+    expect(screen.getByText(/سس‌های خاص، خیارشور و ترشیجات/)).toBeInTheDocument();
 
-    const promoLinks = screen.getAllByRole('link', { name: /(مشاهده و خرید|مشاهده محصولات|خرید تنقلات)/i });
+    const promoLinks = screen.getAllByRole('link', { name: /(مشاهده و خرید|مشاهده پنیرها|خرید مزه‌جات)/i });
     expect(promoLinks[0]).toHaveAttribute('href', '/products?categorySlug=sausage-hotdog');
   });
 

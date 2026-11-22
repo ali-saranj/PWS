@@ -19,6 +19,7 @@ import {
 import { OrderTrackingTimeline, TrackingStatus, TimelineEvent } from '@/components/OrderTrackingTimeline';
 import { api } from '@/lib/api';
 import { toPersianDigits } from '@/lib/format';
+import { BRAND } from '@/config/branding';
 
 export interface OrderItemTrackDto {
   productNameFa: string;
@@ -214,14 +215,14 @@ export default function OrderTrackingPage({ params }: PageProps) {
 
           <div className="space-y-2 pt-2">
             <a
-              href="tel:02188889999"
+              href={`tel:${BRAND.phoneRaw}`}
               className="flex items-center justify-between p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl transition-all"
             >
               <div className="flex items-center gap-2 font-bold text-sm">
                 <Phone className="w-4 h-4 text-emerald-700" />
                 <span>تماس مستقیم با پشتیبانی</span>
               </div>
-              <span className="font-mono text-xs font-bold text-emerald-900">۰۲۱-۸۸۸۸۹۹۹۹</span>
+              <span className="font-mono text-xs font-bold text-emerald-900">{BRAND.phoneFa}</span>
             </a>
           </div>
         </div>

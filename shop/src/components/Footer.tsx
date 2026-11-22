@@ -13,6 +13,7 @@ import {
   Clock,
   Send,
   Store,
+  MapPin,
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -117,28 +118,34 @@ export const Footer: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed max-w-sm">
-              فروشگاه تخصصی مواد غذایی، فرآورده‌های پروتئینی، سوسیس و کالباس درجه یک،
-              پنیرهای فرآوری‌شده، چاشنی‌ها و نان‌های ساندویچی با ارسال فوری به سراسر
-              کشور و بسته‌بندی استاندارد بهداشتی.
+              فروشگاه تخصصی دهکده پروتئین در اصفهان؛ عرضه انواع سوسیس، کالباس و ژامبون دست‌اول،
+              پنیرهای پیتزا و گودا، سس‌های مخصوص، ترشیجات اصیل و خیارشور ترد با ارسال سریع در اصفهان.
             </p>
             <div className="space-y-2 pt-2 text-xs">
               <div className="flex items-center gap-2 text-gray-300">
-                <Phone className="w-4 h-4 text-primary" />
+                <Phone className="w-4 h-4 text-primary flex-shrink-0" />
                 <span>تلفن پشتیبانی:</span>
                 <span className="font-semibold text-white dir-ltr">
-                  ۰۲۱-۸۸۸۸۹۹۹۹
+                  {BRAND.phoneFa}
+                </span>
+              </div>
+              <div className="flex items-start gap-2 text-gray-300">
+                <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                <span>آدرس:</span>
+                <span className="font-semibold text-white">
+                  {BRAND.addressFa}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-gray-300">
-                <Mail className="w-4 h-4 text-primary" />
+                <Mail className="w-4 h-4 text-primary flex-shrink-0" />
                 <span>پست الکترونیک:</span>
                 <span className="font-semibold text-white">
                   {BRAND.supportEmail}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-gray-300">
-                <Clock className="w-4 h-4 text-primary" />
-                <span>ساعات کاری: همه روزه از ساعت ۸ الی ۲۴</span>
+                <Clock className="w-4 h-4 text-primary flex-shrink-0" />
+                <span>ساعات کاری: {BRAND.workingHoursFa}</span>
               </div>
             </div>
           </div>
@@ -262,7 +269,7 @@ export const Footer: React.FC = () => {
       {/* Copyright & Trust Seal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
         <p className="text-xs text-gray-500 text-center sm:text-right">
-          کلیه حقوق این وب‌سایت متعلق به سوپرمارکت آنلاین {BRAND.nameFa} می‌باشد. © ۲۰۲۶
+          کلیه حقوق این وب‌سایت متعلق به فروشگاه آنلاین {BRAND.nameFa} اصفهان می‌باشد. © ۲۰۲۶
         </p>
 
         {/* Certificates & Enamad & TabaPay */}
@@ -273,7 +280,7 @@ export const Footer: React.FC = () => {
             rel="noopener"
             href="https://trustseal.enamad.ir/?id=8617111&code=XI0dJOGnVVyu4yLlcGotBytDYzEADRgt"
             className="inline-flex items-center justify-center p-2.5 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all hover:scale-105 border border-gray-100 group"
-            title="نماد اعتماد الکترونیکی سبد سبز (پروتئین ایرانی)"
+            title={`نماد اعتماد الکترونیکی (${BRAND.nameFa})`}
             aria-label="نماد اعتماد الکترونیکی"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}

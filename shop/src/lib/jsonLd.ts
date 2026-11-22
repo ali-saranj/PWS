@@ -25,6 +25,14 @@ export function generateOrganizationSchema() {
     url: BRAND.domain,
     logo: `${BRAND.domain}/images/logo.png`,
     email: BRAND.supportEmail,
+    telephone: BRAND.phoneFa,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: BRAND.addressFa,
+      addressLocality: BRAND.cityFa,
+      addressRegion: BRAND.provinceFa,
+      addressCountry: 'IR',
+    },
   };
 }
 

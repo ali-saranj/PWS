@@ -44,8 +44,8 @@ export default function AddressBookTab() {
   // Form states
   const [formRecipientName, setFormRecipientName] = useState('');
   const [formRecipientMobile, setFormRecipientMobile] = useState('');
-  const [formProvince, setFormProvince] = useState('تهران');
-  const [formCity, setFormCity] = useState('تهران');
+  const [formProvince, setFormProvince] = useState('اصفهان');
+  const [formCity, setFormCity] = useState('اصفهان');
   const [formLine, setFormLine] = useState('');
   const [formPostalCode, setFormPostalCode] = useState('');
   const [formIsDefault, setFormIsDefault] = useState(false);
@@ -72,8 +72,8 @@ export default function AddressBookTab() {
     setEditingAddress(null);
     setFormRecipientName('');
     setFormRecipientMobile('');
-    setFormProvince('تهران');
-    setFormCity('تهران');
+    setFormProvince('اصفهان');
+    setFormCity('اصفهان');
     setFormLine('');
     setFormPostalCode('');
     setFormIsDefault(addresses.length === 0);

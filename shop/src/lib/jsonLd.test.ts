@@ -11,9 +11,10 @@ describe('JSON-LD Schema Builders', () => {
     const org = generateOrganizationSchema();
     expect(org['@context']).toBe('https://schema.org');
     expect(org['@type']).toBe('Organization');
-    expect(org.name).toBe('پروتئین ایرانی');
+    expect(org.name).toBe('دهکده پروتئین');
     expect(org.url).toBe('https://proteinirany.ir');
     expect(org.email).toBe('support@proteinirany.ir');
+    expect(org.telephone).toBe('۰۳۱-۳۵۳۲۳۲۴۰');
   });
 
   it('generates valid WebSite schema with SearchAction', () => {
@@ -70,7 +71,7 @@ describe('JSON-LD Schema Builders', () => {
     });
 
     expect(product.offers.availability).toBe('https://schema.org/OutOfStock');
-    expect(product.brand.name).toBe('پروتئین ایرانی');
+    expect(product.brand.name).toBe('دهکده پروتئین');
     expect(product.image.length).toBeGreaterThan(0);
   });
 

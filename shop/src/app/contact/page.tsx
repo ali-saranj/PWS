@@ -39,7 +39,7 @@ export default function ContactPage() {
             </div>
             <div>
               <span className="text-xs text-gray-400 block mb-0.5">شماره تماس پشتیبانی</span>
-              <span className="text-lg font-bold text-gray-900" dir="ltr">۰۲۱-۸۸۸۸۹۹۹۹</span>
+              <span className="text-lg font-bold text-gray-900" dir="ltr">{BRAND.phoneFa}</span>
             </div>
           </div>
 
@@ -58,8 +58,8 @@ export default function ContactPage() {
               <Clock className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs text-gray-400 block mb-0.5">ساعات پاسخگویی</span>
-              <span className="text-sm font-semibold text-gray-900">همه‌روزه از ۸:۰۰ تا ۲۳:۰۰</span>
+              <span className="text-xs text-gray-400 block mb-0.5">ساعات پاسخگویی و کاری</span>
+              <span className="text-sm font-semibold text-gray-900">{BRAND.workingHoursFa}</span>
             </div>
           </div>
 
@@ -68,8 +68,8 @@ export default function ContactPage() {
               <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs text-gray-400 block mb-0.5">مرکز توزیع و انبار مرکزی</span>
-              <span className="text-sm font-semibold text-gray-900">تهران، خیابان سهروردی شمالی</span>
+              <span className="text-xs text-gray-400 block mb-0.5">فروشگاه و مرکز توزیع اصفهان</span>
+              <span className="text-sm font-semibold text-gray-900">{BRAND.addressFa}</span>
             </div>
           </div>
         </div>

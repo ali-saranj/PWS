@@ -48,7 +48,7 @@ const DEFAULT_SHIPPING_METHODS: ShippingMethod[] = [
   {
     id: 1,
     nameFa: 'ارسال اکسپرس با پیک شهری',
-    descriptionFa: 'تحویل با پیک موتوری / ون عایق در محدوده شهر تهران',
+    descriptionFa: 'تحویل با پیک موتوری / ون عایق در محدوده شهر اصفهان',
     cost: 45000,
     freeOver: 500000,
   },
@@ -64,8 +64,8 @@ export default function CheckoutPage() {
   const [addressLoading, setAddressLoading] = useState(false);
 
   // New address form state
-  const [newProvince, setNewProvince] = useState('تهران');
-  const [newCity, setNewCity] = useState('تهران');
+  const [newProvince, setNewProvince] = useState('اصفهان');
+  const [newCity, setNewCity] = useState('اصفهان');
   const [newLine, setNewLine] = useState('');
   const [newPostalCode, setNewPostalCode] = useState('');
   const [newRecipientName, setNewRecipientName] = useState('');

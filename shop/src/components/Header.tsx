@@ -238,7 +238,7 @@ export const Header: React.FC = () => {
                   }
                 }}
                 onKeyDown={handleInputKeyDown}
-                placeholder={`جستجو در ${BRAND.nameFa}...`}
+                placeholder={`جستجو در محصولات ${BRAND.nameFa}...`}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-1.5 md:py-2.5 pr-3 md:pr-4 pl-8 md:pl-28 text-xs md:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
               <button
@@ -389,7 +389,7 @@ export const Header: React.FC = () => {
             {/* City Delivery Badge */}
             <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/70 rounded-full font-medium">
               <MapPin className="w-3.5 h-3.5 text-primary" />
-              <span>تهران - ارسال سریع</span>
+              <span>اصفهان - ارسال سریع با بسته‌بندی عایق</span>
             </div>
           </div>
         </div>
@@ -519,7 +519,7 @@ export const Header: React.FC = () => {
             <div className="p-4 border-t border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200/60 rounded-xl px-3 py-2">
                 <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                <span>تهران - ارسال سریع با بسته‌بندی عایق</span>
+                <span>اصفهان - ارسال سریع با بسته‌بندی عایق</span>
               </div>
             </div>
           </div>

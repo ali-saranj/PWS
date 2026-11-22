@@ -11,8 +11,8 @@ export interface HeroBannerProps {
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
-  headline = 'تازه، سالم، باکیفیت / تأمین روزانه مواد غذایی با بهترین قیمت',
-  subtitle = 'میوه و سبزیجات تازه، لبنیات، پروتئین، نان و...',
+  headline = 'دهکده پروتئین اصفهان / مرجع تخصصی سوسیس، کالباس و مزه‌های اصیل',
+  subtitle = 'عرضه مستقیم تازه‌ترین سوسیس و ژامبون ممتاز، انواع پنیر پیتزا و گودا، سس‌های خاص، ترشیجات و خیارشور ترد با ارسال سریع در اصفهان',
   ctaText = 'خرید محصولات',
   ctaHref = '/products',
   discountPillText = 'تخفیف‌های ویژه تا ۵۰٪',
@@ -31,7 +31,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-emerald-100 text-xs font-semibold backdrop-blur-sm">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>فروشگاه تخصصی پروتئین ایرانی</span>
+              <span>فروشگاه تخصصی دهکده پروتئین اصفهان</span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/90 text-white text-xs font-bold shadow-sm animate-pulse">
@@ -93,7 +93,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             </li>
             <li className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-amber-300 flex-shrink-0" />
-              <span>تحویل در کمتر از ۳ ساعت در سراسر تهران</span>
+              <span>تحویل سریع و تازه در سراسر شهر اصفهان</span>
             </li>
           </ul>
 

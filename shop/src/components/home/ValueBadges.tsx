@@ -36,7 +36,7 @@ export const ValueBadges: React.FC<ValueBadgesProps> = ({
   ];
 
   return (
-    <section className="py-4" aria-label="مزایای خرید از پروتئین ایرانی">
+    <section className="py-4" aria-label="مزایای خرید از دهکده پروتئین اصفهان">
       {/* Top Highlight Banner */}
       <div className="bg-gradient-to-r from-emerald-700 via-primary-dark to-emerald-800 text-white rounded-2xl p-4 sm:p-5 shadow-sm mb-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -48,7 +48,7 @@ export const ValueBadges: React.FC<ValueBadgesProps> = ({
               {deliveryText}
             </h3>
             <p className="text-xs text-emerald-100">
-              ارسال فوری در تهران در کمتر از ۳ ساعت و ارسال مطمئن به سراسر کشور
+              ارسال فوری و تازه در سراسر شهر اصفهان با بسته‌بندی عایق و یخدان مخصوص
             </p>
           </div>
         </div>

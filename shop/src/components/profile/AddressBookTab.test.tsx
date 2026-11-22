@@ -75,8 +75,8 @@ describe('AddressBookTab', () => {
     const postSpy = vi.spyOn(api, 'post').mockResolvedValue({
       id: 3,
       customerId: 10,
-      province: 'تهران',
-      city: 'تهران',
+      province: 'اصفهان',
+      city: 'اصفهان',
       line: 'میدان ونک، برج نگار، طبقه ۵',
       postalCode: '1122334455',
       recipientName: 'امیر رضایی',
@@ -109,8 +109,8 @@ describe('AddressBookTab', () => {
       {
         id: 3,
         customerId: 10,
-        province: 'تهران',
-        city: 'تهران',
+        province: 'اصفهان',
+        city: 'اصفهان',
         line: 'میدان ونک، برج نگار، طبقه ۵',
         postalCode: '1122334455',
         recipientName: 'امیر رضایی',
@@ -131,8 +131,8 @@ describe('AddressBookTab', () => {
           recipientMobile: '09123333333',
           line: 'میدان ونک، برج نگار، طبقه ۵',
           postalCode: '1122334455',
-          province: 'تهران',
-          city: 'تهران',
+          province: 'اصفهان',
+          city: 'اصفهان',
         })
       );
     });
