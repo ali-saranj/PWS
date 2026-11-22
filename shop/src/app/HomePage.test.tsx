@@ -16,7 +16,7 @@ describe('HomePage', () => {
   it('renders hero banner with headline, subtitle, discount pill and CTA', () => {
     render(<HomePage />);
     expect(
-      screen.getByText(/دهکده پروتئین اصفهان \/ مرجع تخصصی سوسیس، کالباس و مزه‌های اصیل/)
+      screen.getByText(/پروتئین ایرانی \/ مرجع تخصصی سوسیس، کالباس و مزه‌های اصیل در اصفهان/)
     ).toBeInTheDocument();
     expect(
       screen.getByText(/عرضه مستقیم تازه‌ترین سوسیس و ژامبون ممتاز، انواع پنیر پیتزا و گودا، سس‌های خاص، ترشیجات و خیارشور ترد با ارسال سریع در اصفهان/)

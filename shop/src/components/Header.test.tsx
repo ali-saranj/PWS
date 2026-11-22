@@ -41,16 +41,16 @@ describe('Header component', () => {
 
   it('renders brand name and logo text', () => {
     render(<Header />);
-    expect(screen.getByTestId('brand-title-mobile')).toHaveTextContent('دهکده پروتئین');
+    expect(screen.getByTestId('brand-title-mobile')).toHaveTextContent('پروتئین ایرانی');
     expect(screen.getByTestId('brand-title-desktop')).toHaveTextContent(
-      'دهکده پروتئین اصفهان - فروشگاه تخصصی فرآورده‌های پروتئینی'
+      'پروتئین ایرانی - فروشگاه تخصصی فرآورده‌های پروتئینی'
     );
   });
 
   it('renders inline search bar that submits query', () => {
     render(<Header />);
     const searchInput = screen.getByPlaceholderText(
-      'جستجو در محصولات دهکده پروتئین...'
+      'جستجو در محصولات پروتئین ایرانی...'
     );
     expect(searchInput).toBeInTheDocument();
 
@@ -166,7 +166,7 @@ describe('Header component', () => {
     });
 
     render(<Header />);
-    const searchInput = screen.getByPlaceholderText('جستجو در محصولات دهکده پروتئین...');
+    const searchInput = screen.getByPlaceholderText('جستجو در محصولات پروتئین ایرانی...');
     fireEvent.change(searchInput, { target: { value: 'کوکتل' } });
 
     await waitFor(() => {
@@ -186,7 +186,7 @@ describe('Header component', () => {
 
     render(<Header />);
     const searchInput = screen.getByPlaceholderText(
-      'جستجو در محصولات دهکده پروتئین...'
+      'جستجو در محصولات پروتئین ایرانی...'
     ) as HTMLInputElement;
 
     expect(searchInput.value).toBe('ژامبون');

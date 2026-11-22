@@ -245,7 +245,7 @@ describe('ProductDetailPage (PDP)', () => {
     expect(meta.openGraph?.url).toBe(
       'https://proteinirany.ir/products/andre-turkey-ham-90'
     );
-    expect(meta.openGraph?.siteName).toBe('دهکده پروتئین');
+    expect(meta.openGraph?.siteName).toBe('پروتئین ایرانی');
     expect(meta.twitter?.card).toBe('summary_large_image');
   });
 

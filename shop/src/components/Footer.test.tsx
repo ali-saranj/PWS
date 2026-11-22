@@ -26,7 +26,7 @@ describe('Footer component', () => {
   it('renders copyright text', () => {
     render(<Footer />);
     expect(
-      screen.getByText(/کلیه حقوق این وب‌سایت متعلق به فروشگاه آنلاین دهکده پروتئین اصفهان می‌باشد/)
+      screen.getByText(/کلیه حقوق این وب‌سایت متعلق به فروشگاه آنلاین پروتئین ایرانی اصفهان می‌باشد/)
     ).toBeInTheDocument();
   });
 

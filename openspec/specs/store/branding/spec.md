@@ -1,27 +1,27 @@
 # store/branding Specification
 
 ## Purpose
-Defines the unified brand identity, contact channels, order code prefixes, and client-side persistence keys for Dehkadeh Protein (دهکده پروتئین) in Isfahan across the storefront, administrative portal, and core API.
+Defines the unified brand identity, contact channels, order code prefixes, and client-side persistence keys for Protein Irany (پروتئین ایرانی) in Isfahan across the storefront, administrative portal, and core API.
 
 ## Requirements
 
 ### Requirement: Storefront Metadata and SEO Identity
-The storefront SHALL specify the brand name "دهکده پروتئین" and title reflecting "دهکده پروتئین اصفهان" across HTML document titles, meta descriptions, OpenGraph tags, and metadataBase configuration.
+The storefront SHALL specify the brand name "پروتئین ایرانی" and title reflecting "پروتئین ایرانی - فروشگاه تخصصی فرآورده‌های پروتئینی" across HTML document titles, meta descriptions, OpenGraph tags, and metadataBase configuration.
 
 #### Scenario: Root layout metadata
 - **WHEN** a customer loads the storefront home page
-- **THEN** the document title includes "دهکده پروتئین", metadataBase points to "https://proteinirany.ir", and the meta description references the specialized Isfahan protein deli catalog including sausages, cold cuts, deli cheeses, sauces, and pickles.
+- **THEN** the document title includes "پروتئین ایرانی", metadataBase points to "https://proteinirany.ir", and the meta description references the specialized Isfahan protein deli catalog including sausages, cold cuts, deli cheeses, sauces, and pickles.
 
 #### Scenario: Search input placeholder
 - **WHEN** a user views the search bar in the storefront header
-- **THEN** the input placeholder displays "جستجو در محصولات دهکده پروتئین...".
+- **THEN** the input placeholder displays "جستجو در محصولات پروتئین ایرانی...".
 
 ### Requirement: Support and Contact Point Identification
-The storefront footer and contact pages SHALL display the official support telephone "۰۳۱-۳۵۳۲۳۲۴۰", official support email "support@proteinirany.ir", store location "اصفهان، خیابان رهنان، خیابان مطهری، چهارراه طاحونه، دهکده پروتئین", and copyright ownership for "دهکده پروتئین".
+The storefront footer and contact pages SHALL display the official support telephone "۰۳۱-۳۵۳۲۳۲۴۰", official support email "support@proteinirany.ir", store location "اصفهان، خیابان رهنان، خیابان مطهری، چهارراه طاحونه، دهکده پروتئین", and copyright ownership for "پروتئین ایرانی".
 
 #### Scenario: Footer copyright and support channel
 - **WHEN** a user navigates to the storefront footer
-- **THEN** the copyright statement attributes ownership to "فروشگاه آنلاین دهکده پروتئین اصفهان", support telephone displays "۰۳۱-۳۵۳۲۳۲۴۰", and email displays "support@proteinirany.ir".
+- **THEN** the copyright statement attributes ownership to "فروشگاه آنلاین پروتئین ایرانی", support telephone displays "۰۳۱-۳۵۳۲۳۲۴۰", and email displays "support@proteinirany.ir".
 
 #### Scenario: Contact page store address and operating hours
 - **WHEN** a user navigates to the contact page (/contact)
@@ -46,8 +46,8 @@ The checkout system SHALL generate human-readable customer order numbers prefixe
 - **THEN** the assigned orderNumber begins with the prefix "PI-" (e.g. "PI-050814-XXXX").
 
 ### Requirement: Staff Admin Application Branding
-The administrative back-office application SHALL display the application title and browser tab title reflecting "دهکده پروتئین".
+The administrative back-office application SHALL display the application title and browser tab title reflecting "پروتئین ایرانی".
 
 #### Scenario: Admin browser tab title
 - **WHEN** a staff member opens the administrative back-office
-- **THEN** the HTML document title displays "پنل مدیریت دهکده پروتئین" (or "Dehkadeh Protein Admin").
+- **THEN** the HTML document title displays "پنل مدیریت پروتئین ایرانی" (or "Protein Irany Admin").

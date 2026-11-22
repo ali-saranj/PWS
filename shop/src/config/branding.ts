@@ -1,7 +1,7 @@
 export const BRAND = {
-  nameFa: 'دهکده پروتئین',
-  nameEn: 'Dehkadeh Protein',
-  titleFa: 'دهکده پروتئین اصفهان - فروشگاه تخصصی فرآورده‌های پروتئینی',
+  nameFa: 'پروتئین ایرانی',
+  nameEn: 'Protein Irany',
+  titleFa: 'پروتئین ایرانی - فروشگاه تخصصی فرآورده‌های پروتئینی',
   sloganFa: 'انواع سوسیس، کالباس، پنیرها، سس‌ها، ترشیجات و خیارشور',
   domain: 'https://proteinirany.ir',
   supportEmail: 'support@proteinirany.ir',
