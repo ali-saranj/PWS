@@ -11,6 +11,7 @@ import {
   BrandItem,
   CategoryItem,
   CategoryDetail,
+  resolveRelatedProducts,
 } from './serverCatalog';
 
 describe('serverCatalog API client', () => {
@@ -375,5 +376,68 @@ describe('serverCatalog API client', () => {
     expect(entries.products).toEqual([{ slug: 'sausage-frankfurter' }]);
     expect(entries.categories).toEqual([{ slug: 'sausages' }]);
     expect(entries.brands).toEqual([{ slug: 'andre' }]);
+  });
+
+  describe('resolveRelatedProducts', () => {
+    it('ranks same-brand products first, excludes current product, and limits to 4', async () => {
+      const current = {
+        id: 10,
+        slug: 'current-ham',
+        categoryId: 2,
+        brandId: 101,
+        brandNameFa: 'آندره',
+      };
+
+      const candidates = [
+        { id: 10, slug: 'current-ham', categoryId: 2, brandId: 101, nameFa: 'محصول جاری', priceToman: 100 },
+        { id: 11, slug: 'other-brand-1', categoryId: 2, brandId: 999, nameFa: 'برند دیگر ۱', priceToman: 110 },
+        { id: 12, slug: 'same-brand-1', categoryId: 2, brandId: 101, nameFa: 'همان برند ۱', priceToman: 120 },
+        { id: 13, slug: 'other-brand-2', categoryId: 2, brandId: 888, nameFa: 'برند دیگر ۲', priceToman: 130 },
+        { id: 14, slug: 'same-brand-2', categoryId: 2, brandId: 101, nameFa: 'همان برند ۲', priceToman: 140 },
+        { id: 15, slug: 'other-brand-3', categoryId: 2, brandId: 777, nameFa: 'برند دیگر ۳', priceToman: 150 },
+      ];
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          content: candidates,
+          totalElements: candidates.length,
+        }),
+      } as Response);
+
+      const related = await resolveRelatedProducts(current);
+
+      expect(related).toHaveLength(4);
+      // Current product should NOT be in the results
+      expect(related.some((p) => p.slug === 'current-ham')).toBe(false);
+      // Same brand products (12, 14) must appear before different brands
+      expect(related[0].id).toBe(12);
+      expect(related[1].id).toBe(14);
+      // Remaining 2 items from other brands
+      expect(related[2].id).toBe(11);
+      expect(related[3].id).toBe(13);
+    });
+
+    it('falls back to MOCK_CATALOG_PRODUCTS when API fails or returns empty', async () => {
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network offline'));
+
+      const current = {
+        id: 101,
+        slug: 'andre-turkey-ham-90',
+        categoryId: 2,
+        brandId: 1,
+        brandNameFa: 'آندره',
+      };
+
+      const related = await resolveRelatedProducts(current);
+
+      expect(related.length).toBeGreaterThan(0);
+      expect(related.length).toBeLessThanOrEqual(4);
+      // Excludes current product
+      expect(related.some((p) => p.slug === 'andre-turkey-ham-90')).toBe(false);
+      // Does not contain dummy fake slugs like related-1
+      expect(related.some((p) => p.slug.startsWith('related-'))).toBe(false);
+    });
   });
 });

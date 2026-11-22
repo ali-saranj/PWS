@@ -29,6 +29,7 @@ import {
   ProductVariant,
   VolumeTier,
 } from '@/lib/productDetail';
+import { MOCK_CATALOG_PRODUCTS } from '@/lib/mockProducts';
 import { useCartStore } from '@/lib/cartStore';
 import { formatToman, toPersianDigits } from '@/lib/format';
 import { api } from '@/lib/api';
@@ -115,9 +116,14 @@ export function mapBackendProductToDetail(backend: any): ProductDetailData {
 export interface ProductDetailViewProps {
   slug: string;
   initialProduct?: any;
+  initialRelated?: any[];
 }
 
-export function ProductDetailView({ slug, initialProduct }: ProductDetailViewProps) {
+export function ProductDetailView({
+  slug,
+  initialProduct,
+  initialRelated,
+}: ProductDetailViewProps) {
   const initialData = useMemo(() => {
     if (initialProduct) {
       if (initialProduct.breadcrumb || (initialProduct.variants && initialProduct.basePriceRials !== undefined)) {
@@ -165,35 +171,44 @@ export function ProductDetailView({ slug, initialProduct }: ProductDetailViewPro
   const [isAdded, setIsAdded] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  const defaultRelated = useMemo(() => {
-    if (!product) return [];
-    return [
-      {
-        id: 991,
-        slug: 'related-1',
-        nameFa: 'سوسیس کراکف پنیری',
-        brandNameFa: '۲۰۲',
-        priceToman: 260000,
-        inStock: true,
-      },
-      {
-        id: 992,
-        slug: 'related-2',
-        nameFa: 'بیکن بوقلمون دودی',
-        brandNameFa: 'آندره',
-        priceToman: 290000,
-        inStock: true,
-      },
-    ];
-  }, [product]);
+  const fallbackRelated = useMemo(() => {
+    if (initialRelated && initialRelated.length > 0) {
+      return initialRelated;
+    }
+    if (!initialData) return [];
+    const mocks = MOCK_CATALOG_PRODUCTS.filter(
+      (m) => m.slug !== initialData.slug && (initialData.id === undefined || m.id !== initialData.id)
+    );
+    const sameCat = initialData.categoryId
+      ? mocks.filter((m) => m.categoryId === initialData.categoryId)
+      : [];
+    const pool = sameCat.length > 0 ? sameCat : mocks;
+    const sorted = [...pool].sort((a, b) => {
+      const aSameBrand =
+        (initialData.brandId && a.brandId === initialData.brandId) ||
+        (initialData.brandNameFa && a.brandNameFa === initialData.brandNameFa);
+      const bSameBrand =
+        (initialData.brandId && b.brandId === initialData.brandId) ||
+        (initialData.brandNameFa && b.brandNameFa === initialData.brandNameFa);
+      if (aSameBrand && !bSameBrand) return -1;
+      if (!aSameBrand && bSameBrand) return 1;
+      return 0;
+    });
+    return sorted.slice(0, 4);
+  }, [initialRelated, initialData]);
 
-  const [relatedProducts, setRelatedProducts] = useState<any[]>(defaultRelated);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>(fallbackRelated);
 
   useEffect(() => {
-    setRelatedProducts(defaultRelated);
-  }, [defaultRelated]);
+    if (initialRelated && initialRelated.length > 0) {
+      setRelatedProducts(initialRelated);
+    }
+  }, [initialRelated]);
 
   useEffect(() => {
+    if (initialRelated && initialRelated.length > 0) {
+      return;
+    }
     let isMounted = true;
     async function loadRelated() {
       if (!product?.categoryId) return;
@@ -214,7 +229,7 @@ export function ProductDetailView({ slug, initialProduct }: ProductDetailViewPro
     return () => {
       isMounted = false;
     };
-  }, [product?.categoryId, product?.slug]);
+  }, [product?.categoryId, product?.slug, initialRelated]);
 
   if (!product) {
     return (

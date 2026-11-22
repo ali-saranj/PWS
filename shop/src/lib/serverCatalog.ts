@@ -1,3 +1,5 @@
+import { MOCK_CATALOG_PRODUCTS } from './mockProducts';
+
 export interface ProductSummary {
   id: number;
   slug: string;
@@ -333,3 +335,86 @@ export async function fetchSitemapEntries(): Promise<SitemapCatalogEntries> {
     return { products: [], categories: [], brands: [] };
   }
 }
+
+export interface RelatedProductQueryTarget {
+  id?: number;
+  slug: string;
+  categoryId?: number;
+  brandId?: number;
+  brandNameFa?: string;
+}
+
+export async function resolveRelatedProducts(
+  product: RelatedProductQueryTarget,
+  limit: number = 4
+): Promise<ProductSummary[]> {
+  let candidates: ProductSummary[] = [];
+
+  if (product.categoryId) {
+    try {
+      const pageResult = await fetchCatalogProducts({
+        categoryId: product.categoryId,
+        size: 16,
+      });
+      if (pageResult && Array.isArray(pageResult.content) && pageResult.content.length > 0) {
+        candidates = pageResult.content;
+      }
+    } catch {
+      // Fall through to mock fallback
+    }
+  }
+
+  // Filter out the current product
+  let filtered = candidates.filter(
+    (c) => c.slug !== product.slug && (product.id === undefined || c.id !== product.id)
+  );
+
+  // If no candidates from API, use MOCK_CATALOG_PRODUCTS fallback
+  if (filtered.length === 0) {
+    const mockCandidates = MOCK_CATALOG_PRODUCTS.filter(
+      (m) => m.slug !== product.slug && (product.id === undefined || m.id !== product.id)
+    );
+
+    const sameCatMocks = product.categoryId
+      ? mockCandidates.filter((m) => m.categoryId === product.categoryId)
+      : [];
+
+    const mockPool = sameCatMocks.length > 0 ? sameCatMocks : mockCandidates;
+    filtered = mockPool.map((m: any) => ({
+      id: m.id,
+      slug: m.slug,
+      nameFa: m.nameFa,
+      nameEn: m.nameEn,
+      brandId: m.brandId ?? 0,
+      brandNameFa: m.brandNameFa ?? '',
+      categoryId: m.categoryId ?? (product.categoryId ?? 0),
+      categoryNameFa: m.categoryNameFa ?? '',
+      categorySlug: m.categorySlug,
+      thumbnailUrl: m.thumbnailUrl,
+      basePriceRials: (m.priceToman || 0) * 10,
+      priceToman: m.priceToman,
+      compareAtPriceToman: m.compareAtPriceToman ?? undefined,
+      discountPercent: m.discountPercent ?? undefined,
+      inStock: m.inStock ?? true,
+      totalStock: m.totalStock ?? 10,
+      badges: m.badges ?? [],
+    }));
+  }
+
+  // Affinity ranking: prioritize products with same brandId or brandNameFa
+  filtered.sort((a, b) => {
+    const aSameBrand =
+      (product.brandId !== undefined && a.brandId === product.brandId) ||
+      (Boolean(product.brandNameFa) && a.brandNameFa === product.brandNameFa);
+    const bSameBrand =
+      (product.brandId !== undefined && b.brandId === product.brandId) ||
+      (Boolean(product.brandNameFa) && b.brandNameFa === product.brandNameFa);
+
+    if (aSameBrand && !bSameBrand) return -1;
+    if (!aSameBrand && bSameBrand) return 1;
+    return 0;
+  });
+
+  return filtered.slice(0, limit);
+}
+

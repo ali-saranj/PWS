@@ -246,7 +246,7 @@ describe('ProductDetailPage (PDP)', () => {
       'https://proteinirany.ir/products/andre-turkey-ham-90'
     );
     expect(meta.openGraph?.siteName).toBe('پروتئین ایرانی');
-    expect(meta.twitter?.card).toBe('summary_large_image');
+    expect((meta.twitter as any)?.card).toBe('summary_large_image');
   });
 
   it('injects JSON-LD scripts for Product and BreadcrumbList schemas', async () => {
@@ -269,5 +269,30 @@ describe('ProductDetailPage (PDP)', () => {
 
     expect(breadcrumbSchema).toBeDefined();
     expect(breadcrumbSchema.itemListElement.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('renders server-provided related products with real catalog slugs and no fake slugs', async () => {
+    const { container } = render(
+      await ProductDetailPage({ params: Promise.resolve({ slug: 'andre-turkey-ham-90' }) })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/محصولات مشابه/i)).toBeInTheDocument();
+    });
+
+    // Check all links inside the related products section
+    const relatedSection = screen.getByText(/محصولات مشابه/i).closest('section');
+    expect(relatedSection).not.toBeNull();
+
+    // Must NOT contain dummy placeholder slugs
+    const renderedHtml = container.innerHTML;
+    expect(renderedHtml).not.toContain('related-1');
+    expect(renderedHtml).not.toContain('related-2');
+
+    // Must contain real catalog links (such as /product/mikaelian-dry-salami)
+    const links = within(relatedSection!).getAllByRole('link');
+    const hrefs = links.map((l) => l.getAttribute('href'));
+    expect(hrefs.some((h) => h?.includes('/product/'))).toBe(true);
+    expect(hrefs.some((h) => h?.includes('related-1') || h?.includes('related-2'))).toBe(false);
   });
 });

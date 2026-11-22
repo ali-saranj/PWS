@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { BRAND } from '@/config/branding';
-import { fetchProductBySlug } from '@/lib/serverCatalog';
+import { fetchProductBySlug, resolveRelatedProducts } from '@/lib/serverCatalog';
 import { getProductDetailBySlug } from '@/lib/productDetail';
 import { generateProductSchema, generateBreadcrumbsSchema } from '@/lib/jsonLd';
 import { ProductDetailView } from '@/components/product/ProductDetailView';
@@ -90,8 +90,10 @@ export default async function ProductDetailPage({
 
   let productSchema = null;
   let breadcrumbSchema = null;
+  let relatedProducts: any[] = [];
 
   if (product) {
+    relatedProducts = await resolveRelatedProducts(product);
     let rawImages: string[] = [];
     if (Array.isArray(product.images) && product.images.length > 0) {
       rawImages = product.images.map((img: any) =>
@@ -150,7 +152,11 @@ export default async function ProductDetailPage({
           }}
         />
       ) : null}
-      <ProductDetailView slug={slug} initialProduct={product} />
+      <ProductDetailView
+        slug={slug}
+        initialProduct={product}
+        initialRelated={relatedProducts}
+      />
     </>
   );
 }
