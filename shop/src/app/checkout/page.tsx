@@ -215,14 +215,19 @@ export default function CheckoutPage() {
       }
     } catch (err: any) {
       const errorData = err?.data;
+      const fieldMsg = errorData?.errors?.[0]?.message;
+      const validFieldMsg =
+        fieldMsg && fieldMsg !== 'INVALID' && !/^[A-Z_]+$/.test(fieldMsg)
+          ? fieldMsg
+          : null;
       const msg =
-        errorData?.errors?.[0]?.message ||
+        validFieldMsg ||
         errorData?.messages?.fa ||
         (typeof errorData?.message === 'object' && errorData?.message !== null
           ? errorData.message.fa
           : errorData?.message) ||
         errorData?.detail ||
-        err?.message ||
+        (err?.message && !/^[A-Z_]+$/.test(err.message) ? err.message : null) ||
         'خطا در برقراری ارتباط با درگاه پرداخت یا ثبت سفارش.';
       setCheckoutError(msg);
       setIsSubmitting(false);

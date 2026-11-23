@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ir.pws.store.common.web.RequestIdFilter;
+import java.util.List;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,6 +110,16 @@ class ApiExceptionHandlerTest {
         mvc.perform(get("/throw/field"))
                 .andExpect(jsonPath("$.errors[0].message").value(not("Invalid value")))
                 .andExpect(jsonPath("$.errors[0].message").value(not(emptyString())));
+    }
+
+    @Test
+    void gatewayDeactivated_rendersPersianMessage() throws Exception {
+        mvc.perform(get("/throw/gateway-error"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code").value("PAYMENT_GATEWAY_ERROR"))
+                .andExpect(jsonPath("$.messages.fa").value("خطا در برقراری ارتباط با درگاه پرداخت بانکی."))
+                .andExpect(jsonPath("$.errors[0].code").value("GATEWAY_DEACTIVATED"))
+                .andExpect(jsonPath("$.errors[0].message").value("درگاه پرداخت در حال حاضر غیرفعال است."));
     }
 
     @Test
@@ -221,6 +232,13 @@ class ApiExceptionHandlerTest {
         @org.springframework.web.bind.annotation.GetMapping("/field")
         String field() {
             throw ApiException.field("name", "INVALID");
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/gateway-error")
+        String gatewayError() {
+            throw new ApiException(
+                    ErrorCode.PAYMENT_GATEWAY_ERROR,
+                    List.of(new FieldError("gateway", "GATEWAY_DEACTIVATED")));
         }
     }
 }
