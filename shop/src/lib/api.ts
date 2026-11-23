@@ -21,6 +21,9 @@ export async function fetchApi<T = any>(
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
+  if (!headers.has('Accept-Language')) {
+    headers.set('Accept-Language', 'fa');
+  }
 
   const response = await fetch(url, {
     ...options,

@@ -215,14 +215,28 @@ export default function CheckoutPage() {
       }
     } catch (err: any) {
       const errorData = err?.data;
+      const errorCode = errorData?.errors?.[0]?.code || errorData?.code;
+      const knownFaMessages: Record<string, string> = {
+        GATEWAY_DEACTIVATED: 'درگاه پرداخت در حال حاضر غیرفعال است.',
+        GATEWAY_DOMAIN_MISMATCH:
+          'دامنه درگاه پرداخت با تنظیمات بانکی همخوانی ندارد.',
+        PAYMENT_GATEWAY_ERROR:
+          'خطا در برقراری ارتباط با درگاه پرداخت بانکی.',
+        OUT_OF_STOCK: 'موجودی کالای انتخابی به پایان رسیده است.',
+      };
+
       const fieldMsg = errorData?.errors?.[0]?.message;
       const validFieldMsg =
         fieldMsg && fieldMsg !== 'INVALID' && !/^[A-Z_]+$/.test(fieldMsg)
           ? fieldMsg
           : null;
       const msg =
-        validFieldMsg ||
+        (errorCode && knownFaMessages[errorCode]) ||
+        (validFieldMsg && !/^[\x00-\x7F]+$/.test(validFieldMsg)
+          ? validFieldMsg
+          : null) ||
         errorData?.messages?.fa ||
+        validFieldMsg ||
         (typeof errorData?.message === 'object' && errorData?.message !== null
           ? errorData.message.fa
           : errorData?.message) ||
