@@ -265,7 +265,7 @@ describe('CheckoutPage', () => {
     expect(screen.getByText(/ارسال اکسپرس با پیک شهری/i)).toBeInTheDocument();
 
     // Click online payment button
-    const payBtn = screen.getByRole('button', { name: /پرداخت آنلاین با زرین‌پال/i });
+    const payBtn = screen.getByRole('button', { name: /پرداخت آنلاین شاپرک/i });
     expect(payBtn).not.toBeDisabled();
     fireEvent.click(payBtn);
 
@@ -289,6 +289,106 @@ describe('CheckoutPage', () => {
       expect(window.location.href).toBe(
         'https://sandbox.zarinpal.com/pg/StartPay/00000000-0000-0000-0000-000000000001'
       );
+    });
+  });
+
+  it('renders localized error message when checkout fails with gateway error details', async () => {
+    useCartStore.setState({
+      items: [
+        {
+          id: 'item-1',
+          productId: 101,
+          variantId: 201,
+          name: 'ژامبون بوقلمون ۹۰٪',
+          variantName: '۲۵۰ گرم',
+          priceToman: 240000,
+          quantity: 1,
+        },
+      ],
+    });
+
+    useAuthStore.setState({
+      customer: {
+        id: 15,
+        mobile: '09129876543',
+        firstName: 'سارا',
+        lastName: 'کریمی',
+      },
+      isAuthenticated: true,
+      isLoading: false,
+    });
+
+    const mockAddresses = [
+      {
+        id: 101,
+        customerId: 15,
+        province: 'تهران',
+        city: 'تهران',
+        line: 'سعادت‌آباد، بلوار شهرداری، پلاک ۱۲',
+        postalCode: '1998765432',
+        recipientName: 'سارا کریمی',
+        recipientMobile: '09129876543',
+        isDefault: true,
+        createdAt: '2026-10-26T10:00:00Z',
+      },
+    ];
+
+    const problemError = {
+      type: 'https://api.pws.ir/errors/PAYMENT_GATEWAY_ERROR',
+      status: 502,
+      code: 'PAYMENT_GATEWAY_ERROR',
+      messages: {
+        fa: 'خطا در برقراری ارتباط با درگاه پرداخت بانکی.',
+        en: 'Error communicating with the payment gateway.',
+      },
+      errors: [
+        {
+          field: 'gateway',
+          code: 'GATEWAY_DEACTIVATED',
+          message: 'درگاه پرداخت در حال حاضر غیرفعال است.',
+        },
+      ],
+    };
+
+    const fetchMock = vi.fn().mockImplementation((url: string, options?: any) => {
+      if (url.includes('/api/shop/customer/addresses')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve(JSON.stringify(mockAddresses)),
+          json: () => Promise.resolve(mockAddresses),
+        });
+      }
+      if (url.includes('/api/shop/checkout') && options?.method === 'POST') {
+        return Promise.resolve({
+          ok: false,
+          status: 502,
+          statusText: 'Bad Gateway',
+          text: () => Promise.resolve(JSON.stringify(problemError)),
+          json: () => Promise.resolve(problemError),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve('{}'),
+        json: () => Promise.resolve({}),
+      });
+    });
+
+    global.fetch = fetchMock;
+
+    render(<CheckoutPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/سعادت‌آباد، بلوار شهرداری، پلاک ۱۲/i)).toBeInTheDocument();
+    });
+
+    const payBtn = screen.getByRole('button', { name: /پرداخت آنلاین شاپرک/i });
+    fireEvent.click(payBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('درگاه پرداخت در حال حاضر غیرفعال است.')).toBeInTheDocument();
     });
   });
 });

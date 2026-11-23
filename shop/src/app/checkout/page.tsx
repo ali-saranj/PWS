@@ -214,8 +214,14 @@ export default function CheckoutPage() {
         throw new Error('آدرس درگاه پرداخت دریافت نشد.');
       }
     } catch (err: any) {
+      const errorData = err?.data;
       const msg =
-        err?.data?.message ||
+        errorData?.errors?.[0]?.message ||
+        errorData?.messages?.fa ||
+        (typeof errorData?.message === 'object' && errorData?.message !== null
+          ? errorData.message.fa
+          : errorData?.message) ||
+        errorData?.detail ||
         err?.message ||
         'خطا در برقراری ارتباط با درگاه پرداخت یا ثبت سفارش.';
       setCheckoutError(msg);
@@ -667,7 +673,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    <span>پرداخت آنلاین با زرین‌پال</span>
+                    <span>پرداخت آنلاین شاپرک</span>
                   </>
                 )}
               </button>
@@ -680,7 +686,7 @@ export default function CheckoutPage() {
             {/* Security Guarantee badge */}
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 pt-1">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>پرداخت امن و معتبر از طریق درگاه زرین‌پال (شاپرک)</span>
+              <span>پرداخت امن و معتبر از طریق درگاه بانکی (شاپرک)</span>
             </div>
           </div>
         </div>

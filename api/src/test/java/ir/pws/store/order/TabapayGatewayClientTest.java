@@ -105,6 +105,61 @@ class TabapayGatewayClientTest {
     }
 
     @Test
+    @DisplayName("sandbox configuration resolves sandbox baseUrl and fallback paymentUrl")
+    void sandboxMode_configurationChecks() {
+        AppProperties.Tabapay sandboxConfig = new AppProperties.Tabapay(
+                "merchant-uuid",
+                true,
+                "http://localhost:3000/callback",
+                null
+        );
+        AppProperties sandboxProps = new AppProperties(
+                null, null, null, null, null, null,
+                new AppProperties.Payment("TABAPAY"), null, sandboxConfig
+        );
+        TabapayGatewayClient sandboxClient = new TabapayGatewayClient(sandboxProps, Duration.ofSeconds(2));
+        assertThat(sandboxClient.getBaseUrl()).isEqualTo("https://api.tabapay.ir/v1/sandbox");
+
+        AppProperties.Tabapay prodConfig = new AppProperties.Tabapay(
+                "merchant-uuid",
+                false,
+                "http://localhost:3000/callback",
+                null
+        );
+        AppProperties prodProps = new AppProperties(
+                null, null, null, null, null, null,
+                new AppProperties.Payment("TABAPAY"), null, prodConfig
+        );
+        TabapayGatewayClient prodClient = new TabapayGatewayClient(prodProps, Duration.ofSeconds(2));
+        assertThat(prodClient.getBaseUrl()).isEqualTo("https://api.tabapay.ir/v1");
+    }
+
+    @Test
+    @DisplayName("initiatePayment without url in response falls back to sandbox payment URL")
+    void initiatePayment_fallbackUrl_sandbox() {
+        wireMockServer.stubFor(post(urlEqualTo("/v1/create"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "responseCode": 1,
+                                  "status": "success",
+                                  "token": "tok-fallback-123"
+                                }
+                                """)));
+
+        PaymentInitiateResult result = client.initiatePayment(
+                1_000_000L,
+                "Order PI-99",
+                "09123456789",
+                "http://localhost:3000/checkout/callback"
+        );
+
+        assertThat(result.trackingToken()).isEqualTo("tok-fallback-123");
+        assertThat(result.paymentUrl()).isEqualTo("https://api.tabapay.ir/sandbox/pay/tok-fallback-123");
+    }
+
+    @Test
     @DisplayName("initiatePayment with error responseCode throws PAYMENT_GATEWAY_ERROR")
     void initiatePayment_failure_throwsApiException() {
         wireMockServer.stubFor(post(urlEqualTo("/v1/create"))
@@ -126,6 +181,66 @@ class TabapayGatewayClientTest {
         ))
                 .isInstanceOf(ApiException.class)
                 .satisfies(e -> assertThat(((ApiException) e).code()).isEqualTo(ErrorCode.PAYMENT_GATEWAY_ERROR));
+    }
+
+    @Test
+    @DisplayName("initiatePayment with code -29 throws GATEWAY_DEACTIVATED field error")
+    void initiatePayment_gatewayDeactivated_throwsApiExceptionWithDetails() {
+        wireMockServer.stubFor(post(urlEqualTo("/v1/create"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "responseCode": -29,
+                                  "status": "error",
+                                  "message": "درگاه پرداخت غیر فعال شده است"
+                                }
+                                """)));
+
+        assertThatThrownBy(() -> client.initiatePayment(
+                2_430_000L,
+                "Order PI-502",
+                "09136978682",
+                "https://proteinirany.ir/checkout/callback"
+        ))
+                .isInstanceOf(ApiException.class)
+                .satisfies(e -> {
+                    ApiException apiEx = (ApiException) e;
+                    assertThat(apiEx.code()).isEqualTo(ErrorCode.PAYMENT_GATEWAY_ERROR);
+                    assertThat(apiEx.errors()).isNotEmpty();
+                    assertThat(apiEx.errors().get(0).field()).isEqualTo("gateway");
+                    assertThat(apiEx.errors().get(0).code()).isEqualTo("GATEWAY_DEACTIVATED");
+                });
+    }
+
+    @Test
+    @DisplayName("initiatePayment with code -27 throws GATEWAY_DOMAIN_MISMATCH field error")
+    void initiatePayment_domainMismatch_throwsApiExceptionWithDetails() {
+        wireMockServer.stubFor(post(urlEqualTo("/v1/create"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "responseCode": -27,
+                                  "status": "error",
+                                  "message": "دامنه فعلی با دامنه تایید شده تطابق ندارد"
+                                }
+                                """)));
+
+        assertThatThrownBy(() -> client.initiatePayment(
+                2_430_000L,
+                "Order PI-502",
+                "09136978682",
+                "http://localhost:8080/api/shop/payments/callback"
+        ))
+                .isInstanceOf(ApiException.class)
+                .satisfies(e -> {
+                    ApiException apiEx = (ApiException) e;
+                    assertThat(apiEx.code()).isEqualTo(ErrorCode.PAYMENT_GATEWAY_ERROR);
+                    assertThat(apiEx.errors()).isNotEmpty();
+                    assertThat(apiEx.errors().get(0).field()).isEqualTo("gateway");
+                    assertThat(apiEx.errors().get(0).code()).isEqualTo("GATEWAY_DOMAIN_MISMATCH");
+                });
     }
 
     @Test

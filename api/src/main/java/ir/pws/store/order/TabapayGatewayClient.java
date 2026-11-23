@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ir.pws.store.common.error.ApiException;
 import ir.pws.store.common.error.ErrorCode;
+import ir.pws.store.common.error.FieldError;
 import ir.pws.store.config.AppProperties;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,10 @@ public class TabapayGatewayClient implements PaymentGateway {
         }
     }
 
+    String getBaseUrl() {
+        return baseUrl;
+    }
+
     @Override
     public String gatewayName() {
         return "TABAPAY";
@@ -81,6 +87,7 @@ public class TabapayGatewayClient implements PaymentGateway {
             JsonNode root = MAPPER.readTree(responseString);
             int code = root.path("responseCode").asInt(-1);
             String status = root.path("status").asText();
+            String upstreamMessage = root.hasNonNull("message") ? root.path("message").asText() : "";
 
             if (code == 1 && "success".equalsIgnoreCase(status)) {
                 String token = root.path("token").asText();
@@ -88,7 +95,12 @@ public class TabapayGatewayClient implements PaymentGateway {
                 return new PaymentInitiateResult(token, paymentUrl);
             }
 
-            log.warn("Tabapay create returned non-1 code: {} with body: {}", code, responseString);
+            log.warn("Tabapay create returned failure code: {} with message: '{}', body: {}", code, upstreamMessage, responseString);
+            if (code == -29) {
+                throw new ApiException(ErrorCode.PAYMENT_GATEWAY_ERROR, List.of(new FieldError("gateway", "GATEWAY_DEACTIVATED")));
+            } else if (code == -27) {
+                throw new ApiException(ErrorCode.PAYMENT_GATEWAY_ERROR, List.of(new FieldError("gateway", "GATEWAY_DOMAIN_MISMATCH")));
+            }
             throw new ApiException(ErrorCode.PAYMENT_GATEWAY_ERROR);
         } catch (ApiException e) {
             throw e;
