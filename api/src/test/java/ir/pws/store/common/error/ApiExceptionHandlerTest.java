@@ -40,7 +40,7 @@ class ApiExceptionHandlerTest {
         messages.setDefaultEncoding("UTF-8");
         messages.setFallbackToSystemLocale(false);
         ProblemFactory factory = new ProblemFactory(messages, new com.fasterxml.jackson.databind.ObjectMapper());
-        mvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
+        mvc = MockMvcBuilders.standaloneSetup(new ThrowingController(), new ShopThrowingController())
                 .setControllerAdvice(new ApiExceptionHandler(factory))
                 .addFilters(new RequestIdFilter())
                 .build();
@@ -85,6 +85,28 @@ class ApiExceptionHandlerTest {
         mvc.perform(get("/throw/integrity"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void apiException_shopUriDefaultsToPersianEvenWithEnglishAcceptLanguage() throws Exception {
+        mvc.perform(get("/api/shop/throw/gateway-error").header("Accept-Language", "en-US,en;q=0.9"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code").value("PAYMENT_GATEWAY_ERROR"))
+                .andExpect(jsonPath("$.errors[0].field").value("gateway"))
+                .andExpect(jsonPath("$.errors[0].code").value("GATEWAY_DEACTIVATED"))
+                .andExpect(jsonPath("$.errors[0].message").value("درگاه پرداخت در حال حاضر غیرفعال است."))
+                .andExpect(jsonPath("$.errors[0].messages.fa").value("درگاه پرداخت در حال حاضر غیرفعال است."))
+                .andExpect(jsonPath("$.errors[0].messages.en").value("Payment gateway is currently deactivated."));
+    }
+
+    @Test
+    void fieldErrors_containBilingualMessagesMap() throws Exception {
+        mvc.perform(get("/throw/upload").header("Accept-Language", "en"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("file"))
+                .andExpect(jsonPath("$.errors[0].code").value("FILE_TOO_LARGE"))
+                .andExpect(jsonPath("$.errors[0].messages.fa").value(not(emptyString())))
+                .andExpect(jsonPath("$.errors[0].messages.en").value(not(emptyString())));
     }
 
     @Test
@@ -232,6 +254,23 @@ class ApiExceptionHandlerTest {
         @org.springframework.web.bind.annotation.GetMapping("/field")
         String field() {
             throw ApiException.field("name", "INVALID");
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/gateway-error")
+        String gatewayError() {
+            throw new ApiException(
+                    ErrorCode.PAYMENT_GATEWAY_ERROR,
+                    List.of(new FieldError("gateway", "GATEWAY_DEACTIVATED")));
+        }
+    }
+
+    @Controller
+    @RequestMapping("/api/shop/throw")
+    @ResponseBody
+    static class ShopThrowingController {
+        @org.springframework.web.bind.annotation.GetMapping("/not-found")
+        String notFound() {
+            throw new ApiException(ErrorCode.NOT_FOUND);
         }
 
         @org.springframework.web.bind.annotation.GetMapping("/gateway-error")
