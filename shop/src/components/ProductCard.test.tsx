@@ -59,4 +59,12 @@ describe('ProductCard Component', () => {
     expect(items[0].variantId).toBe(101);
     expect(items[0].priceToman).toBe(240000);
   });
+
+  it('links directly to /products/:slug without redirect path', () => {
+    render(<ProductCard product={sampleProduct as any} />);
+
+    const links = screen.getAllByRole('link', { name: /ژامبون بوقلمون دودی/i });
+    expect(links.length).toBeGreaterThan(0);
+    expect(links[0]).toHaveAttribute('href', '/products/smoked-turkey-ham');
+  });
 });

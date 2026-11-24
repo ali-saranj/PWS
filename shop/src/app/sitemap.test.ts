@@ -24,6 +24,14 @@ describe('sitemap metadata route', () => {
     expect(urls).toContain('https://proteinirany.ir/discounts');
     expect(urls).toContain('https://proteinirany.ir/about');
     expect(urls).toContain('https://proteinirany.ir/contact');
+    expect(urls).toContain('https://proteinirany.ir/terms');
+    expect(urls).toContain('https://proteinirany.ir/privacy');
+    expect(urls).toContain('https://proteinirany.ir/returns');
+    expect(urls).toContain('https://proteinirany.ir/faq');
+    expect(urls).toContain('https://proteinirany.ir/how-to-order');
+    expect(urls).toContain('https://proteinirany.ir/payment-methods');
+    expect(urls).toContain('https://proteinirany.ir/shipping');
+    expect(urls).toContain('https://proteinirany.ir/wholesale');
 
     // Dynamic catalog routes (clean 200 OK URLs matching canonicals)
     expect(urls).toContain('https://proteinirany.ir/products/turkey-ham-90');

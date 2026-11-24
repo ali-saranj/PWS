@@ -289,10 +289,10 @@ describe('ProductDetailPage (PDP)', () => {
     expect(renderedHtml).not.toContain('related-1');
     expect(renderedHtml).not.toContain('related-2');
 
-    // Must contain real catalog links (such as /product/mikaelian-dry-salami)
+    // Must contain real catalog links (such as /products/mikaelian-dry-salami)
     const links = within(relatedSection!).getAllByRole('link');
     const hrefs = links.map((l) => l.getAttribute('href'));
-    expect(hrefs.some((h) => h?.includes('/product/'))).toBe(true);
+    expect(hrefs.some((h) => h?.includes('/products/'))).toBe(true);
     expect(hrefs.some((h) => h?.includes('related-1') || h?.includes('related-2'))).toBe(false);
   });
 });

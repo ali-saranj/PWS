@@ -244,5 +244,69 @@ describe('ProductsPage Server Component', () => {
         'https://proteinirany.ir/products?brandSlug=andre'
       );
     });
+
+    it('preserves page query parameter in canonical when page > 0', async () => {
+      const meta = await generateMetadata({
+        searchParams: Promise.resolve({ page: '2' }),
+      });
+      expect(meta.alternates?.canonical).toBe('https://proteinirany.ir/products?page=2');
+    });
+
+    it('preserves page query parameter in canonical for filtered category when page > 0', async () => {
+      vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue({
+        id: 2,
+        slug: 'sausages',
+        nameFa: 'سوسیس و هات‌داگ',
+      } as any);
+
+      const meta = await generateMetadata({
+        searchParams: Promise.resolve({ categorySlug: 'sausages', page: '3' }),
+      });
+      expect(meta.alternates?.canonical).toBe(
+        'https://proteinirany.ir/products?categorySlug=sausages&page=3'
+      );
+    });
+  });
+
+  describe('Semantic H1 Headings', () => {
+    it('renders default semantic h1 heading for unfiltered catalog', async () => {
+      vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        page: 0,
+        size: 24,
+      });
+      vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([]);
+      vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
+
+      const jsx = await ProductsPage({ searchParams: Promise.resolve({}) });
+      render(jsx);
+
+      const h1 = screen.getByRole('heading', { level: 1 });
+      expect(h1).toHaveTextContent('همه محصولات و فرآورده‌های پروتئینی');
+    });
+
+    it('renders category-specific semantic h1 heading when category is selected', async () => {
+      vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        page: 0,
+        size: 24,
+      });
+      vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([
+        { id: 5, nameFa: 'خیارشور و ترشیجات', slug: 'pickles' },
+      ]);
+      vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
+
+      const jsx = await ProductsPage({
+        searchParams: Promise.resolve({ categorySlug: 'pickles' }),
+      });
+      render(jsx);
+
+      const h1 = screen.getByRole('heading', { level: 1 });
+      expect(h1).toHaveTextContent('خرید آنلاین انواع خیارشور و ترشیجات');
+    });
   });
 });

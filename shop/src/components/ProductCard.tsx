@@ -125,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = (props) => {
 
       {/* Product Image & Link */}
       <Link
-        href={`/product/${slug || id}`}
+        href={`/products/${slug || id}`}
         className="block relative w-full aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3 mt-4 focus:outline-none"
       >
         {thumbnailUrl ? (
@@ -182,7 +182,7 @@ export const ProductCard: React.FC<ProductCardProps> = (props) => {
 
           {/* Title in Persian */}
           <Link
-            href={`/product/${slug || id}`}
+            href={`/products/${slug || id}`}
             className="block focus:outline-none group-hover:text-primary transition-colors"
           >
             <h3 className="font-bold text-sm sm:text-base text-gray-800 line-clamp-2 leading-snug min-h-[2.5rem]">

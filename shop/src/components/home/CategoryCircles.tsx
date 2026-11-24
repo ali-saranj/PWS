@@ -150,10 +150,9 @@ export const CategoryCircles: React.FC<CategoryCirclesProps> = ({
             DEFAULT_CATEGORIES[idx % DEFAULT_CATEGORIES.length].color ||
             'bg-emerald-50 text-emerald-600 border-emerald-200/60 group-hover:bg-emerald-500 group-hover:text-white';
 
-          const targetHref =
-            cat.id !== undefined && cat.id !== null
-              ? `/products?categoryId=${cat.id}`
-              : `/products?categorySlug=${cat.slug}`;
+          const targetHref = cat.slug
+            ? `/products?categorySlug=${encodeURIComponent(cat.slug)}`
+            : `/products?categoryId=${cat.id}`;
 
           return (
             <Link

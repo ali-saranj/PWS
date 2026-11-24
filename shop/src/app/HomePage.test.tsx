@@ -48,7 +48,7 @@ describe('HomePage', () => {
     expect(allCategoriesLink).toHaveAttribute('href', '/products');
 
     const sausageCircleLink = screen.getByRole('link', { name: /سوسیس و هات‌داگ/i });
-    expect(sausageCircleLink).toHaveAttribute('href', '/products?categoryId=1');
+    expect(sausageCircleLink).toHaveAttribute('href', '/products?categorySlug=sausage-hotdog');
   });
 
   it('renders promotional tiles with titles, discount badges, and links to /products', () => {

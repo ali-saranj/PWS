@@ -84,9 +84,11 @@ export async function generateMetadata({
     const description = catName
       ? `خرید آنلاین انواع ${catName} با بهترین کیفیت، تاریخ روز و ارسال سریع در ${BRAND.nameFa}`
       : `مشاهده و خرید انواع فرآورده‌های پروتئینی در ${BRAND.nameFa}`;
+    const pageNum = params.page ? Number(params.page) : 0;
+    const pageSuffix = !Number.isNaN(pageNum) && pageNum > 0 ? `&page=${pageNum}` : '';
     const canonical = resolvedSlug
-      ? `${BRAND.domain}/products?categorySlug=${encodeURIComponent(resolvedSlug)}`
-      : `${BRAND.domain}/products`;
+      ? `${BRAND.domain}/products?categorySlug=${encodeURIComponent(resolvedSlug)}${pageSuffix}`
+      : `${BRAND.domain}/products${!Number.isNaN(pageNum) && pageNum > 0 ? `?page=${pageNum}` : ''}`;
 
     return {
       title,
@@ -122,9 +124,11 @@ export async function generateMetadata({
     const description = brandName
       ? `خرید آنلاین انواع محصولات برند معتبر ${brandName} با تضمین اصالت و ارسال فوری در ${BRAND.nameFa}`
       : `مشاهده محصولات برندهای معتبر در ${BRAND.nameFa}`;
+    const pageNum = params.page ? Number(params.page) : 0;
+    const pageSuffix = !Number.isNaN(pageNum) && pageNum > 0 ? `&page=${pageNum}` : '';
     const canonical = resolvedSlug
-      ? `${BRAND.domain}/products?brandSlug=${encodeURIComponent(resolvedSlug)}`
-      : `${BRAND.domain}/products`;
+      ? `${BRAND.domain}/products?brandSlug=${encodeURIComponent(resolvedSlug)}${pageSuffix}`
+      : `${BRAND.domain}/products${!Number.isNaN(pageNum) && pageNum > 0 ? `?page=${pageNum}` : ''}`;
 
     return {
       title,
@@ -136,11 +140,16 @@ export async function generateMetadata({
   }
 
   // 3. Default catalog
+  const rawPage = params.page ? Number(params.page) : 0;
+  const canonical = !Number.isNaN(rawPage) && rawPage > 0
+    ? `${BRAND.domain}/products?page=${rawPage}`
+    : `${BRAND.domain}/products`;
+
   return {
     title: 'همه محصولات و فرآورده‌های پروتئینی',
     description: `فروشگاه آنلاین تخصصی انواع سوسیس، کالباس، فرآورده‌های پروتئینی، پنیرها و چاشنی‌ها با بهترین قیمت و ارسال روز.`,
     alternates: {
-      canonical: `${BRAND.domain}/products`,
+      canonical,
     },
   };
 }
@@ -205,6 +214,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     fetchBrands(),
   ]);
 
+  let pageHeading = 'همه محصولات و فرآورده‌های پروتئینی';
+  let activeFacetName = '';
+
   if (brandId === undefined && brandSlug && brands) {
     const matched = brands.find((b) => b.slug === brandSlug);
     if (matched) {
@@ -216,6 +228,20 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     const matched = categories.find((c) => c.slug === categorySlug);
     if (matched) {
       categoryId = matched.id;
+    }
+  }
+
+  if (categoryId !== undefined && categories) {
+    const matched = categories.find((c) => c.id === categoryId);
+    if (matched) {
+      activeFacetName = matched.nameFa;
+      pageHeading = `خرید آنلاین انواع ${matched.nameFa}`;
+    }
+  } else if (brandId !== undefined && brands) {
+    const matched = brands.find((b) => b.id === brandId);
+    if (matched) {
+      activeFacetName = matched.nameFa;
+      pageHeading = `محصولات برند ${matched.nameFa}`;
     }
   }
 
@@ -260,16 +286,27 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-vazirmatn" dir="rtl">
       {/* Breadcrumb */}
-      <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <nav aria-label="مسیر راهنما" className="flex items-center gap-2 text-sm text-gray-500 mb-4">
         <Link href="/" className="hover:text-primary transition-colors">
           صفحه اصلی
         </Link>
         <span>/</span>
-        <span className="text-gray-900 font-medium">همه محصولات</span>
+        {activeFacetName ? (
+          <>
+            <Link href="/products" className="hover:text-primary transition-colors">
+              همه محصولات
+            </Link>
+            <span>/</span>
+            <span className="text-gray-900 font-medium">{activeFacetName}</span>
+          </>
+        ) : (
+          <span className="text-gray-900 font-medium">همه محصولات</span>
+        )}
       </nav>
 
       {/* Catalog Layout with Filters, Sort and Products */}
       <CatalogFilters
+        title={pageHeading}
         categories={categories}
         brands={brands}
         initialFilters={initialFilters}

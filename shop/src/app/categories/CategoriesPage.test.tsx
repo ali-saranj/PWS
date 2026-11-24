@@ -36,10 +36,10 @@ describe('CategoriesPage', () => {
 
     // Check link targets
     const hotdogLink = screen.getByRole('link', { name: /سوسیس هات‌داگ/i });
-    expect(hotdogLink).toHaveAttribute('href', '/products?categoryId=2');
+    expect(hotdogLink).toHaveAttribute('href', '/products?categorySlug=hotdogs');
 
     const rootLink = screen.getByRole('link', { name: /مشاهده همه محصولات سوسیس و کالباس/i });
-    expect(rootLink).toHaveAttribute('href', '/products?categoryId=1');
+    expect(rootLink).toHaveAttribute('href', '/products?categorySlug=sausages-coldcuts');
   });
 
   it('renders fallback empty state when no categories exist', async () => {

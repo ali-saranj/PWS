@@ -23,6 +23,7 @@ describe('robots metadata route', () => {
         '/auth',
         '/track',
         '/api/',
+        '/search',
       ])
     );
   });
