@@ -4,17 +4,36 @@ import {
   generateWebSiteSchema,
   generateProductSchema,
   generateBreadcrumbsSchema,
+  serializeJsonLd,
 } from './jsonLd';
 
 describe('JSON-LD Schema Builders', () => {
-  it('generates valid Organization schema', () => {
+  it('generates valid Organization schema with bilingual brand and Isfahan address', () => {
     const org = generateOrganizationSchema();
     expect(org['@context']).toBe('https://schema.org');
-    expect(org['@type']).toBe('Organization');
+    expect(org['@type']).toEqual(['Organization', 'GroceryStore']);
+    expect(org['@id']).toBe('https://proteinirany.ir/#organization');
     expect(org.name).toBe('پروتئین ایرانی');
+    expect(org.alternateName).toEqual(['ProteinIrany', 'Protein Irany']);
     expect(org.url).toBe('https://proteinirany.ir');
+    expect(org.logo).toBe('https://proteinirany.ir/images/logo.png');
     expect(org.email).toBe('support@proteinirany.ir');
     expect(org.telephone).toBe('۰۳۱-۳۵۳۲۳۲۴۰');
+    expect(org.address).toEqual({
+      '@type': 'PostalAddress',
+      streetAddress: 'اصفهان، خیابان رهنان، خیابان مطهری، چهارراه طاحونه، دهکده پروتئین',
+      addressLocality: 'Isfahan',
+      addressRegion: 'اصفهان',
+      addressCountry: 'IR',
+    });
+  });
+
+  it('safely serializes JSON-LD escaping HTML tags to prevent XSS and tag injection', () => {
+    const raw = { comment: '</script><script>alert("xss")</script>' };
+    const serialized = serializeJsonLd(raw);
+    expect(serialized).not.toContain('</script>');
+    expect(serialized).toContain('\\u003c/script>');
+    expect(JSON.parse(serialized)).toEqual(raw);
   });
 
   it('generates valid WebSite schema with SearchAction', () => {

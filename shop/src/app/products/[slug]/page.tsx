@@ -3,7 +3,11 @@ import type { Metadata } from 'next';
 import { BRAND } from '@/config/branding';
 import { fetchProductBySlug, resolveRelatedProducts } from '@/lib/serverCatalog';
 import { getProductDetailBySlug } from '@/lib/productDetail';
-import { generateProductSchema, generateBreadcrumbsSchema } from '@/lib/jsonLd';
+import {
+  generateProductSchema,
+  generateBreadcrumbsSchema,
+  serializeJsonLd,
+} from '@/lib/jsonLd';
 import { ProductDetailView } from '@/components/product/ProductDetailView';
 
 interface ProductDetailPageProps {
@@ -140,7 +144,7 @@ export default async function ProductDetailPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(productSchema),
+            __html: serializeJsonLd(productSchema),
           }}
         />
       ) : null}
@@ -148,7 +152,7 @@ export default async function ProductDetailPage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(breadcrumbSchema),
+            __html: serializeJsonLd(breadcrumbSchema),
           }}
         />
       ) : null}

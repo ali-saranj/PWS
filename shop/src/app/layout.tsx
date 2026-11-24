@@ -5,7 +5,11 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { BottomNav } from '@/components/BottomNav';
 import { BRAND } from '@/config/branding';
-import { generateOrganizationSchema, generateWebSiteSchema } from '@/lib/jsonLd';
+import {
+  generateOrganizationSchema,
+  generateWebSiteSchema,
+  serializeJsonLd,
+} from '@/lib/jsonLd';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND.domain),
@@ -54,13 +58,13 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema),
+            __html: serializeJsonLd(organizationSchema),
           }}
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(websiteSchema),
+            __html: serializeJsonLd(websiteSchema),
           }}
         />
         <script

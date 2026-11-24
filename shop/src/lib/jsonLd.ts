@@ -16,22 +16,27 @@ export interface ProductSchemaInput {
   basePriceRials?: number;
 }
 
+export function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, '\\u003c');
+}
+
 export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': ['Organization', 'GroceryStore'],
+    '@id': `${BRAND.domain}/#organization`,
     name: BRAND.nameFa,
-    alternateName: BRAND.nameEn,
+    alternateName: [BRAND.nameEn, BRAND.nameEnSpaced],
     url: BRAND.domain,
-    logo: `${BRAND.domain}/images/logo.png`,
+    logo: BRAND.logoUrl,
     email: BRAND.supportEmail,
     telephone: BRAND.phoneFa,
     address: {
       '@type': 'PostalAddress',
       streetAddress: BRAND.addressFa,
-      addressLocality: BRAND.cityFa,
+      addressLocality: BRAND.cityEn,
       addressRegion: BRAND.provinceFa,
-      addressCountry: 'IR',
+      addressCountry: BRAND.countryEn,
     },
   };
 }
