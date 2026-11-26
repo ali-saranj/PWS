@@ -109,7 +109,7 @@ export const Footer: React.FC = () => {
           {/* Brand Info & Contacts */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 shadow-sm flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-0.5 shadow-sm flex-shrink-0">
                 <img
                   src="/images/logo-emblem.png"
                   alt={BRAND.nameFa}

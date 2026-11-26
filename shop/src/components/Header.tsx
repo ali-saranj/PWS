@@ -203,7 +203,7 @@ export const Header: React.FC = () => {
             href="/"
             className="flex items-center gap-2 sm:gap-2.5 text-decoration-none group flex-shrink-0"
           >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white border border-gray-100 flex items-center justify-center p-1 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
+            <div className="w-11 h-11 sm:w-14 sm:h-14 flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
               <img
                 src="/images/logo-emblem.png"
                 alt={BRAND.nameFa}
@@ -418,7 +418,7 @@ export const Header: React.FC = () => {
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 bg-gray-50/60">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center p-1 shadow-sm flex-shrink-0">
+                <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
                   <img
                     src="/images/logo-emblem.png"
                     alt={BRAND.nameFa}
