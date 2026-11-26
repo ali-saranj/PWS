@@ -105,4 +105,36 @@ class BrandApiTest extends IntegrationTest {
         StaffUser op = adminAuth.createStaff(StaffRole.ORDER_OPERATOR);
         mvc.perform(get("/api/admin/brands").with(adminAuth.staff(op))).andExpect(status().isForbidden());
     }
+
+    @Test
+    void seoFields_persistedAndBlankNormalizedToNull() throws Exception {
+        StaffUser pm = adminAuth.createStaff(StaffRole.PRODUCT_MANAGER);
+        Map<String, Object> req = body("andre");
+        req.put("seoTitle", "  خرید محصولات آندره  ");
+        req.put("seoDescription", "  توضیحات سئو برند  ");
+        req.put("seoH1", "  محصولات برند آندره  ");
+        req.put("seoContentFa", "  معرفی برند آندره  ");
+
+        String res = send(pm, post("/api/admin/brands"), req)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.seoTitle").value("خرید محصولات آندره"))
+                .andExpect(jsonPath("$.seoDescription").value("توضیحات سئو برند"))
+                .andExpect(jsonPath("$.seoH1").value("محصولات برند آندره"))
+                .andExpect(jsonPath("$.seoContentFa").value("معرفی برند آندره"))
+                .andReturn().getResponse().getContentAsString();
+        long id = json.readTree(res).get("id").asLong();
+
+        Map<String, Object> cleared = body("andre");
+        cleared.put("seoTitle", "  ");
+        cleared.put("seoDescription", "");
+        cleared.put("seoH1", " ");
+        cleared.put("seoContentFa", "");
+
+        send(pm, put("/api/admin/brands/" + id), cleared)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seoTitle").doesNotExist())
+                .andExpect(jsonPath("$.seoDescription").doesNotExist())
+                .andExpect(jsonPath("$.seoH1").doesNotExist())
+                .andExpect(jsonPath("$.seoContentFa").doesNotExist());
+    }
 }

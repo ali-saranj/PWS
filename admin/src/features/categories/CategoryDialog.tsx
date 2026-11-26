@@ -9,11 +9,12 @@ import { ApiError } from '../../api/client'
 import type { CategoryDto } from '../../api/types'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { LocalizedNumberField } from '../../components/LocalizedNumberField'
+import { SeoFieldsSection, type SeoFormFields } from '../../components/SeoFieldsSection'
 import { applyFieldErrors } from '../../lib/forms'
 import { SLUG_MAX, SLUG_PATTERN, slugify } from '../../lib/slug'
 import { descendantIds } from './buildTree'
 
-interface FormValues {
+interface FormValues extends SeoFormFields {
   nameFa: string
   nameEn: string
   slug: string
@@ -22,7 +23,7 @@ interface FormValues {
   active: boolean
 }
 
-const FIELDS = ['nameFa', 'nameEn', 'slug', 'parentId', 'sortOrder', 'active']
+const FIELDS = ['nameFa', 'nameEn', 'slug', 'parentId', 'sortOrder', 'active', 'seoTitle', 'seoDescription', 'seoH1', 'seoContentFa']
 
 interface Props {
   /** Category being edited; null creates a new one. */
@@ -48,6 +49,10 @@ export function CategoryDialog({ category, defaultParentId = null, all, onClose 
       parentId: String(category ? (category.parentId ?? '') : (defaultParentId ?? '')),
       sortOrder: category?.sortOrder ?? 0,
       active: category?.active ?? true,
+      seoTitle: category?.seoTitle ?? '',
+      seoDescription: category?.seoDescription ?? '',
+      seoH1: category?.seoH1 ?? '',
+      seoContentFa: category?.seoContentFa ?? '',
     },
   })
 
@@ -65,6 +70,10 @@ export function CategoryDialog({ category, defaultParentId = null, all, onClose 
           parentId: v.parentId ? Number(v.parentId) : null,
           sortOrder: v.sortOrder ?? 0,
           active: v.active,
+          seoTitle: v.seoTitle.trim() || null,
+          seoDescription: v.seoDescription.trim() || null,
+          seoH1: v.seoH1.trim() || null,
+          seoContentFa: v.seoContentFa.trim() || null,
         },
       })
       onClose()
@@ -145,6 +154,7 @@ export function CategoryDialog({ category, defaultParentId = null, all, onClose 
                 />
               )}
             />
+            <SeoFieldsSection register={register} errors={errors} />
           </Stack>
         </DialogContent>
         <DialogActions>

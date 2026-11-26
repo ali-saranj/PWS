@@ -91,6 +91,10 @@ export interface CategoryItem {
   icon?: string;
   parentId?: number;
   sortOrder?: number;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoH1?: string | null;
+  seoContentFa?: string | null;
 }
 
 export interface CategoryDetail extends CategoryItem {
@@ -104,6 +108,10 @@ export interface BrandItem {
   nameEn?: string;
   slug: string;
   logoUrl?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoH1?: string | null;
+  seoContentFa?: string | null;
 }
 
 const API_BASE_URL =

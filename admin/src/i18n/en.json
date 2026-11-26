@@ -59,7 +59,12 @@
     "nameEn": "English name",
     "slug": "Slug",
     "active": "Active",
-    "sortOrder": "Sort order"
+    "sortOrder": "Sort order",
+    "seoSection": "SEO settings (optional)",
+    "seoTitle": "SEO title",
+    "seoDescription": "SEO meta description",
+    "seoH1": "SEO H1 heading",
+    "seoContentFa": "SEO intro copy (Persian)"
   },
   "categories": {
     "title": "Categories",

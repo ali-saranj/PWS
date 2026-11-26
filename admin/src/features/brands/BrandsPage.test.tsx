@@ -90,6 +90,37 @@ describe('BrandsPage', () => {
     expect(await screen.findByText('The file must not exceed 5 MB.')).toBeInTheDocument()
     expect(screen.queryByText('Brand is in use')).not.toBeInTheDocument()
   })
+
+  it('submits optional SEO fields when expanded in BrandDialog', async () => {
+    let submitted: unknown
+    server.use(
+      http.get('/api/admin/brands', () => HttpResponse.json([brand])),
+      http.post('/api/admin/brands', async ({ request }) => {
+        submitted = await request.json()
+        return HttpResponse.json({ ...brand, id: 8, ...(submitted as object) }, { status: 201 })
+      }),
+    )
+    renderRoutes('/brands', owner)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add brand' }))
+    const { within } = await import('@testing-library/react')
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.type(within(dialog).getByLabelText('Persian name'), 'آندره')
+    await userEvent.type(within(dialog).getByLabelText('Slug'), 'andre')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'SEO settings (optional)' }))
+    await userEvent.type(within(dialog).getByLabelText('SEO title'), 'خرید محصولات آندره')
+    await userEvent.type(within(dialog).getByLabelText('SEO meta description'), 'توضیحات برند')
+    await userEvent.type(within(dialog).getByLabelText('SEO H1 heading'), 'برند آندره')
+    await userEvent.type(within(dialog).getByLabelText('SEO intro copy (Persian)'), 'متن برند')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    expect(submitted).toMatchObject({
+      nameFa: 'آندره',
+      slug: 'andre',
+      seoTitle: 'خرید محصولات آندره',
+      seoDescription: 'توضیحات برند',
+      seoH1: 'برند آندره',
+      seoContentFa: 'متن برند',
+    })
+  })
 })
 
 async function vi_waitFor(cond: () => boolean) {

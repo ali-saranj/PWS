@@ -190,4 +190,36 @@ class CategoryApiTest extends IntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("nameFa"));
     }
+
+    @Test
+    void seoFields_persistedAndBlankNormalizedToNull() throws Exception {
+        StaffUser pm = adminAuth.createStaff(StaffRole.PRODUCT_MANAGER);
+        Map<String, Object> req = body(null, "sausages", 1);
+        req.put("seoTitle", "  خرید سوسیس و کالباس  ");
+        req.put("seoDescription", "  توضیحات سئو دسته  ");
+        req.put("seoH1", "  سوسیس و کالباس تازه  ");
+        req.put("seoContentFa", "  متن معرفی دسته‌بندی  ");
+
+        String res = create(pm, req)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.seoTitle").value("خرید سوسیس و کالباس"))
+                .andExpect(jsonPath("$.seoDescription").value("توضیحات سئو دسته"))
+                .andExpect(jsonPath("$.seoH1").value("سوسیس و کالباس تازه"))
+                .andExpect(jsonPath("$.seoContentFa").value("متن معرفی دسته‌بندی"))
+                .andReturn().getResponse().getContentAsString();
+        long id = json.readTree(res).get("id").asLong();
+
+        Map<String, Object> cleared = body(null, "sausages", 1);
+        cleared.put("seoTitle", "   ");
+        cleared.put("seoDescription", "");
+        cleared.put("seoH1", "   ");
+        cleared.put("seoContentFa", "");
+
+        update(pm, id, cleared)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seoTitle").doesNotExist())
+                .andExpect(jsonPath("$.seoDescription").doesNotExist())
+                .andExpect(jsonPath("$.seoH1").doesNotExist())
+                .andExpect(jsonPath("$.seoContentFa").doesNotExist());
+    }
 }

@@ -6,8 +6,8 @@ import { Layers, Percent, Truck, PhoneCall, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'خرید عمده و ساندویچی‌ها',
-  description: `تامین مواد اولیه فست‌فود، ساندویچی‌ها و پیتزافروشی‌ها با تخفیف پلکانی خیارشور دبه‌ای، پنیر و سوسیس در ${BRAND.nameFa}.`,
+  title: 'خرید عمده سوسیس و کالباس و مواد اولیه ساندویچی و فست‌فود',
+  description: `خرید عمده سوسیس و کالباس و تامین مواد اولیه ساندویچی و فست‌فود (خیارشور دبه‌ای، پنیر پیتزا فله، سس گالنی) با تخفیف پلکانی و ارسال فوری در اصفهان از ${BRAND.nameFa}.`,
   alternates: {
     canonical: `${BRAND.domain}/wholesale`,
   },

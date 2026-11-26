@@ -101,7 +101,17 @@ public class PublicCatalogService {
         return new HomeCatalogResponse(catDtos, specialOffers, popularProducts);
     }
 
-    public record PublicBrandDto(long id, String nameFa, String nameEn, String slug, String logoUrl) {}
+    public record PublicBrandDto(
+            long id,
+            String nameFa,
+            String nameEn,
+            String slug,
+            String logoUrl,
+            String seoTitle,
+            String seoDescription,
+            String seoH1,
+            String seoContentFa
+    ) {}
 
     public record PublicCategoryDto(
             long id,
@@ -109,7 +119,11 @@ public class PublicCatalogService {
             String nameEn,
             String slug,
             Long parentId,
-            int sortOrder
+            int sortOrder,
+            String seoTitle,
+            String seoDescription,
+            String seoH1,
+            String seoContentFa
     ) {}
 
     public record PublicCategoryDetailDto(
@@ -119,13 +133,27 @@ public class PublicCatalogService {
             String slug,
             Long parentId,
             int sortOrder,
+            String seoTitle,
+            String seoDescription,
+            String seoH1,
+            String seoContentFa,
             List<CategoryBreadcrumb> breadcrumbs,
             List<PublicCategoryDto> subcategories
     ) {}
 
     private PublicBrandDto toPublicBrandDto(Brand b) {
         String logoUrl = b.getLogoPath() == null ? null : mediaBaseUrl + "/" + b.getLogoPath();
-        return new PublicBrandDto(b.getId(), b.getNameFa(), b.getNameEn(), b.getSlug(), logoUrl);
+        return new PublicBrandDto(
+                b.getId(),
+                b.getNameFa(),
+                b.getNameEn(),
+                b.getSlug(),
+                logoUrl,
+                b.getSeoTitle(),
+                b.getSeoDescription(),
+                b.getSeoH1(),
+                b.getSeoContentFa()
+        );
     }
 
     private PublicCategoryDto toPublicCategoryDto(Category c) {
@@ -135,7 +163,11 @@ public class PublicCatalogService {
                 c.getNameEn(),
                 c.getSlug(),
                 c.getParentId(),
-                c.getSortOrder()
+                c.getSortOrder(),
+                c.getSeoTitle(),
+                c.getSeoDescription(),
+                c.getSeoH1(),
+                c.getSeoContentFa()
         );
     }
 
@@ -166,6 +198,10 @@ public class PublicCatalogService {
                 cat.getSlug(),
                 cat.getParentId(),
                 cat.getSortOrder(),
+                cat.getSeoTitle(),
+                cat.getSeoDescription(),
+                cat.getSeoH1(),
+                cat.getSeoContentFa(),
                 breadcrumbs,
                 subcategories
         );

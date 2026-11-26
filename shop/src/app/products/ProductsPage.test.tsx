@@ -308,5 +308,98 @@ describe('ProductsPage Server Component', () => {
       const h1 = screen.getByRole('heading', { level: 1 });
       expect(h1).toHaveTextContent('خرید آنلاین انواع خیارشور و ترشیجات');
     });
+
+    it('uses custom category seoTitle, seoDescription, seoH1, and renders seoContentFa when configured', async () => {
+      vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue({
+        id: 5,
+        nameFa: 'خیارشور و ترشیجات',
+        slug: 'pickles',
+        seoTitle: 'خرید خیارشور ممتاز در اصفهان',
+        seoDescription: 'توضیحات سئو خیارشور',
+        seoH1: 'خرید خیارشور ممتاز و ویژه ترد',
+        seoContentFa: 'خط اول معرفی خیارشور\nخط دوم معرفی خیارشور',
+        breadcrumbs: [],
+        subcategories: [],
+      });
+      vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        page: 0,
+        size: 24,
+      });
+      vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([
+        {
+          id: 5,
+          nameFa: 'خیارشور و ترشیجات',
+          slug: 'pickles',
+          seoTitle: 'خرید خیارشور ممتاز در اصفهان',
+          seoDescription: 'توضیحات سئو خیارشور',
+          seoH1: 'خرید خیارشور ممتاز و ویژه ترد',
+          seoContentFa: 'خط اول معرفی خیارشور\nخط دوم معرفی خیارشور',
+        },
+      ]);
+      vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
+
+      const meta = await generateMetadata({
+        searchParams: Promise.resolve({ categorySlug: 'pickles' }),
+      });
+      expect(meta.title).toBe('خرید خیارشور ممتاز در اصفهان');
+      expect(meta.description).toBe('توضیحات سئو خیارشور');
+
+      const jsx = await ProductsPage({
+        searchParams: Promise.resolve({ categorySlug: 'pickles' }),
+      });
+      render(jsx);
+
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('خرید خیارشور ممتاز و ویژه ترد');
+      expect(screen.getByText('خط اول معرفی خیارشور')).toBeInTheDocument();
+      expect(screen.getByText('خط دوم معرفی خیارشور')).toBeInTheDocument();
+    });
+
+    it('uses custom brand seoTitle, seoDescription, seoH1, and renders seoContentFa when configured', async () => {
+      vi.mocked(serverCatalog.fetchBrandBySlug).mockResolvedValue({
+        id: 9,
+        nameFa: 'سروش',
+        slug: 'soroush',
+        seoTitle: 'خرید محصولات برند سروش',
+        seoDescription: 'توضیحات سئو برند سروش',
+        seoH1: 'محصولات سوسیس و کالباس سروش',
+        seoContentFa: 'معرفی کامل برند سروش',
+      });
+      vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        page: 0,
+        size: 24,
+      });
+      vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([]);
+      vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([
+        {
+          id: 9,
+          nameFa: 'سروش',
+          slug: 'soroush',
+          seoTitle: 'خرید محصولات برند سروش',
+          seoDescription: 'توضیحات سئو برند سروش',
+          seoH1: 'محصولات سوسیس و کالباس سروش',
+          seoContentFa: 'معرفی کامل برند سروش',
+        },
+      ]);
+
+      const meta = await generateMetadata({
+        searchParams: Promise.resolve({ brandSlug: 'soroush' }),
+      });
+      expect(meta.title).toBe('خرید محصولات برند سروش');
+      expect(meta.description).toBe('توضیحات سئو برند سروش');
+
+      const jsx = await ProductsPage({
+        searchParams: Promise.resolve({ brandSlug: 'soroush' }),
+      });
+      render(jsx);
+
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('محصولات سوسیس و کالباس سروش');
+      expect(screen.getByText('معرفی کامل برند سروش')).toBeInTheDocument();
+    });
   });
 });

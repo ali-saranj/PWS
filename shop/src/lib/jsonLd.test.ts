@@ -14,7 +14,14 @@ describe('JSON-LD Schema Builders', () => {
     expect(org['@type']).toEqual(['Organization', 'GroceryStore']);
     expect(org['@id']).toBe('https://proteinirany.ir/#organization');
     expect(org.name).toBe('پروتئین ایرانی');
-    expect(org.alternateName).toEqual(['ProteinIrany', 'Protein Irany']);
+    expect(org.alternateName).toEqual(['ProteinIrany', 'Protein Irany', 'فروشگاه پروتئینی پروتئین ایرانی']);
+    expect(org.areaServed).toBe('اصفهان');
+    expect(org.openingHoursSpecification).toEqual({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '09:00',
+      closes: '23:00',
+    });
     expect(org.url).toBe('https://proteinirany.ir');
     expect(org.logo).toBe('https://proteinirany.ir/images/logo.png');
     expect(org.email).toBe('support@proteinirany.ir');

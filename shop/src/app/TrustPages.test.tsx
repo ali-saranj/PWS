@@ -72,7 +72,7 @@ describe('Customer Trust & Policy Pages', () => {
     render(<WholesalePage />);
     expect(screen.getByRole('heading', { level: 1, name: /تامین عمده فست‌فودها، پیتزافروشی‌ها و اغذیه‌فروشی‌ها/i })).toBeInTheDocument();
     expect(screen.getByText(/سیستم تخفیف پلکانی خودکار/i)).toBeInTheDocument();
-    expect(wholesaleMeta.title).toBe('خرید عمده و ساندویچی‌ها');
+    expect(wholesaleMeta.title).toBe('خرید عمده سوسیس و کالباس و مواد اولیه ساندویچی و فست‌فود');
     expect(wholesaleMeta.alternates?.canonical).toBe('https://proteinirany.ir/wholesale');
   });
 });

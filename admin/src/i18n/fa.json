@@ -59,7 +59,12 @@
     "nameEn": "نام انگلیسی",
     "slug": "نامک (slug)",
     "active": "فعال",
-    "sortOrder": "ترتیب نمایش"
+    "sortOrder": "ترتیب نمایش",
+    "seoSection": "تنظیمات سئو (اختیاری)",
+    "seoTitle": "عنوان سئو (Title)",
+    "seoDescription": "توضیحات متا (Description)",
+    "seoH1": "تیتر اصلی صفحه (H1)",
+    "seoContentFa": "متن معرفی سئو"
   },
   "categories": {
     "title": "دسته‌بندی‌ها",

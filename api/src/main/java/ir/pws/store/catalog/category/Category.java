@@ -36,6 +36,18 @@ public class Category {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(name = "seo_title", length = 160)
+    private String seoTitle;
+
+    @Column(name = "seo_description", length = 320)
+    private String seoDescription;
+
+    @Column(name = "seo_h1", length = 200)
+    private String seoH1;
+
+    @Column(name = "seo_content_fa", columnDefinition = "TEXT")
+    private String seoContentFa;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -55,6 +67,13 @@ public class Category {
         this.slug = slug;
         this.sortOrder = sortOrder;
         this.active = active;
+    }
+
+    public void updateSeo(String seoTitle, String seoDescription, String seoH1, String seoContentFa) {
+        this.seoTitle = seoTitle;
+        this.seoDescription = seoDescription;
+        this.seoH1 = seoH1;
+        this.seoContentFa = seoContentFa;
     }
 
     @PrePersist
@@ -95,5 +114,21 @@ public class Category {
 
     public boolean isActive() {
         return active;
+    }
+
+    public String getSeoTitle() {
+        return seoTitle;
+    }
+
+    public String getSeoDescription() {
+        return seoDescription;
+    }
+
+    public String getSeoH1() {
+        return seoH1;
+    }
+
+    public String getSeoContentFa() {
+        return seoContentFa;
     }
 }

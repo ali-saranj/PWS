@@ -47,8 +47,13 @@ public class BrandService {
     @Transactional
     public BrandDto create(BrandRequest req) {
         String slug = checkSlug(req.slug(), null);
-        Brand saved = brands.saveAndFlush(
-                new Brand(req.nameFa().trim(), trimToNull(req.nameEn()), slug, req.active()));
+        Brand brand = new Brand(req.nameFa().trim(), trimToNull(req.nameEn()), slug, req.active());
+        brand.updateSeo(
+                trimToNull(req.seoTitle()),
+                trimToNull(req.seoDescription()),
+                trimToNull(req.seoH1()),
+                trimToNull(req.seoContentFa()));
+        Brand saved = brands.saveAndFlush(brand);
         BrandDto dto = toDto(saved);
         audit.record("BRAND_CREATE", ENTITY, saved.getId(), null, dto);
         return dto;
@@ -60,6 +65,11 @@ public class BrandService {
         String slug = checkSlug(req.slug(), id);
         BrandDto before = toDto(brand);
         brand.update(req.nameFa().trim(), trimToNull(req.nameEn()), slug, req.active());
+        brand.updateSeo(
+                trimToNull(req.seoTitle()),
+                trimToNull(req.seoDescription()),
+                trimToNull(req.seoH1()),
+                trimToNull(req.seoContentFa()));
         brands.saveAndFlush(brand);
         BrandDto after = toDto(brand);
         audit.record("BRAND_UPDATE", ENTITY, id, before, after);

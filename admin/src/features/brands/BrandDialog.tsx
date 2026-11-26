@@ -6,17 +6,18 @@ import { useSaveBrand } from '../../api/brands'
 import { ApiError } from '../../api/client'
 import type { BrandDto } from '../../api/types'
 import { ErrorAlert } from '../../components/ErrorAlert'
+import { SeoFieldsSection, type SeoFormFields } from '../../components/SeoFieldsSection'
 import { applyFieldErrors } from '../../lib/forms'
 import { SLUG_MAX, SLUG_PATTERN, slugify } from '../../lib/slug'
 
-interface FormValues {
+interface FormValues extends SeoFormFields {
   nameFa: string
   nameEn: string
   slug: string
   active: boolean
 }
 
-const FIELDS = ['nameFa', 'nameEn', 'slug', 'active']
+const FIELDS = ['nameFa', 'nameEn', 'slug', 'active', 'seoTitle', 'seoDescription', 'seoH1', 'seoContentFa']
 
 /** brand is null when creating. */
 export function BrandDialog({ brand, onClose }: { brand: BrandDto | null; onClose: () => void }) {
@@ -31,6 +32,10 @@ export function BrandDialog({ brand, onClose }: { brand: BrandDto | null; onClos
       nameEn: brand?.nameEn ?? '',
       slug: brand?.slug ?? '',
       active: brand?.active ?? true,
+      seoTitle: brand?.seoTitle ?? '',
+      seoDescription: brand?.seoDescription ?? '',
+      seoH1: brand?.seoH1 ?? '',
+      seoContentFa: brand?.seoContentFa ?? '',
     },
   })
 
@@ -41,7 +46,16 @@ export function BrandDialog({ brand, onClose }: { brand: BrandDto | null; onClos
     try {
       await save.mutateAsync({
         id: brand?.id,
-        body: { nameFa: v.nameFa.trim(), nameEn: v.nameEn.trim() || null, slug: v.slug, active: v.active },
+        body: {
+          nameFa: v.nameFa.trim(),
+          nameEn: v.nameEn.trim() || null,
+          slug: v.slug,
+          active: v.active,
+          seoTitle: v.seoTitle.trim() || null,
+          seoDescription: v.seoDescription.trim() || null,
+          seoH1: v.seoH1.trim() || null,
+          seoContentFa: v.seoContentFa.trim() || null,
+        },
       })
       onClose()
     } catch (e) {
@@ -103,6 +117,7 @@ export function BrandDialog({ brand, onClose }: { brand: BrandDto | null; onClos
                 />
               )}
             />
+            <SeoFieldsSection register={register} errors={errors} />
           </Stack>
         </DialogContent>
         <DialogActions>

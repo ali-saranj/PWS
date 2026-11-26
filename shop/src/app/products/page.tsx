@@ -63,11 +63,15 @@ export async function generateMetadata({
   if (categorySlug || categoryId !== undefined) {
     let catName = '';
     let resolvedSlug = categorySlug;
+    let seoTitle: string | null | undefined;
+    let seoDescription: string | null | undefined;
     if (categorySlug) {
       const cat = await fetchCategoryBySlug(categorySlug);
       if (cat) {
         catName = cat.nameFa;
         resolvedSlug = cat.slug;
+        seoTitle = cat.seoTitle;
+        seoDescription = cat.seoDescription;
       }
     }
     if (!catName && categoryId !== undefined) {
@@ -76,14 +80,18 @@ export async function generateMetadata({
       if (match) {
         catName = match.nameFa;
         resolvedSlug = match.slug;
+        seoTitle = match.seoTitle;
+        seoDescription = match.seoDescription;
       }
     }
-    const title = catName
-      ? `خرید و قیمت انواع ${catName}`
-      : `محصولات دسته‌بندی`;
-    const description = catName
-      ? `خرید آنلاین انواع ${catName} با بهترین کیفیت، تاریخ روز و ارسال سریع در ${BRAND.nameFa}`
-      : `مشاهده و خرید انواع فرآورده‌های پروتئینی در ${BRAND.nameFa}`;
+    const title =
+      seoTitle?.trim() ||
+      (catName ? `خرید و قیمت انواع ${catName}` : `محصولات دسته‌بندی`);
+    const description =
+      seoDescription?.trim() ||
+      (catName
+        ? `خرید آنلاین انواع ${catName} با بهترین کیفیت، تاریخ روز و ارسال سریع در ${BRAND.nameFa}`
+        : `مشاهده و خرید انواع فرآورده‌های پروتئینی در ${BRAND.nameFa}`);
     const pageNum = params.page ? Number(params.page) : 0;
     const pageSuffix = !Number.isNaN(pageNum) && pageNum > 0 ? `&page=${pageNum}` : '';
     const canonical = resolvedSlug
@@ -103,11 +111,15 @@ export async function generateMetadata({
   if (brandSlug || brandId !== undefined) {
     let brandName = '';
     let resolvedSlug = brandSlug;
+    let seoTitle: string | null | undefined;
+    let seoDescription: string | null | undefined;
     if (brandSlug) {
       const b = await fetchBrandBySlug(brandSlug);
       if (b) {
         brandName = b.nameFa;
         resolvedSlug = b.slug;
+        seoTitle = b.seoTitle;
+        seoDescription = b.seoDescription;
       }
     }
     if (!brandName && brandId !== undefined) {
@@ -116,14 +128,18 @@ export async function generateMetadata({
       if (match) {
         brandName = match.nameFa;
         resolvedSlug = match.slug;
+        seoTitle = match.seoTitle;
+        seoDescription = match.seoDescription;
       }
     }
-    const title = brandName
-      ? `محصولات برند ${brandName}`
-      : `محصولات برند`;
-    const description = brandName
-      ? `خرید آنلاین انواع محصولات برند معتبر ${brandName} با تضمین اصالت و ارسال فوری در ${BRAND.nameFa}`
-      : `مشاهده محصولات برندهای معتبر در ${BRAND.nameFa}`;
+    const title =
+      seoTitle?.trim() ||
+      (brandName ? `محصولات برند ${brandName}` : `محصولات برند`);
+    const description =
+      seoDescription?.trim() ||
+      (brandName
+        ? `خرید آنلاین انواع محصولات برند معتبر ${brandName} با تضمین اصالت و ارسال فوری در ${BRAND.nameFa}`
+        : `مشاهده محصولات برندهای معتبر در ${BRAND.nameFa}`);
     const pageNum = params.page ? Number(params.page) : 0;
     const pageSuffix = !Number.isNaN(pageNum) && pageNum > 0 ? `&page=${pageNum}` : '';
     const canonical = resolvedSlug
@@ -231,17 +247,20 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     }
   }
 
+  let seoContentFa: string | null | undefined;
   if (categoryId !== undefined && categories) {
     const matched = categories.find((c) => c.id === categoryId);
     if (matched) {
       activeFacetName = matched.nameFa;
-      pageHeading = `خرید آنلاین انواع ${matched.nameFa}`;
+      pageHeading = matched.seoH1?.trim() || `خرید آنلاین انواع ${matched.nameFa}`;
+      seoContentFa = matched.seoContentFa;
     }
   } else if (brandId !== undefined && brands) {
     const matched = brands.find((b) => b.id === brandId);
     if (matched) {
       activeFacetName = matched.nameFa;
-      pageHeading = `محصولات برند ${matched.nameFa}`;
+      pageHeading = matched.seoH1?.trim() || `محصولات برند ${matched.nameFa}`;
+      seoContentFa = matched.seoContentFa;
     }
   }
 
@@ -337,6 +356,20 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </>
         )}
       </CatalogFilters>
+
+      {seoContentFa?.trim() && (
+        <section className="mt-10 rounded-2xl bg-white border border-gray-100 p-6 shadow-sm space-y-2.5">
+          {seoContentFa
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((paragraph, idx) => (
+              <p key={idx} className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                {paragraph}
+              </p>
+            ))}
+        </section>
+      )}
     </div>
   );
 }

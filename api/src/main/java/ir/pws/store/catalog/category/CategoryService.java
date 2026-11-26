@@ -40,8 +40,13 @@ public class CategoryService {
         String nameFa = req.nameFa().trim();
         String slug = checkSlug(req.slug(), null);
         requireParent(req.parentId());
-        Category saved = categories.saveAndFlush(
-                new Category(req.parentId(), nameFa, trimToNull(req.nameEn()), slug, req.sortOrder(), req.active()));
+        Category category = new Category(req.parentId(), nameFa, trimToNull(req.nameEn()), slug, req.sortOrder(), req.active());
+        category.updateSeo(
+                trimToNull(req.seoTitle()),
+                trimToNull(req.seoDescription()),
+                trimToNull(req.seoH1()),
+                trimToNull(req.seoContentFa()));
+        Category saved = categories.saveAndFlush(category);
         CategoryDto dto = CategoryDto.from(saved);
         audit.record("CATEGORY_CREATE", ENTITY, saved.getId(), null, dto);
         return dto;
@@ -56,6 +61,11 @@ public class CategoryService {
         requireNoCycle(id, req.parentId());
         CategoryDto before = CategoryDto.from(category);
         category.update(req.parentId(), nameFa, trimToNull(req.nameEn()), slug, req.sortOrder(), req.active());
+        category.updateSeo(
+                trimToNull(req.seoTitle()),
+                trimToNull(req.seoDescription()),
+                trimToNull(req.seoH1()),
+                trimToNull(req.seoContentFa()));
         categories.saveAndFlush(category);
         CategoryDto after = CategoryDto.from(category);
         audit.record("CATEGORY_UPDATE", ENTITY, id, before, after);

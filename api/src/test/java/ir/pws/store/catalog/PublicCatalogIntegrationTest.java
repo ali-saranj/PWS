@@ -569,4 +569,34 @@ class PublicCatalogIntegrationTest extends IntegrationTest {
         mvc.perform(get("/api/shop/catalog/categories/inactive"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("Public category and brand endpoints return optional SEO fields")
+    void publicCategoryAndBrandEndpointsReturnSeoFields() throws Exception {
+        jdbc.update(
+                "update category set seo_title = ?, seo_description = ?, seo_h1 = ?, seo_content_fa = ? where id = ?",
+                "تایتل سئو دسته", "توضیحات سئو دسته", "هدینگ سئو دسته", "محتوای سئو دسته", parentCategoryId);
+        jdbc.update(
+                "update brand set seo_title = ?, seo_description = ?, seo_h1 = ?, seo_content_fa = ? where id = ?",
+                "تایتل سئو برند", "توضیحات سئو برند", "هدینگ سئو برند", "محتوای سئو برند", brandId);
+
+        mvc.perform(get("/api/shop/catalog/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].seoTitle").value("تایتل سئو دسته"))
+                .andExpect(jsonPath("$[0].seoH1").value("هدینگ سئو دسته"));
+
+        mvc.perform(get("/api/shop/catalog/categories/supplements"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seoTitle").value("تایتل سئو دسته"))
+                .andExpect(jsonPath("$.seoDescription").value("توضیحات سئو دسته"))
+                .andExpect(jsonPath("$.seoH1").value("هدینگ سئو دسته"))
+                .andExpect(jsonPath("$.seoContentFa").value("محتوای سئو دسته"));
+
+        mvc.perform(get("/api/shop/catalog/brands/kalleh"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seoTitle").value("تایتل سئو برند"))
+                .andExpect(jsonPath("$.seoDescription").value("توضیحات سئو برند"))
+                .andExpect(jsonPath("$.seoH1").value("هدینگ سئو برند"))
+                .andExpect(jsonPath("$.seoContentFa").value("محتوای سئو برند"));
+    }
 }

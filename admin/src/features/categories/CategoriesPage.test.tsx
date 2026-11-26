@@ -85,4 +85,34 @@ describe('CategoriesPage', () => {
     expect(await within(dialog).findByText('This field is required.')).toBeInTheDocument()
     expect(within(dialog).getByText(/lowercase letters/)).toBeInTheDocument()
   })
+
+  it('submits optional SEO fields when expanded in CategoryDialog', async () => {
+    let submitted: unknown
+    server.use(
+      http.get('/api/admin/categories', () => HttpResponse.json(list)),
+      http.post('/api/admin/categories', async ({ request }) => {
+        submitted = await request.json()
+        return HttpResponse.json({ ...cat(3, null, 'سوسیس'), ...(submitted as object) }, { status: 201 })
+      }),
+    )
+    renderRoutes('/categories', owner)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add category' }))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.type(within(dialog).getByLabelText('Persian name'), 'سوسیس')
+    await userEvent.type(within(dialog).getByLabelText('Slug'), 'sausage')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'SEO settings (optional)' }))
+    await userEvent.type(within(dialog).getByLabelText('SEO title'), 'خرید سوسیس')
+    await userEvent.type(within(dialog).getByLabelText('SEO meta description'), 'توضیحات سئو')
+    await userEvent.type(within(dialog).getByLabelText('SEO H1 heading'), 'سوسیس تازه')
+    await userEvent.type(within(dialog).getByLabelText('SEO intro copy (Persian)'), 'متن معرفی')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    expect(submitted).toMatchObject({
+      nameFa: 'سوسیس',
+      slug: 'sausage',
+      seoTitle: 'خرید سوسیس',
+      seoDescription: 'توضیحات سئو',
+      seoH1: 'سوسیس تازه',
+      seoContentFa: 'متن معرفی',
+    })
+  })
 })

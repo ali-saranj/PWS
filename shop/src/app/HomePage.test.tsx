@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import HomePage from './page';
+import HomePage, { metadata } from './page';
 import { useCartStore } from '@/lib/cartStore';
 
 describe('HomePage', () => {
@@ -15,9 +15,9 @@ describe('HomePage', () => {
 
   it('renders hero banner with headline, subtitle, discount pill and CTA', () => {
     render(<HomePage />);
-    expect(
-      screen.getByText(/پروتئین ایرانی \/ مرجع تخصصی سوسیس، کالباس و مزه‌های اصیل در اصفهان/)
-    ).toBeInTheDocument();
+    const h1 = screen.getByRole('heading', { level: 1 });
+    expect(h1).toHaveTextContent('فروشگاه پروتئینی');
+    expect(h1).toHaveTextContent('پروتئین ایرانی');
     expect(
       screen.getByText(/عرضه مستقیم تازه‌ترین سوسیس و ژامبون ممتاز، انواع پنیر پیتزا و گودا، سس‌های خاص، ترشیجات و خیارشور ترد با ارسال سریع در اصفهان/)
     ).toBeInTheDocument();
@@ -25,6 +25,13 @@ describe('HomePage', () => {
     const ctaLink = screen.getByRole('link', { name: /خرید محصولات/i });
     expect(ctaLink).toBeInTheDocument();
     expect(ctaLink).toHaveAttribute('href', '/products');
+  });
+
+  it('renders topical SEO intro section with internal links to categories, brands, wholesale, and shipping', () => {
+    render(<HomePage />);
+    expect(screen.getByRole('link', { name: /خرید عمده سوسیس و کالباس و مواد اولیه فست‌فود/i })).toHaveAttribute('href', '/wholesale');
+    expect(screen.getByRole('link', { name: /ارسال سریع با بسته‌بندی عایق و زنجیره سرد/i })).toHaveAttribute('href', '/shipping');
+    expect(screen.getByRole('link', { name: /مشاهده برندهای معتبر/i })).toHaveAttribute('href', '/brands');
   });
 
   it('renders all category circles with proper labels and links to /products', () => {
@@ -47,7 +54,7 @@ describe('HomePage', () => {
     const allCategoriesLink = screen.getByRole('link', { name: /مشاهده تمام دسته‌ها/i });
     expect(allCategoriesLink).toHaveAttribute('href', '/products');
 
-    const sausageCircleLink = screen.getByRole('link', { name: /سوسیس و هات‌داگ/i });
+    const sausageCircleLink = screen.getByRole('link', { name: /^سوسیس و هات‌داگ$/i });
     expect(sausageCircleLink).toHaveAttribute('href', '/products?categorySlug=sausage-hotdog');
   });
 
@@ -91,5 +98,15 @@ describe('HomePage', () => {
     fireEvent.click(addButtons[0]);
 
     expect(useCartStore.getState().getTotalItems()).toBeGreaterThan(0);
+  });
+
+  it('exports exact SEO title for فروشگاه پروتئینی | پروتئین ایرانی without template duplication', () => {
+    expect(metadata.title).toEqual({
+      absolute: 'فروشگاه پروتئینی | پروتئین ایرانی',
+    });
+    expect(metadata.description).toContain('فروشگاه پروتئینی');
+    expect(metadata.description).toContain('پروتئین ایرانی');
+    expect(metadata.openGraph?.title).toBe('فروشگاه پروتئینی | پروتئین ایرانی');
+    expect(metadata.alternates?.canonical).toBe('https://proteinirany.ir/');
   });
 });

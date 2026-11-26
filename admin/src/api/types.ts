@@ -83,12 +83,20 @@ export interface BrandDto {
   slug: string
   logoUrl: string | null
   active: boolean
+  seoTitle?: string | null
+  seoDescription?: string | null
+  seoH1?: string | null
+  seoContentFa?: string | null
 }
 export interface BrandRequest {
   nameFa: string
   nameEn?: string | null
   slug: string
   active: boolean
+  seoTitle?: string | null
+  seoDescription?: string | null
+  seoH1?: string | null
+  seoContentFa?: string | null
 }
 
 // ---- Categories
@@ -100,6 +108,10 @@ export interface CategoryDto {
   slug: string
   sortOrder: number
   active: boolean
+  seoTitle?: string | null
+  seoDescription?: string | null
+  seoH1?: string | null
+  seoContentFa?: string | null
 }
 export interface CategoryRequest {
   parentId?: number | null
@@ -108,6 +120,10 @@ export interface CategoryRequest {
   slug: string
   sortOrder: number
   active: boolean
+  seoTitle?: string | null
+  seoDescription?: string | null
+  seoH1?: string | null
+  seoContentFa?: string | null
 }
 
 // ---- Images

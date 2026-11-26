@@ -49,7 +49,7 @@ describe('RootLayout Metadata and Structured Data', () => {
     expect(org).toBeDefined();
     expect(org['@id']).toBe('https://proteinirany.ir/#organization');
     expect(org.name).toBe('پروتئین ایرانی');
-    expect(org.alternateName).toEqual(['ProteinIrany', 'Protein Irany']);
+    expect(org.alternateName).toEqual(['ProteinIrany', 'Protein Irany', 'فروشگاه پروتئینی پروتئین ایرانی']);
     expect(org.url).toBe('https://proteinirany.ir');
     expect(org.logo).toBe('https://proteinirany.ir/images/logo.png');
     expect(org.address).toEqual({
