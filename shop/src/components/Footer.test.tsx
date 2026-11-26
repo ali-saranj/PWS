@@ -17,6 +17,14 @@ describe('Footer component', () => {
     expect(screen.getByText(/خیابان رهنان/)).toBeInTheDocument();
   });
 
+  it('renders official brand emblem inside a light badge container', () => {
+    render(<Footer />);
+    const footerLogo = screen.getByTestId('footer-brand-logo');
+    expect(footerLogo).toHaveAttribute('src', '/images/logo-emblem.png');
+    expect(footerLogo).toHaveAttribute('alt', 'پروتئین ایرانی');
+    expect(footerLogo.parentElement).toHaveClass('bg-white');
+  });
+
   it('renders newsletter subscription form', () => {
     render(<Footer />);
     expect(screen.getByPlaceholderText(/شماره موبایل یا ایمیل/)).toBeInTheDocument();

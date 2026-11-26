@@ -47,6 +47,19 @@ describe('Header component', () => {
     );
   });
 
+  it('renders official brand emblem image in header and mobile drawer', () => {
+    render(<Header />);
+    const headerLogo = screen.getByTestId('header-brand-logo');
+    expect(headerLogo).toHaveAttribute('src', '/images/logo-emblem.png');
+    expect(headerLogo).toHaveAttribute('alt', 'پروتئین ایرانی');
+
+    fireEvent.click(screen.getByRole('button', { name: 'منوی سایت' }));
+    const drawer = screen.getByTestId('mobile-drawer');
+    const drawerLogo = within(drawer).getByTestId('drawer-brand-logo');
+    expect(drawerLogo).toHaveAttribute('src', '/images/logo-emblem.png');
+    expect(drawerLogo).toHaveAttribute('alt', 'پروتئین ایرانی');
+  });
+
   it('renders inline search bar that submits query', () => {
     render(<Header />);
     const searchInput = screen.getByPlaceholderText(

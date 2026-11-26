@@ -203,8 +203,13 @@ export const Header: React.FC = () => {
             href="/"
             className="flex items-center gap-2 sm:gap-2.5 text-decoration-none group flex-shrink-0"
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white shadow-md shadow-primary/20 group-hover:scale-105 transition-transform flex-shrink-0">
-              <Store className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white border border-gray-100 flex items-center justify-center p-1 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
+              <img
+                src="/images/logo-emblem.png"
+                alt={BRAND.nameFa}
+                data-testid="header-brand-logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="flex flex-col">
               <span
@@ -413,8 +418,13 @@ export const Header: React.FC = () => {
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 bg-gray-50/60">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center">
-                  <Store className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center p-1 shadow-sm flex-shrink-0">
+                  <img
+                    src="/images/logo-emblem.png"
+                    alt={BRAND.nameFa}
+                    data-testid="drawer-brand-logo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <span className="font-bold text-gray-900 text-sm">
                   منوی {BRAND.nameFa}
