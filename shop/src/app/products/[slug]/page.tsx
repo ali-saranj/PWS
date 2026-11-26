@@ -127,9 +127,13 @@ export default async function ProductDetailPage({
     });
 
     const categoryName = product.categoryNameFa || 'محصولات';
-    const categoryUrl = product.categoryId
-      ? `${BRAND.domain}/products?categoryId=${product.categoryId}`
-      : `${BRAND.domain}/products`;
+    const resolvedCategorySlug =
+      (product as any).categorySlug || (product as any).breadcrumb?.[0]?.slug;
+    const categoryUrl = resolvedCategorySlug
+      ? `${BRAND.domain}/products?categorySlug=${encodeURIComponent(resolvedCategorySlug)}`
+      : product.categoryId
+        ? `${BRAND.domain}/products?categoryId=${product.categoryId}`
+        : `${BRAND.domain}/products`;
 
     breadcrumbSchema = generateBreadcrumbsSchema([
       { name: 'صفحه اصلی', url: BRAND.domain },

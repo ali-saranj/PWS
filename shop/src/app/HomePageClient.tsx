@@ -101,20 +101,24 @@ export default function HomePageClient() {
         </h2>
         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
           فروشگاه پروتئینی پروتئین ایرانی مرجع خرید آنلاین فرآورده‌های پروتئینی تازه در اصفهان است. در کاتالوگ ما می‌توانید برای{' '}
-          <Link href="/products?categorySlug=sausage-hotdog" className="text-primary font-semibold hover:underline">
-            خرید سوسیس و هات‌داگ
+          <Link href="/products?categorySlug=sausages-deli-meats" className="text-primary font-semibold hover:underline">
+            خرید سوسیس، کالباس و ژامبون
           </Link>
           ،{' '}
-          <Link href="/products?categorySlug=ham-coldcuts" className="text-primary font-semibold hover:underline">
-            خرید کالباس، ژامبون و بیکن
-          </Link>
-          ،{' '}
-          <Link href="/products?categorySlug=dairy-cheese" className="text-primary font-semibold hover:underline">
+          <Link href="/products?categorySlug=cheese" className="text-primary font-semibold hover:underline">
             خرید پنیر پیتزا و گودا
+          </Link>
+          ،{' '}
+          <Link href="/products?categorySlug=pickles" className="text-primary font-semibold hover:underline">
+            خرید خیارشور ممتاز
+          </Link>
+          ،{' '}
+          <Link href="/products?categorySlug=pickled-vegetables" className="text-primary font-semibold hover:underline">
+            خرید ترشیجات
           </Link>{' '}
           و{' '}
-          <Link href="/products?categorySlug=pickles" className="text-primary font-semibold hover:underline">
-            خرید خیارشور و ترشیجات
+          <Link href="/products?categorySlug=sauces-condiments" className="text-primary font-semibold hover:underline">
+            خرید سس و چاشنی
           </Link>{' '}
           از بهترین برندها اقدام کنید.
         </p>

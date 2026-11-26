@@ -29,6 +29,11 @@ describe('HomePage', () => {
 
   it('renders topical SEO intro section with internal links to categories, brands, wholesale, and shipping', () => {
     render(<HomePage />);
+    expect(screen.getByRole('link', { name: /خرید سوسیس، کالباس و ژامبون/i })).toHaveAttribute('href', '/products?categorySlug=sausages-deli-meats');
+    expect(screen.getByRole('link', { name: /خرید پنیر پیتزا و گودا/i })).toHaveAttribute('href', '/products?categorySlug=cheese');
+    expect(screen.getByRole('link', { name: /خرید خیارشور ممتاز/i })).toHaveAttribute('href', '/products?categorySlug=pickles');
+    expect(screen.getByRole('link', { name: /خرید ترشیجات/i })).toHaveAttribute('href', '/products?categorySlug=pickled-vegetables');
+    expect(screen.getByRole('link', { name: /خرید سس و چاشنی/i })).toHaveAttribute('href', '/products?categorySlug=sauces-condiments');
     expect(screen.getByRole('link', { name: /خرید عمده سوسیس و کالباس و مواد اولیه فست‌فود/i })).toHaveAttribute('href', '/wholesale');
     expect(screen.getByRole('link', { name: /ارسال سریع با بسته‌بندی عایق و زنجیره سرد/i })).toHaveAttribute('href', '/shipping');
     expect(screen.getByRole('link', { name: /مشاهده برندهای معتبر/i })).toHaveAttribute('href', '/brands');

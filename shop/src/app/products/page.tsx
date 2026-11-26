@@ -276,15 +276,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   const pageUrlPattern = (() => {
     const q = new URLSearchParams();
-    if (categoryId !== undefined) {
+    if (categorySlug) {
+      q.set('categorySlug', categorySlug);
+    } else if (categoryId !== undefined) {
       q.set('categoryId', String(categoryId));
-    } else if (categorySlug) {
-      q.set('categoryId', categorySlug);
     }
-    if (brandId !== undefined) {
-      q.set('brandId', String(brandId));
-    } else if (brandSlug) {
+    if (brandSlug) {
       q.set('brandSlug', brandSlug);
+    } else if (brandId !== undefined) {
+      q.set('brandId', String(brandId));
     }
     if (inStock) q.set('inStock', 'true');
     if (onSale) q.set('onSale', 'true');

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import ProductDetailPage, { generateMetadata } from './[slug]/page';
 import { useCartStore } from '@/lib/cartStore';
+import * as serverCatalog from '@/lib/serverCatalog';
 
 describe('ProductDetailPage (PDP)', () => {
   beforeEach(() => {
@@ -269,6 +270,53 @@ describe('ProductDetailPage (PDP)', () => {
 
     expect(breadcrumbSchema).toBeDefined();
     expect(breadcrumbSchema.itemListElement.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('uses canonical categorySlug in breadcrumb link and BreadcrumbList JSON-LD when available', async () => {
+    vi.spyOn(serverCatalog, 'fetchProductBySlug').mockResolvedValueOnce({
+      id: 99,
+      slug: 'pws-deli-001',
+      nameFa: 'سوسیس آلمانی ۴۰٪',
+      brandId: 14,
+      brandNameFa: 'سروش',
+      categoryId: 9,
+      categoryNameFa: 'سوسیس و کالباس',
+      categorySlug: 'sausages-deli-meats',
+      basePriceRials: 3770000,
+      priceToman: 377000,
+      inStock: true,
+      totalStock: 50,
+      badges: [],
+      breadcrumb: [{ id: 9, nameFa: 'سوسیس و کالباس', slug: 'sausages-deli-meats' }],
+      images: [],
+      variants: [
+        {
+          id: 901,
+          sku: 'DELI-001',
+          priceToman: 377000,
+          stockOnHand: 50,
+          inStock: true,
+          tiers: [],
+        },
+      ],
+    });
+
+    const { container } = render(
+      await ProductDetailPage({ params: Promise.resolve({ slug: 'pws-deli-001' }) })
+    );
+
+    const breadcrumbNav = screen.getByRole('navigation', { name: 'مسیر راهنما' });
+    const catLink = within(breadcrumbNav).getByRole('link', { name: 'سوسیس و کالباس' });
+    expect(catLink).toHaveAttribute('href', '/products?categorySlug=sausages-deli-meats');
+
+    const scriptTags = Array.from(
+      container.querySelectorAll('script[type="application/ld+json"]')
+    );
+    const parsed = scriptTags.map((s) => JSON.parse(s.textContent || '{}'));
+    const breadcrumbSchema = parsed.find((p) => p['@type'] === 'BreadcrumbList');
+    expect(breadcrumbSchema.itemListElement[1].item).toBe(
+      'https://proteinirany.ir/products?categorySlug=sausages-deli-meats'
+    );
   });
 
   it('renders server-provided related products with real catalog slugs and no fake slugs', async () => {

@@ -324,7 +324,13 @@ export function ProductDetailView({
         </Link>
         <ChevronLeft className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
         <Link
-          href={`/products?categoryId=${product.categoryId}`}
+          href={
+            (product as any).categorySlug || (product as any).breadcrumb?.[0]?.slug
+              ? `/products?categorySlug=${encodeURIComponent(
+                  (product as any).categorySlug || (product as any).breadcrumb?.[0]?.slug
+                )}`
+              : `/products?categoryId=${product.categoryId}`
+          }
           className="hover:text-emerald-600 transition-colors"
         >
           {product.categoryNameFa}

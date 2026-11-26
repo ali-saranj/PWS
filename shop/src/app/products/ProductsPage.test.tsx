@@ -401,5 +401,51 @@ describe('ProductsPage Server Component', () => {
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('محصولات سوسیس و کالباس سروش');
       expect(screen.getByText('معرفی کامل برند سروش')).toBeInTheDocument();
     });
+
+    it('preserves categorySlug in pagination links instead of rewriting to categoryId', async () => {
+      vi.mocked(serverCatalog.fetchCategoryBySlug).mockResolvedValue({
+        id: 1,
+        nameFa: 'خیارشور',
+        slug: 'pickles',
+        breadcrumbs: [],
+        subcategories: [],
+      });
+      vi.mocked(serverCatalog.fetchCatalogProducts).mockResolvedValue({
+        content: [
+          {
+            id: 1,
+            slug: 'pws-pkl-001',
+            nameFa: 'خیارشور دبه ممتاز نمکی',
+            brandId: 1,
+            brandNameFa: 'رهنمود',
+            categoryId: 1,
+            categoryNameFa: 'خیارشور',
+            basePriceRials: 14900000,
+            priceToman: 1490000,
+            inStock: true,
+            totalStock: 50,
+            badges: [],
+          },
+        ],
+        totalElements: 48,
+        totalPages: 2,
+        page: 0,
+        size: 24,
+      });
+      vi.mocked(serverCatalog.fetchCategories).mockResolvedValue([
+        { id: 1, nameFa: 'خیارشور', slug: 'pickles' },
+      ]);
+      vi.mocked(serverCatalog.fetchBrands).mockResolvedValue([]);
+
+      const jsx = await ProductsPage({
+        searchParams: Promise.resolve({ categorySlug: 'pickles' }),
+      });
+      render(jsx);
+
+      const page2Link = screen.getByRole('link', { name: /۲/ });
+      const href = page2Link.getAttribute('href') || '';
+      expect(href).toContain('categorySlug=pickles');
+      expect(href).not.toContain('categoryId=');
+    });
   });
 });
